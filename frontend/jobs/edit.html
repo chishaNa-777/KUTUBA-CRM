@@ -1,0 +1,465 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Job | KATUBA CRM</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background: #222;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 25px 15px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #ddd;
+            text-decoration: none;
+            padding: 13px 15px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #961a1a;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .topbar h1 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+            max-width: 900px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            background: white;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #961a1a;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button, .cancel-btn {
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .save-btn {
+            background: #961a1a;
+            color: white;
+        }
+
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .message {
+            display: none;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            display: block;
+            background: #ffe5e5;
+            color: #a00000;
+        }
+
+        .success {
+            display: block;
+            background: #e5f7e9;
+            color: #176b2c;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+            }
+
+            .sidebar h2 {
+                margin-bottom: 15px;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <h2>KATUBA CRM</h2>
+    <a href="../dashboard.html">Dashboard</a>
+    <a href="../clients/index.html">Customers</a>
+    <a href="../workers/index.html">Workers</a>
+    <a href="index.html" class="active">Jobs</a>
+    <a href="../products/index.html">Products</a>
+    <a href="../reports/index.html">Reports</a>
+    <a href="../users/index.html">Users</a>
+</aside>
+
+<main class="main">
+    <header class="topbar">
+        <h1>Edit Job</h1>
+        <p>Update the job details below.</p>
+    </header>
+
+    <section class="card">
+        <div id="message" class="message" role="alert"></div>
+
+        <form id="editJobForm" style="display:none;">
+            <input type="hidden" id="job_id" name="job_id">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="client_id">Customer *</label>
+                    <select id="client_id" name="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="worker_id">Worker</label>
+                    <select id="worker_id" name="worker_id">
+                        <option value="">No worker assigned</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date *</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="schedule">Schedule</label>
+                    <input type="text" id="schedule" name="schedule"
+                           maxlength="120" placeholder="Example: Monday to Friday">
+                </div>
+
+                <div class="form-group">
+                    <label for="monthly_rate">Monthly Rate</label>
+                    <input type="number" id="monthly_rate" name="monthly_rate"
+                           min="0" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes"
+                              placeholder="Enter additional job notes..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    Update Job
+                </button>
+                <a href="index.html" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get("id") || params.get("job_id");
+
+    const form = document.getElementById("editJobForm");
+    const messageBox = document.getElementById("message");
+    const saveBtn = document.getElementById("saveBtn");
+
+    function showMessage(message, type = "error") {
+        messageBox.textContent = message;
+        messageBox.className = "message " + type;
+    }
+
+    async function fetchJSON(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+
+        let data;
+
+        try {
+            data = JSON.parse(text);
+        } catch {
+            throw new Error("The server returned an invalid response. Check the PHP endpoint.");
+        }
+
+        if (!response.ok || data.success !== true) {
+            throw new Error(data.message || "The request failed.");
+        }
+
+        return data;
+    }
+
+    function getList(data, key) {
+        if (Array.isArray(data[key])) return data[key];
+        if (Array.isArray(data.data)) return data.data;
+        return [];
+    }
+
+    async function loadCustomers(selectedId) {
+        const select = document.getElementById("client_id");
+        const data = await fetchJSON("../../backend/clients/get.php");
+        const clients = getList(data, "clients");
+
+        select.innerHTML = '<option value="">Select customer</option>';
+
+        clients.forEach(client => {
+            const id = client.client_id ?? client.id;
+
+            if (id == null) return;
+
+            const option = document.createElement("option");
+            option.value = String(id);
+            option.textContent = client.company_name || client.name || ("Customer #" + id);
+            select.appendChild(option);
+        });
+
+        select.value = String(selectedId ?? "");
+
+        if (selectedId != null && select.value !== String(selectedId)) {
+            throw new Error("The customer assigned to this job was not found.");
+        }
+    }
+
+    async function loadWorkers(selectedId) {
+        const select = document.getElementById("worker_id");
+
+        select.innerHTML = '<option value="">No worker assigned</option>';
+
+        try {
+            const data = await fetchJSON("../../backend/workers/get.php");
+            const workers = getList(data, "workers");
+
+            workers.forEach(worker => {
+                const id = worker.worker_id ?? worker.id;
+
+                if (id == null) return;
+
+                const option = document.createElement("option");
+                option.value = String(id);
+                option.textContent =
+                    worker.full_name || worker.worker_name || worker.name || ("Worker #" + id);
+
+                select.appendChild(option);
+            });
+
+            select.value = selectedId == null ? "" : String(selectedId);
+
+        } catch (error) {
+            console.error("Unable to load workers:", error);
+            select.innerHTML = '<option value="">Worker list unavailable</option>';
+            select.disabled = true;
+        }
+    }
+
+    async function loadJob() {
+        if (!jobId || !/^\d+$/.test(jobId) || Number(jobId) < 1) {
+            showMessage("A valid Job ID is missing from the page URL.");
+            return;
+        }
+
+        try {
+            // This endpoint must return the job using jobs.job_id.
+            const data = await fetchJSON(
+                "../../backend/jobs/edit.php?id=" + encodeURIComponent(jobId)
+            );
+
+            const job = data.job || data.data;
+
+            if (!job) {
+                throw new Error("The job details were not returned by the server.");
+            }
+
+            document.getElementById("job_id").value = job.job_id ?? job.id ?? jobId;
+
+            await Promise.all([
+                loadCustomers(job.client_id),
+                loadWorkers(job.worker_id)
+            ]);
+
+            document.getElementById("start_date").value = job.start_date ?? "";
+            document.getElementById("end_date").value = job.end_date ?? "";
+            document.getElementById("schedule").value = job.schedule ?? "";
+            document.getElementById("monthly_rate").value = job.monthly_rate ?? "0.00";
+            document.getElementById("status").value =
+                String(job.status ?? "active").toLowerCase();
+            document.getElementById("notes").value = job.notes ?? "";
+
+            form.style.display = "block";
+
+        } catch (error) {
+            console.error("Load job error:", error);
+            showMessage(error.message || "Unable to load job details.");
+        }
+    }
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const startDate = document.getElementById("start_date").value;
+        const endDate = document.getElementById("end_date").value;
+
+        if (endDate && endDate < startDate) {
+            showMessage("End date cannot be before the start date.");
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Updating...";
+
+        try {
+            const formData = new FormData(form);
+
+            // The update endpoint expects the job's actual primary key.
+            formData.set("id", document.getElementById("job_id").value);
+
+            const data = await fetchJSON("../../backend/jobs/update.php", {
+                method: "POST",
+                body: formData
+            });
+
+            showMessage(data.message || "Job updated successfully.", "success");
+
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+
+        } catch (error) {
+            console.error("Update job error:", error);
+            showMessage(error.message || "Unable to update the job.");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Update Job";
+        }
+    });
+
+    loadJob();
+</script>
+
+</body>
+</html>

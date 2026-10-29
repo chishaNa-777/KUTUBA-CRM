@@ -1,0 +1,995 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Record Payment</title>
+
+    <style>
+        :root {
+            --red: #961a1a;
+            --red-dark: #751313;
+            --sidebar: #171c26;
+            --background: #f5f6fa;
+            --text: #252a34;
+            --muted: #737b8c;
+            --border: #e8eaf0;
+            --white: #ffffff;
+            --green: #167544;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 245px;
+            height: 100vh;
+            position: fixed;
+            inset: 0 auto 0 0;
+            background: var(--sidebar);
+            color: white;
+            padding: 25px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 0 12px 30px;
+        }
+
+        .brand span {
+            color: #e94b4b;
+        }
+
+        .nav-label {
+            color: #8992a3;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .nav-links a {
+            color: #c8ced8;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: var(--red);
+            color: white;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 12px 0;
+            border-top: 1px solid #343a47;
+            color: #aab1bf;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .main {
+            margin-left: 245px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: 27px;
+            font-weight: 750;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .user-badge {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .panel {
+            max-width: 1000px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(20, 30, 50, .035);
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .panel-header {
+            padding: 22px 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 750;
+        }
+
+        .panel-description {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        .form-body {
+            padding: 25px;
+        }
+
+        .message {
+            display: none;
+            padding: 13px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .message.error {
+            display: block;
+            color: #982020;
+            background: #fdeaea;
+            border: 1px solid #f6cece;
+        }
+
+        .message.success {
+            display: block;
+            color: #176b40;
+            background: #e5f7ed;
+            border: 1px solid #bce7cf;
+        }
+
+        .message.info {
+            display: block;
+            color: #72500a;
+            background: #fff5dc;
+            border: 1px solid #f2dfa8;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .field {
+            min-width: 0;
+        }
+
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: var(--red);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #dfe3eb;
+            border-radius: 8px;
+            padding: 12px 13px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(150, 26, 26, .08);
+        }
+
+        input:disabled,
+        select:disabled {
+            background: #f0f1f5;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .help-text {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 7px;
+            line-height: 1.5;
+        }
+
+        .invoice-summary {
+            grid-column: 1 / -1;
+            background: #fafbfc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+        }
+
+        .invoice-summary.visible {
+            display: block;
+        }
+
+        .summary-heading {
+            font-size: 14px;
+            font-weight: 750;
+            margin-bottom: 15px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .summary-label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .summary-value {
+            font-size: 19px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+
+        .summary-value.balance {
+            color: var(--red);
+        }
+
+        .summary-value.paid {
+            color: var(--green);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--border);
+            margin-top: 25px;
+            padding-top: 22px;
+        }
+
+        .btn {
+            display: inline-block;
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-light {
+            background: #f0f1f5;
+            color: #333b49;
+        }
+
+        .btn-light:hover {
+            background: #e5e7ed;
+        }
+
+        .security-note {
+            max-width: 1000px;
+            padding: 15px 18px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .security-note strong {
+            color: var(--text);
+        }
+
+        @media (max-width: 950px) {
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                margin-left: 210px;
+                padding: 22px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 18px 14px;
+            }
+
+            .brand {
+                padding-bottom: 18px;
+            }
+
+            .nav-links {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .nav-links a {
+                padding: 9px 10px;
+                font-size: 12px;
+            }
+
+            .sidebar-footer {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 14px;
+            }
+
+            .page-title {
+                font-size: 23px;
+            }
+
+            .form-body,
+            .panel-header {
+                padding: 18px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .field.full-width,
+            .invoice-summary {
+                grid-column: auto;
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+            }
+
+            .user-badge {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="brand">KATUBA <span>CRM</span></div>
+
+        <div class="nav-label">MAIN MENU</div>
+
+        <nav class="nav-links">
+            <a href="../dashboard.html">Dashboard</a>
+            <a href="../clients/index.html">Customers</a>
+            <a href="../workers/index.html">Workers</a>
+            <a href="../jobs/index.html">Jobs</a>
+            <a href="../products/index.html">Products</a>
+            <a href="invoices.html" class="active">Invoices</a>
+            <a href="../reports/index.html">Reports</a>
+            <a href="../users/index.html">Users</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            KATUBA CRM<br>
+            Invoice &amp; Billing Management
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h1 class="page-title">Record Payment</h1>
+                <p class="subtitle">
+                    Record a customer payment against an existing invoice.
+                </p>
+            </div>
+
+            <div class="user-badge">Payment Management</div>
+        </header>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Payment Details</h2>
+                <p class="panel-description">
+                    Select an invoice and enter the payment information below.
+                    Required fields are marked with an asterisk.
+                </p>
+            </div>
+
+            <div class="form-body">
+                <div id="formMessage" class="message" role="alert" aria-live="polite"></div>
+
+                <form id="paymentForm">
+                    <div class="form-grid">
+                        <div class="field full-width">
+                            <label for="invoice_id">
+                                Invoice <span class="required">*</span>
+                            </label>
+
+                            <select id="invoice_id" name="invoice_id" required>
+                                <option value="">Loading invoices...</option>
+                            </select>
+
+                            <p class="help-text" id="invoiceHelp">
+                                Invoice information will appear after selection.
+                            </p>
+                        </div>
+
+                        <div class="invoice-summary" id="invoiceSummary">
+                            <h3 class="summary-heading" id="summaryInvoiceNumber">
+                                Selected Invoice
+                            </h3>
+
+                            <div class="summary-grid">
+                                <div>
+                                    <div class="summary-label">Invoice Amount</div>
+                                    <div class="summary-value" id="summaryAmount">—</div>
+                                </div>
+
+                                <div>
+                                    <div class="summary-label">Already Paid</div>
+                                    <div class="summary-value paid" id="summaryPaid">—</div>
+                                </div>
+
+                                <div>
+                                    <div class="summary-label">Outstanding Balance</div>
+                                    <div class="summary-value balance" id="summaryBalance">—</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="amount">
+                                Payment Amount <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="number"
+                                id="amount"
+                                name="amount"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Enter amount"
+                                required
+                                disabled>
+
+                            <p class="help-text" id="amountHelp">
+                                Select an invoice before entering an amount.
+                            </p>
+                        </div>
+
+                        <div class="field">
+                            <label for="payment_date">
+                                Payment Date <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="date"
+                                id="payment_date"
+                                name="payment_date"
+                                required>
+                        </div>
+
+                        <div class="field">
+                            <label for="method">
+                                Payment Method <span class="required">*</span>
+                            </label>
+
+                            <select id="method" name="method" required>
+                                <option value="">Select payment method</option>
+                                <option value="cash">Cash</option>
+                                <option value="airtel_money">Airtel Money</option>
+                                <option value="mtn_money">MTN Money</option>
+                                <option value="bank">Bank Transfer</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="type">
+                                Payment Type <span class="required">*</span>
+                            </label>
+
+                            <select id="type" name="type" required>
+                                <option value="monthly">Monthly Payment</option>
+                                <option value="prepayment">Prepayment</option>
+                                <option value="adjustment">Adjustment</option>
+                            </select>
+                        </div>
+
+                        <div class="field full-width">
+                            <label for="reference">Transaction Reference</label>
+
+                            <input
+                                type="text"
+                                id="reference"
+                                name="reference"
+                                maxlength="100"
+                                placeholder="e.g. transaction or receipt number">
+
+                            <p class="help-text">
+                                Optional. Enter a receipt number or mobile-money/bank reference if available.
+                            </p>
+                        </div>
+
+                        <div class="field full-width">
+                            <label for="notes">Notes</label>
+
+                            <textarea
+                                id="notes"
+                                name="notes"
+                                placeholder="Optional payment notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="invoices.html" class="btn btn-light">
+                            Cancel
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="submitBtn"
+                            disabled>
+                            Record Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <div class="security-note">
+            <strong>Payment safety:</strong>
+            The server checks the invoice balance again before saving.
+            A successful payment updates the invoice and payment record together.
+            Do not submit a payment twice if the result is unclear; check the invoice register first.
+        </div>
+    </main>
+
+    <script>
+        const INVOICES_API = "../../backend/invoices/get.php";
+        const PAYMENT_API = "../../backend/payments/add.php";
+
+        const form = document.getElementById("paymentForm");
+        const invoiceSelect = document.getElementById("invoice_id");
+        const amountInput = document.getElementById("amount");
+        const dateInput = document.getElementById("payment_date");
+        const submitBtn = document.getElementById("submitBtn");
+        const messageBox = document.getElementById("formMessage");
+        const invoiceSummary = document.getElementById("invoiceSummary");
+        const invoiceHelp = document.getElementById("invoiceHelp");
+        const amountHelp = document.getElementById("amountHelp");
+
+        let invoices = [];
+        let selectedInvoice = null;
+        let isSubmitting = false;
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[character]);
+        }
+
+        function money(value) {
+            const number = Number(value);
+
+            return Number.isFinite(number)
+                ? number.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })
+                : "0.00";
+        }
+
+        function balanceOf(invoice) {
+            return Math.max(
+                0,
+                Number(invoice.amount || 0) -
+                Number(invoice.amount_paid || 0)
+            );
+        }
+
+        function showMessage(text, type = "error") {
+            messageBox.textContent = text;
+            messageBox.className = `message ${type}`;
+        }
+
+        function clearMessage() {
+            messageBox.textContent = "";
+            messageBox.className = "message";
+        }
+
+        function updateInvoiceSummary() {
+            const invoiceId = Number(invoiceSelect.value);
+
+            selectedInvoice = invoices.find(
+                invoice => Number(invoice.invoice_id) === invoiceId
+            ) || null;
+
+            if (!selectedInvoice) {
+                invoiceSummary.classList.remove("visible");
+                amountInput.value = "";
+                amountInput.disabled = true;
+                amountInput.removeAttribute("max");
+                amountHelp.textContent = "Select an invoice before entering an amount.";
+                submitBtn.disabled = true;
+                return;
+            }
+
+            const amount = Number(selectedInvoice.amount || 0);
+            const paid = Number(selectedInvoice.amount_paid || 0);
+            const balance = balanceOf(selectedInvoice);
+            const status = String(selectedInvoice.status || "").toLowerCase();
+            const unavailable = status === "cancelled" || balance <= 0;
+
+            document.getElementById("summaryInvoiceNumber").textContent =
+                `${selectedInvoice.invoice_number || "Invoice"} — ${selectedInvoice.customer_name || "Customer"}`;
+
+            document.getElementById("summaryAmount").textContent = money(amount);
+            document.getElementById("summaryPaid").textContent = money(paid);
+            document.getElementById("summaryBalance").textContent = money(balance);
+
+            invoiceSummary.classList.add("visible");
+
+            amountInput.disabled = unavailable;
+            amountInput.max = balance.toFixed(2);
+
+            if (unavailable) {
+                amountInput.value = "";
+                amountHelp.textContent = status === "cancelled"
+                    ? "This invoice is cancelled and cannot receive payments."
+                    : "This invoice has no outstanding balance.";
+                submitBtn.disabled = true;
+            } else {
+                amountHelp.textContent =
+                    `Maximum payment for this invoice: ${money(balance)}.`;
+
+                if (Number(amountInput.value) > balance) {
+                    amountInput.value = balance.toFixed(2);
+                }
+
+                submitBtn.disabled = isSubmitting;
+            }
+
+            invoiceHelp.textContent =
+                `Customer: ${selectedInvoice.customer_name || "Unknown"} · Status: ${status || "unknown"}`;
+        }
+
+        async function loadInvoices() {
+            invoiceSelect.disabled = true;
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(INVOICES_API, {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok ||
+                    data.success !== true ||
+                    !Array.isArray(data.invoices)) {
+                    throw new Error(data.message || "Unable to load invoices.");
+                }
+
+                invoices = data.invoices;
+
+                const requestedId = new URLSearchParams(
+                    window.location.search
+                ).get("id");
+
+                const options = invoices.map(invoice => {
+                    const id = Number(invoice.invoice_id);
+                    const balance = balanceOf(invoice);
+                    const status = String(invoice.status || "").toLowerCase();
+                    const unavailable = status === "cancelled" || balance <= 0;
+
+                    const label =
+                        `${invoice.invoice_number} — ${invoice.customer_name}` +
+                        ` — Balance: ${money(balance)}` +
+                        (unavailable ? ` (${status === "cancelled" ? "Cancelled" : "Fully paid"})` : "");
+
+                    return {
+                        id,
+                        label,
+                        unavailable
+                    };
+                });
+
+                invoiceSelect.innerHTML =
+                    '<option value="">Select an invoice</option>' +
+                    options.map(option => `
+                        <option
+                            value="${option.id}"
+                            ${option.unavailable ? "disabled" : ""}
+                            ${requestedId && Number(requestedId) === option.id ? "selected" : ""}>
+                            ${escapeHTML(option.label)}
+                        </option>
+                    `).join("");
+
+                invoiceSelect.disabled = false;
+
+                if (requestedId && !invoices.some(
+                    invoice => Number(invoice.invoice_id) === Number(requestedId)
+                )) {
+                    showMessage(
+                        "The requested invoice could not be found. Please select an invoice from the list.",
+                        "info"
+                    );
+                }
+
+                updateInvoiceSummary();
+
+                if (invoices.length === 0) {
+                    showMessage("No invoices are available. Create an invoice first.", "info");
+                }
+
+            } catch (error) {
+                console.error("Invoice loading error:", error);
+
+                invoiceSelect.innerHTML =
+                    '<option value="">Unable to load invoices</option>';
+
+                invoiceSelect.disabled = true;
+
+                showMessage(
+                    "Could not load invoices. Check that Apache and MySQL are running, then refresh this page.",
+                    "error"
+                );
+            }
+        }
+
+        invoiceSelect.addEventListener("change", () => {
+            clearMessage();
+            updateInvoiceSummary();
+        });
+
+        amountInput.addEventListener("input", () => {
+            clearMessage();
+
+            if (!selectedInvoice) return;
+
+            const amount = Number(amountInput.value);
+            const balance = balanceOf(selectedInvoice);
+
+            if (amount > balance) {
+                amountInput.setCustomValidity(
+                    `The payment cannot exceed the outstanding balance of ${money(balance)}.`
+                );
+            } else {
+                amountInput.setCustomValidity("");
+            }
+        });
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            clearMessage();
+
+            if (isSubmitting) return;
+
+            if (!selectedInvoice) {
+                showMessage("Please select an invoice.");
+                return;
+            }
+
+            const paymentAmount = Number(amountInput.value);
+            const balance = balanceOf(selectedInvoice);
+
+            if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+                showMessage("Enter a valid payment amount greater than zero.");
+                amountInput.focus();
+                return;
+            }
+
+            if (paymentAmount > balance) {
+                showMessage(`The payment cannot exceed the outstanding balance of ${money(balance)}.`);
+                amountInput.focus();
+                return;
+            }
+
+            if (!form.reportValidity()) return;
+
+            const confirmed = window.confirm(
+                `Record a payment of ${money(paymentAmount)} against ` +
+                `${selectedInvoice.invoice_number}?\n\n` +
+                "Please make sure the amount and invoice are correct."
+            );
+
+            if (!confirmed) return;
+
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Recording...";
+
+            try {
+                const formData = new FormData(form);
+
+                const response = await fetch(PAYMENT_API, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    body: formData,
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.success !== true) {
+                    throw new Error(
+                        data.message || "The payment could not be recorded."
+                    );
+                }
+
+                showMessage(
+                    `${data.message} Invoice: ${selectedInvoice.invoice_number}. ` +
+                    `Total paid: ${money(data.amount_paid)}. ` +
+                    `Remaining balance: ${money(data.balance)}. Status: ${data.status}.`,
+                    "success"
+                );
+
+                form.reset();
+
+                const today = new Date();
+                dateInput.value = [
+                    today.getFullYear(),
+                    String(today.getMonth() + 1).padStart(2, "0"),
+                    String(today.getDate()).padStart(2, "0")
+                ].join("-");
+
+                invoiceSummary.classList.remove("visible");
+                selectedInvoice = null;
+                amountInput.disabled = true;
+                amountInput.value = "";
+                invoiceSelect.value = "";
+
+                await loadInvoices();
+
+                submitBtn.textContent = "Payment Recorded";
+
+                window.setTimeout(() => {
+                    window.location.href = "invoices.html";
+                }, 1800);
+
+            } catch (error) {
+                console.error("Payment submission error:", error);
+
+                showMessage(
+                    error.message ||
+                    "An error occurred while recording the payment. Check the invoice register before trying again."
+                );
+
+                isSubmitting = false;
+                submitBtn.disabled = !selectedInvoice ||
+                    balanceOf(selectedInvoice) <= 0 ||
+                    String(selectedInvoice.status).toLowerCase() === "cancelled";
+
+                submitBtn.textContent = "Record Payment";
+
+            } finally {
+                if (isSubmitting) {
+                    // Keep the button disabled while the successful redirect is pending.
+                    submitBtn.disabled = true;
+                }
+            }
+        });
+
+        const today = new Date();
+
+        dateInput.value = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, "0"),
+            String(today.getDate()).padStart(2, "0")
+        ].join("-");
+
+        loadInvoices();
+    </script>
+</body>
+</html>

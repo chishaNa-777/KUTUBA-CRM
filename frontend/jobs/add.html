@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Add Job</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+        }
+
+        .container {
+            width: 600px;
+            max-width: 90%;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .buttons {
+            margin-top: 25px;
+        }
+
+        button, .back {
+            display: inline-block;
+            padding: 11px 18px;
+            border-radius: 5px;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button {
+            background: #961a1a;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back {
+            background: #6b7280;
+            color: white;
+            margin-left: 8px;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .topbar {
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <h2>KATUBA CRM</h2>
+    </div>
+
+    <div class="container">
+        <h1>Add Job</h1>
+        <p>Create a new job for a client.</p>
+
+        <form id="jobForm">
+            <label for="client_id">Client *</label>
+            <select id="client_id" name="client_id" required disabled>
+                <option value="">Loading clients...</option>
+            </select>
+
+            <label for="worker_id">Worker</label>
+            <select id="worker_id" name="worker_id" disabled>
+                <option value="">Loading workers...</option>
+            </select>
+
+            <label for="start_date">Start Date *</label>
+            <input type="date" id="start_date" name="start_date" required>
+
+            <label for="end_date">End Date</label>
+            <input type="date" id="end_date" name="end_date">
+
+            <label for="schedule">Schedule</label>
+            <input
+                type="text"
+                id="schedule"
+                name="schedule"
+                maxlength="120"
+                placeholder="Example: Monday to Friday"
+            >
+
+            <label for="monthly_rate">Monthly Rate</label>
+            <input
+                type="number"
+                id="monthly_rate"
+                name="monthly_rate"
+                min="0"
+                step="0.01"
+                value="0.00"
+                required
+            >
+
+            <label for="status">Status</label>
+            <select id="status" name="status" required>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+
+            <label for="notes">Notes</label>
+            <textarea
+                id="notes"
+                name="notes"
+                placeholder="Enter additional job notes..."
+            ></textarea>
+
+            <div class="buttons">
+                <button type="submit" id="saveJobBtn" disabled>
+                    Save Job
+                </button>
+
+                <a href="index.html" class="back">Cancel</a>
+            </div>
+        </form>
+
+        <div id="message" role="status" aria-live="polite"></div>
+    </div>
+
+    <script>
+        const jobForm = document.getElementById("jobForm");
+        const clientSelect = document.getElementById("client_id");
+        const workerSelect = document.getElementById("worker_id");
+        const saveButton = document.getElementById("saveJobBtn");
+        const message = document.getElementById("message");
+
+        let clientsLoaded = false;
+        let workersLoaded = false;
+
+        function showMessage(text, success = false) {
+            message.textContent = text;
+            message.style.color = success ? "#166534" : "#991b1b";
+        }
+
+        function updateSaveButton() {
+            saveButton.disabled = !(clientsLoaded && workersLoaded);
+        }
+
+        async function fetchJson(url, description) {
+            const response = await fetch(url, {
+                cache: "no-store"
+            });
+
+            const text = await response.text();
+            console.log(description + " response:", text);
+
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(
+                    description + " returned invalid JSON. Check its PHP endpoint."
+                );
+            }
+
+            if (!response.ok || data.success !== true) {
+                throw new Error(
+                    data.message || "Unable to load " + description + "."
+                );
+            }
+
+            return data;
+        }
+
+        async function loadClients() {
+            try {
+                const data = await fetchJson(
+                    "../../backend/clients/get.php",
+                    "Clients"
+                );
+
+                const clients = Array.isArray(data.clients)
+                    ? data.clients
+                    : Array.isArray(data.data)
+                        ? data.data
+                        : null;
+
+                if (!clients) {
+                    throw new Error(
+                        "The clients endpoint did not return a clients list."
+                    );
+                }
+
+                clientSelect.innerHTML =
+                    '<option value="">Select Client</option>';
+
+                clients.forEach(client => {
+                    // Your actual clients primary key is client_id.
+                    const id = client.client_id;
+
+                    if (id === undefined || id === null) {
+                        console.error("Client has no client_id:", client);
+                        return;
+                    }
+
+                    const option = document.createElement("option");
+                    option.value = String(id);
+                    option.textContent =
+                        client.company_name || "Client #" + id;
+
+                    clientSelect.appendChild(option);
+                });
+
+                if (clientSelect.options.length <= 1) {
+                    throw new Error(
+                        "No clients with valid client IDs were returned."
+                    );
+                }
+
+                clientsLoaded = true;
+                clientSelect.disabled = false;
+                updateSaveButton();
+
+            } catch (error) {
+                console.error("Load clients error:", error);
+                clientSelect.innerHTML =
+                    '<option value="">Unable to load clients</option>';
+                showMessage(error.message);
+            }
+        }
+
+        async function loadWorkers() {
+            try {
+                const data = await fetchJson(
+                    "../../backend/workers/get.php",
+                    "Workers"
+                );
+
+                const workers = Array.isArray(data.workers)
+                    ? data.workers
+                    : Array.isArray(data.data)
+                        ? data.data
+                        : null;
+
+                if (!workers) {
+                    throw new Error(
+                        "The workers endpoint did not return a workers list."
+                    );
+                }
+
+                workerSelect.innerHTML =
+                    '<option value="">No worker assigned</option>';
+
+                workers.forEach(worker => {
+                    // Support common worker ID field names.
+                    const id = worker.id ?? worker.worker_id;
+
+                    if (id === undefined || id === null) {
+                        console.error("Worker has no ID:", worker);
+                        return;
+                    }
+
+                    const option = document.createElement("option");
+                    option.value = String(id);
+                    option.textContent =
+                        worker.full_name ||
+                        worker.worker_name ||
+                        worker.name ||
+                        ("Worker #" + id);
+
+                    workerSelect.appendChild(option);
+                });
+
+                workersLoaded = true;
+                workerSelect.disabled = false;
+                updateSaveButton();
+
+            } catch (error) {
+                console.error("Load workers error:", error);
+                workerSelect.innerHTML =
+                    '<option value="">Workers unavailable</option>';
+
+                // Allow job creation without assigning a worker.
+                workersLoaded = true;
+                workerSelect.disabled = true;
+                updateSaveButton();
+            }
+        }
+
+        jobForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const clientId = clientSelect.value;
+
+            if (!clientId) {
+                showMessage("Please select a client.");
+                return;
+            }
+
+            const startDate = document.getElementById("start_date").value;
+            const endDate = document.getElementById("end_date").value;
+            const rate = document.getElementById("monthly_rate").value;
+
+            if (!startDate) {
+                showMessage("Please select a start date.");
+                return;
+            }
+
+            if (endDate && endDate < startDate) {
+                showMessage("End date cannot be before the start date.");
+                return;
+            }
+
+            if (rate === "" || !Number.isFinite(Number(rate)) ||
+                Number(rate) < 0) {
+                showMessage("Please enter a valid monthly rate.");
+                return;
+            }
+
+            const formData = new FormData(jobForm);
+
+            // Send a blank worker ID when no worker is assigned.
+            if (!workerSelect.value) {
+                formData.set("worker_id", "");
+            }
+
+            saveButton.disabled = true;
+            showMessage("Saving job...", true);
+
+            try {
+                const response = await fetch(
+                    "../../backend/jobs/add.php",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                const responseText = await response.text();
+                console.log("Add job response:", responseText);
+
+                let data;
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    throw new Error(
+                        "The server returned invalid JSON. Check backend/jobs/add.php."
+                    );
+                }
+
+                if (!response.ok || data.success !== true) {
+                    throw new Error(data.message || "Failed to save job.");
+                }
+
+                showMessage("Job added successfully!", true);
+                jobForm.reset();
+
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1000);
+
+            } catch (error) {
+                console.error("Add job error:", error);
+                showMessage(error.message);
+            } finally {
+                updateSaveButton();
+            }
+        });
+
+        loadClients();
+        loadWorkers();
+    </script>
+</body>
+</html>

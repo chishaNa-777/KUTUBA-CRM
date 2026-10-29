@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KATUBA CRM - View Worker</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn,
+        .print-btn {
+            border: none;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            background: #1f2937;
+        }
+
+        .print-btn {
+            background: #15803d;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        /* Worker photo */
+        .photo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .worker-photo {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #961a1a;
+            background: white;
+        }
+
+        .photo-placeholder {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 4px solid #d1d5db;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 65px;
+            color: #6b7280;
+        }
+
+        .photo-caption {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .field {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .field strong {
+            display: block;
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .field span {
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+
+        .message {
+            padding: 20px;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #d97706;
+        }
+
+        .list-btn {
+            background: #374151;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .details {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .worker-photo,
+            .photo-placeholder {
+                width: 150px;
+                height: 150px;
+            }
+
+            .photo-placeholder {
+                font-size: 55px;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12px;
+            }
+
+            .topbar,
+            .actions,
+            .header-actions,
+            .message {
+                display: none !important;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .card {
+                display: block !important;
+                background: white !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            h2 {
+                font-size: 22px;
+                color: black !important;
+                padding-bottom: 12px;
+                border-bottom: 2px solid #961a1a;
+                margin-bottom: 20px;
+            }
+
+            .photo-section {
+                background: white !important;
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+
+            .worker-photo {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .details {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .field {
+                background: white !important;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 10px;
+                break-inside: avoid;
+            }
+
+            .field strong {
+                color: #444 !important;
+            }
+
+            .field span {
+                color: black !important;
+            }
+
+            a,
+            button {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>KATUBA CRM</h1>
+
+    <div class="header-actions">
+        <a href="index.html" class="back-btn">Back to Workers</a>
+
+        <button
+            type="button"
+            onclick="window.print()"
+            class="print-btn">
+            &#128424; Print Worker
+        </button>
+    </div>
+</header>
+
+<main class="container">
+
+    <div id="message" class="message">
+        Loading worker details...
+    </div>
+
+    <section id="workerCard" class="card" hidden>
+        <h2>Worker Details</h2>
+
+        <div class="photo-section">
+            <img
+                id="workerPhoto"
+                class="worker-photo"
+                alt="Worker photo"
+                hidden
+            >
+
+            <div id="photoPlaceholder" class="photo-placeholder">
+                &#128100;
+            </div>
+
+            <p id="photoCaption" class="photo-caption">
+                Worker photo
+            </p>
+        </div>
+
+        <div id="workerDetails" class="details"></div>
+
+        <div class="actions">
+            <a id="editBtn" href="#" class="btn edit-btn">
+                Edit Worker
+            </a>
+
+            <a href="index.html" class="btn list-btn">
+                Back to Workers
+            </a>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    const message = document.getElementById("message");
+    const workerCard = document.getElementById("workerCard");
+    const workerDetails = document.getElementById("workerDetails");
+    const workerPhoto = document.getElementById("workerPhoto");
+    const photoPlaceholder = document.getElementById("photoPlaceholder");
+    const photoCaption = document.getElementById("photoCaption");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function(char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char];
+        });
+    }
+
+    function showField(label, value) {
+        const displayValue =
+            value === null ||
+            value === undefined ||
+            String(value).trim() === ""
+                ? "Not provided"
+                : String(value);
+
+        return `
+            <div class="field">
+                <strong>${escapeHTML(label)}</strong>
+                <span>${escapeHTML(displayValue)}</span>
+            </div>
+        `;
+    }
+
+    function showWorkerPhoto(photoPath) {
+        const path = String(photoPath ?? "").trim();
+
+        // Hide the image and show the placeholder by default.
+        workerPhoto.hidden = true;
+        workerPhoto.removeAttribute("src");
+        photoPlaceholder.hidden = false;
+        photoCaption.textContent = "No photo available";
+
+        if (!path) {
+            return;
+        }
+
+        // Only allow expected worker-upload image paths.
+        const validPath =
+            /^uploads\/workers\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/i;
+
+        if (!validPath.test(path)) {
+            console.warn("Worker photo path is missing or invalid.");
+            return;
+        }
+
+        // view.html is inside frontend/workers.
+        // Go up two folders to reach the project root.
+        const photoUrl = "../../" + path;
+
+        workerPhoto.onload = function() {
+            workerPhoto.hidden = false;
+            photoPlaceholder.hidden = true;
+            photoCaption.textContent = "Worker photo";
+        };
+
+        workerPhoto.onerror = function() {
+            workerPhoto.hidden = true;
+            photoPlaceholder.hidden = false;
+            photoCaption.textContent = "Photo could not be loaded";
+        };
+
+        workerPhoto.src = photoUrl;
+    }
+
+    async function loadWorker() {
+        const params = new URLSearchParams(window.location.search);
+        const workerId = params.get("id");
+
+        if (!workerId || !/^\d+$/.test(workerId)) {
+            message.textContent = "A valid worker ID is required.";
+            return;
+        }
+
+        try {
+            const response = await fetch("../../backend/workers/get.php");
+            const data = await response.json();
+
+            if (
+                !response.ok ||
+                !data.success ||
+                !Array.isArray(data.workers)
+            ) {
+                throw new Error(
+                    data.message || "Unable to retrieve workers."
+                );
+            }
+
+            const worker = data.workers.find(
+                item => String(item.worker_id) === workerId
+            );
+
+            if (!worker) {
+                message.textContent = "Worker not found.";
+                return;
+            }
+
+            // Display the worker's photo.
+            showWorkerPhoto(worker.photo_path);
+
+            // Display the worker's information.
+            workerDetails.innerHTML =
+                showField("Worker ID", worker.worker_id) +
+                showField("Full Name", worker.full_name) +
+                showField("NRC Number", worker.nrc_number) +
+                showField("Phone Number", worker.phone) +
+                showField("Email Address", worker.email) +
+                showField("Address", worker.address) +
+                showField("Worker Role", worker.worker_role) +
+                showField("Experience (Years)", worker.experience_years) +
+                showField("Skills", worker.skills) +
+                showField("Availability", worker.availability) +
+                showField("NAPSA Number", worker.napsa_number) +
+                showField("NHIMA Number", worker.nhima_number) +
+                showField("Payment Method", worker.payment_method) +
+                showField("Payment Details", worker.payment_details) +
+                showField("Start Date", worker.start_date) +
+                showField("Status", worker.status) +
+                showField("Notes", worker.notes) +
+                showField("Created At", worker.created_at) +
+                showField("Last Updated", worker.updated_at);
+
+            document.getElementById("editBtn").href =
+                "edit.html?id=" + encodeURIComponent(worker.worker_id);
+
+            message.hidden = true;
+            workerCard.hidden = false;
+
+        } catch (error) {
+            console.error("View worker error:", error);
+
+            message.hidden = false;
+            message.textContent =
+                "Unable to load worker details. Please check your connection and try again.";
+        }
+    }
+
+    loadWorker();
+</script>
+
+</body>
+</html>

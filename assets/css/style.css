@@ -1,0 +1,46 @@
+.job-status {
+    margin-top: 30px;
+}
+
+.job-status h2 {
+    margin-bottom: 20px;
+}
+
+.status-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.status-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.status-card h3 {
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+.status-card .number {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+@media (max-width: 900px) {
+
+    .status-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .status-cards {
+        grid-template-columns: 1fr;
+    }
+
+}

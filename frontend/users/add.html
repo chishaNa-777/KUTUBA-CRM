@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - KATUBA CRM</title>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #1f2937;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background: #222;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 { margin-bottom: 30px; text-align: center; }
+        .sidebar ul { list-style: none; }
+        .sidebar ul li { margin-bottom: 10px; }
+
+        .sidebar ul li a {
+            display: block;
+            padding: 12px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .sidebar ul li a:hover { background: #961a1a; }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 700px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-container h2 { margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid rgba(150, 26, 26, 0.2);
+            border-color: #961a1a;
+        }
+
+        .profile-upload {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #picturePreview {
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #eee;
+            background: #f1f1f1;
+        }
+
+        .upload-controls { flex: 1; min-width: 200px; }
+
+        .help-text {
+            display: block;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        button {
+            background: #961a1a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover { background: #7d1515; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #961a1a;
+            text-decoration: none;
+        }
+
+        #message { margin-top: 20px; font-weight: bold; }
+
+        @media (max-width: 700px) {
+            .sidebar { width: 190px; padding: 12px; }
+            .main { margin-left: 190px; padding: 15px; }
+            .form-container { padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar { width: 145px; padding: 8px; }
+            .sidebar h2 { font-size: 17px; }
+            .sidebar ul li a { padding: 9px 5px; font-size: 13px; }
+            .main { margin-left: 145px; padding: 10px; }
+            .form-container { padding: 15px; }
+            .profile-upload { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <h2>KATUBA CRM</h2>
+        <ul>
+            <li><a href="../dashboard.html">Dashboard</a></li>
+            <li><a href="../clients/index.html">Customers</a></li>
+            <li><a href="../workers/index.html">Workers</a></li>
+            <li><a href="../jobs/index.html">Jobs</a></li>
+            <li><a href="../products/index.html">Products</a></li>
+            <li><a href="../reports/index.html">Reports</a></li>
+            <li><a href="index.html">Users</a></li>
+            <li><a href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h1>Add New User</h1>
+        </div>
+
+        <a href="index.html" class="back-btn">&#8592; Back to Users</a>
+
+        <div class="form-container">
+            <h2>User Information</h2>
+
+            <form id="userForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="profile_picture">Profile Picture</label>
+
+                    <div class="profile-upload">
+                        <img
+                            id="picturePreview"
+                            alt="Profile picture preview"
+                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Crect width='112' height='112' rx='56' fill='%23e5e7eb'/%3E%3Ccircle cx='56' cy='40' r='20' fill='%239ca3af'/%3E%3Cpath d='M18 103c3-23 18-35 38-35s35 12 38 35' fill='%239ca3af'/%3E%3C/svg%3E"
+                        >
+
+                        <div class="upload-controls">
+                            <input
+                                type="file"
+                                id="profile_picture"
+                                name="profile_picture"
+                                accept="image/jpeg,image/png,image/webp"
+                            >
+                            <span class="help-text">
+                                Optional. JPG, PNG or WebP. Maximum size: 2 MB.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name"
+                           placeholder="Enter full name" maxlength="120" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email"
+                           placeholder="Enter email address" maxlength="150" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone (optional)</label>
+                    <input type="tel" id="phone" name="phone"
+                           placeholder="Enter phone number" maxlength="30">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Enter password" minlength="8" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="hr_officer">HR Officer</option>
+                        <option value="operations_manager">Operations Manager</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn">Add User</button>
+                <div id="message" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const userForm = document.getElementById("userForm");
+        const message = document.getElementById("message");
+        const submitBtn = document.getElementById("submitBtn");
+        const pictureInput = document.getElementById("profile_picture");
+        const picturePreview = document.getElementById("picturePreview");
+
+        let previewUrl = null;
+
+        fetch("../../backend/auth/check_session.php")
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    window.location.href = "../login.html";
+                }
+            })
+            .catch(error => console.error("Session error:", error));
+
+        pictureInput.addEventListener("change", function () {
+            const file = pictureInput.files[0];
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+
+            if (!file) {
+                picturePreview.removeAttribute("src");
+                return;
+            }
+
+            const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+            if (!allowedTypes.includes(file.type)) {
+                pictureInput.value = "";
+                message.textContent = "Choose a JPG, PNG or WebP image.";
+                message.style.color = "red";
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                pictureInput.value = "";
+                message.textContent = "The picture must be 2 MB or smaller.";
+                message.style.color = "red";
+                return;
+            }
+
+            previewUrl = URL.createObjectURL(file);
+            picturePreview.src = previewUrl;
+            message.textContent = "";
+        });
+
+        userForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(userForm);
+
+            message.textContent = "Saving user...";
+            message.style.color = "#374151";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("../../backend/users/add.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    message.textContent = "User added successfully!";
+                    message.style.color = "green";
+                    userForm.reset();
+
+                    if (previewUrl) {
+                        URL.revokeObjectURL(previewUrl);
+                        previewUrl = null;
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } else {
+                    message.textContent = result.message || "Failed to add user.";
+                    message.style.color = "red";
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error("Add user error:", error);
+                message.textContent = "Unable to connect to server. Please try again.";
+                message.style.color = "red";
+                submitBtn.disabled = false;
+            }
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", async function (event) {
+            event.preventDefault();
+
+            try {
+                await fetch("../../backend/auth/logout.php");
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+
+            window.location.href = "../login.html";
+        });
+    </script>
+</body>
+</html>

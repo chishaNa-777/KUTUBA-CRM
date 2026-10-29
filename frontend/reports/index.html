@@ -1,0 +1,643 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs Reports | KATUBA CRM</title>
+
+<style>
+:root {
+    --red: #961a1a;
+    --dark: #202124;
+    --bg: #f5f6fa;
+    --text: #282a30;
+    --muted: #777b87;
+    --border: #e8e9ef;
+    --green: #16834a;
+    --orange: #b66a0a;
+    --blue: #2864c5;
+    --purple: #7650b5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+a { text-decoration: none; }
+
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 250px;
+    background: var(--dark);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+.brand {
+    padding: 24px 20px;
+    border-bottom: 1px solid #38393c;
+}
+.brand strong { font-size: 18px; letter-spacing: 1px; }
+.brand small { display: block; color: #b7b8bd; margin-top: 5px; }
+.nav-label {
+    padding: 25px 22px 10px;
+    color: #92949c;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: bold;
+}
+nav { padding: 0 12px; }
+nav a {
+    display: block;
+    padding: 13px;
+    margin-bottom: 5px;
+    color: #d4d5da;
+    border-radius: 8px;
+    font-size: 13px;
+}
+nav a:hover, nav a.active { background: var(--red); color: white; }
+.sidebar-bottom {
+    margin-top: auto;
+    padding: 20px;
+    color: #b7b8bd;
+    border-top: 1px solid #38393c;
+    font-size: 12px;
+    line-height: 1.7;
+}
+.main { margin-left: 250px; min-width: 0; }
+.topbar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+.topbar h2 { font-size: 17px; }
+.topbar small { color: var(--muted); }
+.profile { font-size: 12px; font-weight: 650; }
+.content { max-width: 1600px; margin: auto; padding: 30px; }
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+h1 { font-size: 27px; }
+.subtitle { color: var(--muted); font-size: 13px; margin-top: 7px; }
+.btn {
+    border: 1px solid var(--border);
+    background: white;
+    color: #454650;
+    padding: 11px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 650;
+}
+.btn-primary { background: var(--red); color: white; border-color: var(--red); }
+.btn:disabled { opacity: .6; cursor: wait; }
+
+.notice {
+    display: none;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+.notice.show { display: block; }
+.notice.error { background: #fce8e8; color: #a51f1f; }
+.notice.success { background: #e5f6ec; color: #176c3e; }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.stat, .panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+}
+.stat { padding: 20px; }
+.stat-label { color: var(--muted); font-size: 12px; font-weight: 600; }
+.stat-number { font-size: 29px; font-weight: 750; margin-top: 14px; }
+.stat-foot { color: var(--muted); font-size: 11px; margin-top: 5px; }
+
+.charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+}
+.panel { overflow: hidden; min-width: 0; }
+.panel-heading {
+    padding: 21px 22px;
+    border-bottom: 1px solid var(--border);
+}
+.panel-heading h2 { font-size: 16px; }
+.panel-heading p { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.panel-body { padding: 22px; }
+.chart-wrap { width: 100%; min-height: 270px; position: relative; }
+canvas { display: block; width: 100%; height: 270px; }
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 11px;
+}
+.legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+
+.table-wrap { width: 100%; overflow-x: auto; }
+table { width: 100%; min-width: 720px; border-collapse: collapse; }
+thead { background: #fafafd; }
+th {
+    text-align: left;
+    padding: 14px 18px;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+}
+td {
+    padding: 15px 18px;
+    border-top: 1px solid #f0f0f4;
+    font-size: 12px;
+}
+.customer { font-weight: 650; }
+.rate { white-space: nowrap; font-weight: 700; }
+.status {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 6px 9px;
+    font-size: 10px;
+    font-weight: 750;
+}
+.active { color: var(--green); background: #e4f6eb; }
+.paused { color: var(--orange); background: #fff1d9; }
+.completed { color: var(--blue); background: #e7efff; }
+.cancelled { color: #b42323; background: #fce8e8; }
+.empty { text-align: center; color: var(--muted); padding: 30px; }
+
+.footer-note {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 17px;
+    line-height: 1.6;
+}
+.loading { padding: 35px; text-align: center; color: var(--muted); }
+
+@media (max-width: 1150px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+    .sidebar { position: static; width: 100%; }
+    .sidebar .nav-label, .sidebar-bottom { display: none; }
+    .sidebar nav { display: flex; flex-wrap: wrap; padding: 10px; }
+    .sidebar nav a { margin: 0; }
+    .main { margin-left: 0; }
+    .content { padding: 20px 14px; }
+    .topbar { padding: 16px; }
+}
+@media (max-width: 480px) {
+    .stats { gap: 10px; }
+    .stat { padding: 14px; }
+    .stat-number { font-size: 24px; }
+    h1 { font-size: 23px; }
+    .panel-body { padding: 13px; }
+}
+</style>
+</head>
+
+<body>
+<aside class="sidebar">
+    <div class="brand">
+        <strong>KATUBA CRM</strong>
+        <small>Management System</small>
+    </div>
+    <div class="nav-label">MAIN MENU</div>
+    <nav>
+        <a href="../dashboard.html">▦ Dashboard</a>
+        <a href="../clients/index.html">♙ Customers</a>
+        <a href="../workers/index.html">♧ Workers</a>
+        <a href="../jobs/index.html">▤ Jobs</a>
+        <a href="../products/index.html">▣ Products</a>
+        <a href="index.html" class="active">▥ Reports</a>
+        <a href="../users/index.html">♙ Users</a>
+    </nav>
+    <div class="sidebar-bottom">
+        <strong>KATUBA CRM</strong><br>
+        Business Reports
+    </div>
+</aside>
+
+<main class="main">
+    <header class="topbar">
+        <div>
+            <h2>Reports & Analytics</h2>
+            <small>Job performance and financial overview</small>
+        </div>
+        <div class="profile">Katuba Administrator</div>
+    </header>
+
+    <section class="content">
+        <div class="heading">
+            <div>
+                <h1>Jobs Reports</h1>
+                <p class="subtitle">Monitor job status, completion and recorded monthly rates.</p>
+            </div>
+            <button class="btn btn-primary" id="refreshBtn">↻ Refresh Reports</button>
+        </div>
+
+        <div id="notice" class="notice" role="status"></div>
+
+        <section class="stats">
+            <article class="stat">
+                <div class="stat-label">Total Jobs</div>
+                <div class="stat-number" id="totalJobs">—</div>
+                <div class="stat-foot">All recorded jobs</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Active Jobs</div>
+                <div class="stat-number" id="activeJobs">—</div>
+                <div class="stat-foot">Currently active</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Completion Rate</div>
+                <div class="stat-number" id="completionRate">—</div>
+                <div class="stat-foot">Completed jobs ÷ total jobs</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Combined Monthly Rates</div>
+                <div class="stat-number" id="totalRates">—</div>
+                <div class="stat-foot">Sum of recorded job rates</div>
+            </article>
+        </section>
+
+        <section class="charts">
+            <article class="panel">
+                <div class="panel-heading">
+                    <h2>Job Status Distribution</h2>
+                    <p>How jobs are distributed across each status.</p>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-wrap">
+                        <canvas id="statusChart" aria-label="Job status chart"></canvas>
+                    </div>
+                    <div class="legend" id="statusLegend"></div>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-heading">
+                    <h2>Monthly Rate by Job</h2>
+                    <p>Compare the recorded monthly rate for each job.</p>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-wrap">
+                        <canvas id="rateChart" aria-label="Monthly rate chart"></canvas>
+                    </div>
+                    <p class="footer-note">
+                        These are the monthly rates stored for each job. They are not actual
+                        payments received or revenue earned.
+                    </p>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Job Report Details</h2>
+                <p>Job-by-job summary from the current database records.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Customer</th>
+                            <th>Start Date</th>
+                            <th>Status</th>
+                            <th>Monthly Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTable">
+                        <tr><td colspan="5" class="empty">Loading report...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <p class="footer-note">
+            Reports are calculated from the jobs returned by your existing jobs endpoint.
+            Refresh to retrieve the latest records. Currency is shown in ZMW.
+        </p>
+    </section>
+</main>
+
+<script>
+const JOBS_URL = "../../backend/jobs/get.php";
+
+const STATUS_INFO = {
+    active: { label: "Active", color: "#16834a" },
+    paused: { label: "Paused", color: "#d28a17" },
+    completed: { label: "Completed", color: "#2864c5" },
+    cancelled: { label: "Cancelled", color: "#961a1a" }
+};
+
+let jobs = [];
+let resizeTimer;
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
+}
+
+function statusOf(value) {
+    const status = String(value || "").toLowerCase();
+    return Object.hasOwn(STATUS_INFO, status) ? status : "unknown";
+}
+
+function formatMoney(value) {
+    const number = Number(value);
+    return "ZMW " + (Number.isFinite(number) ? number : 0)
+        .toLocaleString("en-ZM", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const parts = String(value).split("-");
+    return parts.length === 3
+        ? `${parts[2]}/${parts[1]}/${parts[0]}`
+        : escapeHTML(value);
+}
+
+function showNotice(message, type = "success") {
+    const notice = document.getElementById("notice");
+    notice.textContent = message;
+    notice.className = `notice show ${type}`;
+}
+
+function updateStats() {
+    const total = jobs.length;
+    const count = status => jobs.filter(job => statusOf(job.status) === status).length;
+    const completed = count("completed");
+    const combinedRates = jobs.reduce((sum, job) => {
+        const rate = Number(job.monthly_rate);
+        return sum + (Number.isFinite(rate) ? rate : 0);
+    }, 0);
+
+    document.getElementById("totalJobs").textContent = total;
+    document.getElementById("activeJobs").textContent = count("active");
+    document.getElementById("completionRate").textContent =
+        (total ? (completed / total * 100) : 0).toFixed(1) + "%";
+    document.getElementById("totalRates").textContent = formatMoney(combinedRates);
+}
+
+function setupCanvas(canvas, height = 270) {
+    const width = Math.max(canvas.parentElement.clientWidth, 250);
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.height = height + "px";
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    return { ctx, width, height };
+}
+
+function drawStatusChart() {
+    const canvas = document.getElementById("statusChart");
+    const { ctx, width, height } = setupCanvas(canvas);
+    ctx.clearRect(0, 0, width, height);
+
+    const statuses = Object.keys(STATUS_INFO).map(key => ({
+        key,
+        ...STATUS_INFO[key],
+        value: jobs.filter(job => statusOf(job.status) === key).length
+    }));
+
+    const total = statuses.reduce((sum, item) => sum + item.value, 0);
+    const cx = width / 2;
+    const cy = height / 2 - 5;
+    const radius = Math.min(width * 0.25, 90);
+    const thickness = Math.max(20, radius * 0.32);
+
+    if (!total) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "#ececf1";
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+    } else {
+        let angle = -Math.PI / 2;
+
+        statuses.forEach(item => {
+            if (!item.value) return;
+
+            const next = angle + (item.value / total) * Math.PI * 2;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, angle, next);
+            ctx.strokeStyle = item.color;
+            ctx.lineWidth = thickness;
+            ctx.lineCap = "butt";
+            ctx.stroke();
+
+            angle = next;
+        });
+    }
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#282a30";
+    ctx.font = "700 29px Segoe UI, Arial";
+    ctx.fillText(String(total), cx, cy + 4);
+    ctx.fillStyle = "#777b87";
+    ctx.font = "12px Segoe UI, Arial";
+    ctx.fillText("Total jobs", cx, cy + 25);
+
+    document.getElementById("statusLegend").innerHTML = statuses.map(item => `
+        <div class="legend-item">
+            <span class="legend-dot" style="background:${item.color}"></span>
+            ${item.label}: ${item.value}
+        </div>
+    `).join("");
+}
+
+function drawRateChart() {
+    const canvas = document.getElementById("rateChart");
+    const { ctx, width, height } = setupCanvas(canvas);
+    ctx.clearRect(0, 0, width, height);
+
+    const sorted = [...jobs]
+        .sort((a, b) => Number(b.job_id) - Number(a.job_id))
+        .slice(0, 8)
+        .reverse();
+
+    const left = 52;
+    const right = 15;
+    const top = 20;
+    const bottom = 43;
+    const chartWidth = width - left - right;
+    const chartHeight = height - top - bottom;
+    const maxRate = Math.max(
+        1,
+        ...sorted.map(job => Math.max(0, Number(job.monthly_rate) || 0))
+    );
+
+    ctx.font = "10px Segoe UI, Arial";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    for (let i = 0; i <= 4; i++) {
+        const y = top + chartHeight * i / 4;
+        const value = maxRate * (4 - i) / 4;
+
+        ctx.strokeStyle = "#ececf1";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#777b87";
+        ctx.fillText(value >= 1000
+            ? (value / 1000).toFixed(value % 1000 ? 1 : 0) + "k"
+            : value.toFixed(0), left - 8, y);
+    }
+
+    if (!sorted.length) {
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#777b87";
+        ctx.fillText("No job records available", width / 2, height / 2);
+        return;
+    }
+
+    const slot = chartWidth / sorted.length;
+    const barWidth = Math.min(38, slot * 0.58);
+
+    sorted.forEach((job, i) => {
+        const rate = Math.max(0, Number(job.monthly_rate) || 0);
+        const barHeight = (rate / maxRate) * chartHeight;
+        const x = left + slot * i + (slot - barWidth) / 2;
+        const y = top + chartHeight - barHeight;
+
+        ctx.fillStyle = "#961a1a";
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, Math.max(0, barHeight), [5, 5, 0, 0]);
+        ctx.fill();
+
+        ctx.fillStyle = "#777b87";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText("#" + job.job_id, x + barWidth / 2, height - bottom + 12);
+    });
+}
+
+function renderTable() {
+    const tbody = document.getElementById("reportTable");
+
+    if (!jobs.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No jobs are available to report.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = [...jobs]
+        .sort((a, b) => Number(b.job_id) - Number(a.job_id))
+        .map(job => {
+            const status = statusOf(job.status);
+            const statusLabel = STATUS_INFO[status]?.label || "Unknown";
+
+            return `
+                <tr>
+                    <td><strong>#${escapeHTML(job.job_id)}</strong></td>
+                    <td class="customer">${escapeHTML(job.full_name || "Customer not assigned")}</td>
+                    <td>${formatDate(job.start_date)}</td>
+                    <td><span class="status ${status}">${statusLabel}</span></td>
+                    <td class="rate">${formatMoney(job.monthly_rate)}</td>
+                </tr>`;
+        }).join("");
+}
+
+function renderReports() {
+    updateStats();
+    drawStatusChart();
+    drawRateChart();
+    renderTable();
+}
+
+async function loadReports() {
+    const button = document.getElementById("refreshBtn");
+    button.disabled = true;
+    button.textContent = "Loading...";
+
+    try {
+        const response = await fetch(JOBS_URL, {
+            cache: "no-store",
+            headers: { "Accept": "application/json" }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success !== true || !Array.isArray(data.jobs)) {
+            throw new Error(data.message || "Unable to retrieve job records.");
+        }
+
+        jobs = data.jobs;
+        renderReports();
+        showNotice("Jobs reports updated successfully.");
+
+    } catch (error) {
+        console.error("Jobs reports error:", error);
+        showNotice(error.message || "Unable to load jobs reports.", "error");
+
+        document.getElementById("reportTable").innerHTML =
+            '<tr><td colspan="5" class="empty">Unable to load report data. Check XAMPP and try again.</td></tr>';
+    } finally {
+        button.disabled = false;
+        button.textContent = "↻ Refresh Reports";
+    }
+}
+
+document.getElementById("refreshBtn").addEventListener("click", loadReports);
+
+window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (jobs.length >= 0) {
+            drawStatusChart();
+            drawRateChart();
+        }
+    }, 150);
+});
+
+loadReports();
+</script>
+</body>
+</html>

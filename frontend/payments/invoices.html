@@ -1,0 +1,1000 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Invoices</title>
+
+    <style>
+        :root {
+            --red: #961a1a;
+            --red-dark: #751313;
+            --sidebar: #171c26;
+            --background: #f5f6fa;
+            --text: #252a34;
+            --muted: #737b8c;
+            --border: #e8eaf0;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 245px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--sidebar);
+            color: white;
+            padding: 25px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 0 12px 30px;
+        }
+
+        .brand span {
+            color: #e94b4b;
+        }
+
+        .nav-label {
+            color: #8992a3;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .nav-links a {
+            color: #c8ced8;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: var(--red);
+            color: white;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 12px 0;
+            border-top: 1px solid #343a47;
+            color: #aab1bf;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .main {
+            margin-left: 245px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: 27px;
+            font-weight: 750;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .user-badge {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 21px;
+            box-shadow: 0 3px 12px rgba(20, 30, 50, .025);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(20, 30, 50, .07);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 13px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-note {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(20, 30, 50, .025);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .panel-title {
+            font-size: 17px;
+            font-weight: 750;
+        }
+
+        .panel-description {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px 22px;
+        }
+
+        .filters input,
+        .filters select {
+            min-width: 150px;
+            flex: 1;
+            padding: 11px 12px;
+            border: 1px solid #dfe3eb;
+            border-radius: 8px;
+            background: white;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .filters input:focus,
+        .filters select:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(150, 26, 26, .08);
+        }
+
+        .filters input {
+            flex: 2;
+            min-width: 220px;
+        }
+
+        .btn {
+            display: inline-block;
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+            white-space: nowrap;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-light {
+            background: #f0f1f5;
+            color: #333b49;
+        }
+
+        .btn-light:hover {
+            background: #e5e7ed;
+        }
+
+        .btn-view {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-edit {
+            background: #f0f1f5;
+            color: #333b49;
+        }
+
+        .btn-edit:hover {
+            background: #e0e3e9;
+        }
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        thead {
+            background: #f8f9fb;
+        }
+
+        th {
+            color: #697183;
+            font-size: 11px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 17px 18px;
+            border-bottom: 1px solid #eff0f4;
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background: #fcfcfd;
+        }
+
+        .invoice-number {
+            color: var(--red);
+            font-weight: 750;
+        }
+
+        .amount {
+            font-weight: 700;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 750;
+            text-transform: capitalize;
+        }
+
+        .status-paid {
+            background: #e5f7ed;
+            color: #167544;
+        }
+
+        .status-unpaid,
+        .status-overdue {
+            background: #fdeaea;
+            color: #a31e1e;
+        }
+
+        .status-partial {
+            background: #fff2d8;
+            color: #8b5a00;
+        }
+
+        .status-cancelled {
+            background: #eceef2;
+            color: #626a78;
+        }
+
+        .table-message {
+            padding: 45px 20px;
+            text-align: center;
+            color: var(--muted);
+            line-height: 1.8;
+            white-space: normal;
+        }
+
+        .table-message strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .table-footer {
+            padding: 17px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 7px;
+        }
+
+        .pagination button {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            padding: 7px 11px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        @media (max-width: 1100px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 18px 14px;
+            }
+
+            .brand {
+                padding-bottom: 18px;
+            }
+
+            .nav-links {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .nav-links a {
+                padding: 9px 10px;
+                font-size: 12px;
+            }
+
+            .sidebar-footer {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 14px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page-title {
+                font-size: 23px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 21px;
+            }
+
+            .panel-header,
+            .filters {
+                padding: 16px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .filters input,
+            .filters select {
+                min-width: 100%;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="brand">KATUBA <span>CRM</span></div>
+
+        <div class="nav-label">MAIN MENU</div>
+
+        <nav class="nav-links">
+            <a href="../dashboard.html">Dashboard</a>
+            <a href="../clients/index.html">Customers</a>
+            <a href="../workers/index.html">Workers</a>
+            <a href="../jobs/index.html">Jobs</a>
+            <a href="../products/index.html">Products</a>
+            <a href="invoices.html" class="active">Invoices</a>
+            <a href="../reports/index.html">Reports</a>
+            <a href="../users/index.html">Users</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            KATUBA CRM<br>
+            Invoice &amp; Billing Management
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h1 class="page-title">Invoices</h1>
+                <p class="subtitle">
+                    Manage customer invoices, billing periods and outstanding balances.
+                </p>
+            </div>
+
+            <div class="user-badge">Invoice Management</div>
+        </header>
+
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Invoices</div>
+                <div class="stat-value" id="totalInvoices">—</div>
+                <div class="stat-note">Invoices in the system</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Paid Invoices</div>
+                <div class="stat-value" id="paidInvoices">—</div>
+                <div class="stat-note">Fully paid invoices</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Outstanding Balance</div>
+                <div class="stat-value" id="outstandingBalance">—</div>
+                <div class="stat-note">Amount still unpaid</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Overdue Invoices</div>
+                <div class="stat-value" id="overdueInvoices">—</div>
+                <div class="stat-note">Invoices past their due date</div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Invoice Register</h2>
+                    <p class="panel-description">
+                        Search and review invoices recorded in KATUBA CRM.
+                    </p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-light" id="refreshBtn" type="button">
+                        Refresh
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        id="createInvoiceBtn"
+                        type="button"
+                        onclick="window.location.href='create.html'">
+                        + Create Invoice
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <input
+                    type="search"
+                    id="searchInput"
+                    placeholder="Search invoice number or customer..."
+                    aria-label="Search invoices">
+
+                <select id="statusFilter" aria-label="Filter by invoice status">
+                    <option value="">All statuses</option>
+                    <option value="unpaid">Unpaid</option>
+                    <option value="partial">Partial</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+
+                <button class="btn btn-light" id="resetBtn" type="button">
+                    Reset
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice No.</th>
+                            <th>Customer</th>
+                            <th>Billing Period</th>
+                            <th>Invoice Amount</th>
+                            <th>Amount Paid</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="invoiceTableBody">
+                        <tr>
+                            <td colspan="9">
+                                <div class="table-message">
+                                    Loading invoices...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <span id="recordCount">Waiting for invoice data</span>
+
+                <div class="pagination">
+                    <button type="button" id="prevBtn" disabled>
+                        Previous
+                    </button>
+                    <button type="button" id="nextBtn" disabled>
+                        Next
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API = "../../backend/invoices/get.php";
+
+        const searchInput = document.getElementById("searchInput");
+        const statusFilter = document.getElementById("statusFilter");
+        const resetBtn = document.getElementById("resetBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const tableBody = document.getElementById("invoiceTableBody");
+        const recordCount = document.getElementById("recordCount");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        let invoices = [];
+        let filteredInvoices = [];
+        let currentPage = 1;
+        const PAGE_SIZE = 10;
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[character]);
+        }
+
+        function formatMoney(value) {
+            const amount = Number(value ?? 0);
+
+            return Number.isFinite(amount)
+                ? amount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })
+                : "0.00";
+        }
+
+        function formatDate(value) {
+            if (!value) return "—";
+
+            const parts = String(value).split("-");
+
+            if (parts.length !== 3) {
+                return escapeHTML(value);
+            }
+
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function getBalance(invoice) {
+            const amount = Number(invoice.amount) || 0;
+            const paid = Number(invoice.amount_paid) || 0;
+
+            return Math.max(0, amount - paid);
+        }
+
+        function updateSummary() {
+            const activeInvoices = invoices.filter(
+                invoice => invoice.status !== "cancelled"
+            );
+
+            const paidCount = invoices.filter(
+                invoice => invoice.status === "paid"
+            ).length;
+
+            const outstanding = activeInvoices.reduce(
+                (total, invoice) => total + getBalance(invoice),
+                0
+            );
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const overdueCount = activeInvoices.filter(invoice => {
+                if (getBalance(invoice) <= 0) return false;
+
+                const dueDate = invoice.due_date
+                    ? new Date(`${invoice.due_date}T00:00:00`)
+                    : null;
+
+                return invoice.status === "overdue" ||
+                    (dueDate &&
+                     !Number.isNaN(dueDate.getTime()) &&
+                     dueDate < today);
+            }).length;
+
+            document.getElementById("totalInvoices").textContent =
+                invoices.length.toLocaleString();
+
+            document.getElementById("paidInvoices").textContent =
+                paidCount.toLocaleString();
+
+            document.getElementById("outstandingBalance").textContent =
+                formatMoney(outstanding);
+
+            document.getElementById("overdueInvoices").textContent =
+                overdueCount.toLocaleString();
+        }
+
+        function applyFilters() {
+            const search = searchInput.value.trim().toLowerCase();
+            const status = statusFilter.value.toLowerCase();
+
+            filteredInvoices = invoices.filter(invoice => {
+                const searchable = [
+                    invoice.invoice_number,
+                    invoice.customer_name,
+                    invoice.client_id
+                ].join(" ").toLowerCase();
+
+                const matchesSearch = searchable.includes(search);
+
+                const matchesStatus = !status ||
+                    String(invoice.status).toLowerCase() === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            currentPage = 1;
+            renderInvoices();
+        }
+
+        function renderInvoices() {
+            const total = filteredInvoices.length;
+            const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageInvoices = filteredInvoices.slice(
+                start,
+                start + PAGE_SIZE
+            );
+
+            if (pageInvoices.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            <div class="table-message">
+                                <strong>No invoices found</strong>
+                                Try a different search or status filter.
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tableBody.innerHTML = pageInvoices.map(invoice => {
+                    const status = String(invoice.status || "unpaid")
+                        .toLowerCase();
+
+                    const allowedStatuses = [
+                        "paid", "unpaid", "partial", "overdue", "cancelled"
+                    ];
+
+                    const safeStatus = allowedStatuses.includes(status)
+                        ? status
+                        : "unpaid";
+
+                    const balance = getBalance(invoice);
+                    const invoiceId = Number(invoice.invoice_id);
+
+                    const validInvoiceId =
+                        Number.isSafeInteger(invoiceId) && invoiceId > 0;
+
+                    const viewLink = validInvoiceId
+                        ? `view.html?id=${encodeURIComponent(invoiceId)}`
+                        : "#";
+
+                    const editLink = validInvoiceId
+                        ? `edit.html?id=${encodeURIComponent(invoiceId)}`
+                        : "#";
+
+                    return `
+                        <tr>
+                            <td>
+                                <span class="invoice-number">
+                                    ${escapeHTML(invoice.invoice_number)}
+                                </span>
+                            </td>
+
+                            <td>${escapeHTML(invoice.customer_name)}</td>
+
+                            <td>
+                                ${formatDate(invoice.period_start)}
+                                –
+                                ${formatDate(invoice.period_end)}
+                            </td>
+
+                            <td class="amount">
+                                ${formatMoney(invoice.amount)}
+                            </td>
+
+                            <td>${formatMoney(invoice.amount_paid)}</td>
+
+                            <td class="amount">
+                                ${formatMoney(balance)}
+                            </td>
+
+                            <td>${formatDate(invoice.due_date)}</td>
+
+                            <td>
+                                <span class="status status-${safeStatus}">
+                                    ${escapeHTML(safeStatus)}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="action-buttons">
+                                    <a
+                                        class="btn btn-view"
+                                        href="${viewLink}"
+                                        ${!validInvoiceId
+                                            ? 'aria-disabled="true" onclick="return false;"'
+                                            : ""}
+                                        aria-label="View invoice ${escapeHTML(invoice.invoice_number)}">
+                                        View
+                                    </a>
+
+                                    <a
+                                        class="btn btn-edit"
+                                        href="${editLink}"
+                                        ${!validInvoiceId
+                                            ? 'aria-disabled="true" onclick="return false;"'
+                                            : ""}
+                                        aria-label="Edit invoice ${escapeHTML(invoice.invoice_number)}">
+                                        Edit
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            }
+
+            recordCount.textContent = total === 0
+                ? "No invoices to display"
+                : `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total} invoices`;
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        async function loadInvoices() {
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = "Loading...";
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9">
+                        <div class="table-message">
+                            Loading invoices...
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch(API, {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    cache: "no-store"
+                });
+
+                const data = await response.json();
+
+                if (!response.ok ||
+                    data.success !== true ||
+                    !Array.isArray(data.invoices)) {
+                    throw new Error(
+                        data.message || "Unable to load invoices."
+                    );
+                }
+
+                invoices = data.invoices;
+                updateSummary();
+                applyFilters();
+
+            } catch (error) {
+                console.error("Invoice loading error:", error);
+
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            <div class="table-message">
+                                <strong>Could not load invoices</strong>
+                                Check that Apache and MySQL are running and
+                                that the invoice API is accessible.
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                recordCount.textContent = "Invoice loading failed";
+
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = "Refresh";
+            }
+        }
+
+        searchInput.addEventListener("input", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
+
+        resetBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            statusFilter.value = "";
+            applyFilters();
+        });
+
+        refreshBtn.addEventListener("click", loadInvoices);
+
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderInvoices();
+            }
+        });
+
+        nextBtn.addEventListener("click", () => {
+            if (currentPage * PAGE_SIZE < filteredInvoices.length) {
+                currentPage++;
+                renderInvoices();
+            }
+        });
+
+        loadInvoices();
+    </script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Staff Approvals</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        h1 { margin: 0 0 8px; }
+
+        .subtitle { color: #666; margin: 0; }
+
+        .card {
+            background: #fff;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.06);
+            overflow-x: auto;
+        }
+
+        .summary {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f8f8;
+            color: #444;
+        }
+
+        .button {
+            padding: 9px 12px;
+            border: 0;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin: 2px;
+        }
+
+        .approve { background: #197647; }
+        .reject { background: #961a1a; }
+        .back { background: #333; text-decoration: none; display: inline-block; }
+
+        .button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        .empty {
+            padding: 25px 10px;
+            text-align: center;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 14px; }
+            .card { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <div class="header">
+            <div>
+                <h1>Staff Approvals</h1>
+                <p class="subtitle">Review new staff registration requests.</p>
+            </div>
+
+            <a class="button back" href="../dashboard.html">Back to Dashboard</a>
+        </div>
+
+        <div class="card">
+            <div class="summary" id="summary">Loading pending registrations...</div>
+            <div id="message" role="status" aria-live="polite"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Requested Role</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingTable">
+                    <tr>
+                        <td colspan="6" class="empty">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const tableBody = document.getElementById("pendingTable");
+        const summary = document.getElementById("summary");
+        const message = document.getElementById("message");
+
+        function addCell(row, value) {
+            const cell = document.createElement("td");
+            cell.textContent = value ?? "";
+            row.appendChild(cell);
+            return cell;
+        }
+
+        async function loadPending() {
+            tableBody.replaceChildren();
+            summary.textContent = "Loading pending registrations...";
+            message.textContent = "";
+
+            try {
+                const response = await fetch(
+                    "../../backend/users/pending.php",
+                    { credentials: "same-origin" }
+                );
+
+                const result = await response.json();
+
+                if (response.status === 401 || response.status === 403) {
+                    summary.textContent = "";
+                    message.textContent =
+                        "Administrator login is required to access this page.";
+                    tableBody.replaceChildren();
+                    return;
+                }
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || "Unable to load registrations."
+                    );
+                }
+
+                summary.textContent =
+                    `${result.count} registration(s) awaiting approval.`;
+
+                if (result.users.length === 0) {
+                    const row = document.createElement("tr");
+                    const cell = document.createElement("td");
+                    cell.colSpan = 6;
+                    cell.className = "empty";
+                    cell.textContent = "There are no pending registrations.";
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+                    return;
+                }
+
+                result.users.forEach(user => {
+                    const row = document.createElement("tr");
+
+                    addCell(row, user.full_name);
+                    addCell(row, user.email);
+                    addCell(row, user.phone || "—");
+                    addCell(row, user.role);
+                    addCell(row, user.created_at);
+
+                    const actions = addCell(row, "");
+
+                    const approve = document.createElement("button");
+                    approve.className = "button approve";
+                    approve.textContent = "Approve";
+                    approve.addEventListener("click", () =>
+                        processDecision(user.user_id, "approve")
+                    );
+
+                    const reject = document.createElement("button");
+                    reject.className = "button reject";
+                    reject.textContent = "Reject";
+                    reject.addEventListener("click", () =>
+                        processDecision(user.user_id, "reject")
+                    );
+
+                    actions.append(approve, reject);
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                summary.textContent = "";
+                message.textContent =
+                    error.message || "Unable to load registrations.";
+            }
+        }
+
+        async function processDecision(userId, decision) {
+            const action = decision === "approve" ? "approve" : "reject";
+
+            if (!confirm(`Are you sure you want to ${action} this registration?`)) {
+                return;
+            }
+
+            message.textContent = "";
+
+            const data = new FormData();
+            data.append("user_id", userId);
+            data.append("decision", decision);
+
+            try {
+                const response = await fetch(
+                    "../../backend/users/approval.php",
+                    {
+                        method: "POST",
+                        body: data,
+                        credentials: "same-origin"
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || "The decision could not be saved."
+                    );
+                }
+
+                message.style.color = "#197647";
+                message.textContent = result.message;
+                await loadPending();
+            } catch (error) {
+                message.style.color = "#961a1a";
+                message.textContent =
+                    error.message || "Unable to process the registration.";
+            }
+        }
+
+        loadPending();
+    </script>
+</body>
+</html>

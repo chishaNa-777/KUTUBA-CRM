@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KATUBA CRM - Staff Registration</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .register-box {
+            width: 100%;
+            max-width: 460px;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.10);
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            text-align: center;
+            color: #222;
+            font-size: 26px;
+        }
+
+        .intro {
+            margin: 0 0 24px;
+            text-align: center;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input:not([type="file"]) {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #961a1a;
+            box-shadow: 0 0 0 2px rgba(150, 26, 26, 0.08);
+        }
+
+        .photo-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .photo-preview {
+            width: 115px;
+            height: 115px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            border: 3px solid #eee;
+            background: #f4f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px dashed #bbb;
+            border-radius: 6px;
+            background: #fafafa;
+            font-size: 13px;
+        }
+
+        .photo-help {
+            margin: 8px 0 0;
+            color: #777;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .password-field input {
+            padding-right: 70px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 12px 8px;
+            border: none;
+            background: transparent;
+            color: #961a1a;
+            cursor: pointer;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 5px;
+            background: #961a1a;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .submit-button:hover {
+            background: #751414;
+        }
+
+        .submit-button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .notice {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f3f3;
+            color: #6b3030;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .login-link {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+
+        a {
+            color: #961a1a;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .register-box {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="register-box">
+        <h1>KATUBA CRM</h1>
+
+        <p class="intro">Create your staff account.</p>
+
+        <form id="registerForm" enctype="multipart/form-data">
+
+            <div class="photo-section">
+                <label for="profile_photo">Profile Photo (Optional)</label>
+
+                <div class="photo-preview" id="photoPreview">
+                    No photo
+                </div>
+
+                <input
+                    type="file"
+                    id="profile_photo"
+                    name="profile_photo"
+                    class="photo-input"
+                    accept="image/jpeg,image/png,image/webp"
+                >
+
+                <p class="photo-help">
+                    Choose a JPG, PNG, or WebP image. Maximum size: 2 MB.
+                </p>
+            </div>
+
+            <label for="full_name">Full Name *</label>
+            <input
+                type="text"
+                id="full_name"
+                name="full_name"
+                maxlength="120"
+                autocomplete="name"
+                placeholder="Enter your full name"
+                required
+            >
+
+            <label for="email">Email Address *</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                maxlength="150"
+                autocomplete="email"
+                placeholder="Enter your email"
+                required
+            >
+
+            <label for="phone">Phone Number</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                maxlength="30"
+                autocomplete="tel"
+                placeholder="Enter your phone number"
+            >
+
+            <label for="password">Password *</label>
+            <div class="password-field">
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="At least 8 characters"
+                    required
+                >
+                <button
+                    type="button"
+                    class="toggle-password"
+                    data-target="password"
+                >Show</button>
+            </div>
+
+            <label for="confirm_password">Confirm Password *</label>
+            <div class="password-field">
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Enter your password again"
+                    required
+                >
+                <button
+                    type="button"
+                    class="toggle-password"
+                    data-target="confirm_password"
+                >Show</button>
+            </div>
+
+            <button
+                type="submit"
+                id="submitButton"
+                class="submit-button"
+            >
+                Submit Registration
+            </button>
+
+            <div id="message" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="notice">
+            Your account will remain inactive until an administrator
+            reviews and approves your registration.
+        </div>
+
+        <div class="login-link">
+            Already registered?
+            <a href="login.html">Return to Login</a>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById("registerForm");
+        const message = document.getElementById("message");
+        const submitButton = document.getElementById("submitButton");
+        const photoInput = document.getElementById("profile_photo");
+        const photoPreview = document.getElementById("photoPreview");
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        const maxPhotoSize = 2 * 1024 * 1024;
+        let previewUrl = null;
+
+        function clearPhotoPreview() {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+
+            photoPreview.textContent = "No photo";
+        }
+
+        photoInput.addEventListener("change", () => {
+            message.textContent = "";
+            const file = photoInput.files[0];
+
+            clearPhotoPreview();
+
+            if (!file) {
+                return;
+            }
+
+            if (!allowedTypes.includes(file.type)) {
+                photoInput.value = "";
+                message.textContent =
+                    "Please select a JPG, PNG, or WebP image.";
+                return;
+            }
+
+            if (file.size > maxPhotoSize) {
+                photoInput.value = "";
+                message.textContent =
+                    "The photo must not be larger than 2 MB.";
+                return;
+            }
+
+            previewUrl = URL.createObjectURL(file);
+
+            const image = document.createElement("img");
+            image.src = previewUrl;
+            image.alt = "Selected profile photo";
+
+            photoPreview.replaceChildren(image);
+        });
+
+        document.querySelectorAll(".toggle-password").forEach(button => {
+            button.addEventListener("click", () => {
+                const field = document.getElementById(button.dataset.target);
+                const show = field.type === "password";
+
+                field.type = show ? "text" : "password";
+                button.textContent = show ? "Hide" : "Show";
+            });
+        });
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            message.textContent = "";
+            message.style.color = "#b00020";
+
+            const password = document.getElementById("password").value;
+            const confirmation =
+                document.getElementById("confirm_password").value;
+
+            if (password !== confirmation) {
+                message.textContent = "The passwords do not match.";
+                return;
+            }
+
+            const photo = photoInput.files[0];
+
+            if (photo) {
+                if (!allowedTypes.includes(photo.type)) {
+                    message.textContent =
+                        "Please select a JPG, PNG, or WebP image.";
+                    return;
+                }
+
+                if (photo.size > maxPhotoSize) {
+                    message.textContent =
+                        "The photo must not be larger than 2 MB.";
+                    return;
+                }
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+
+            try {
+                const response = await fetch(
+                    "../backend/auth/register.php",
+                    {
+                        method: "POST",
+                        body: new FormData(form)
+                    }
+                );
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    message.style.color = "#18713a";
+                    message.textContent =
+                        result.message || "Registration successful.";
+
+                    form.reset();
+                    clearPhotoPreview();
+                } else {
+                    message.textContent =
+                        result.message || "Registration failed.";
+                }
+            } catch (error) {
+                message.textContent =
+                    "Could not contact the server. Check that Apache and MySQL are running.";
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit Registration";
+            }
+        });
+    </script>
+</body>
+</html>

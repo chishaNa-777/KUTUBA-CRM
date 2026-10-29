@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - View Customer</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topbar h1 {
+            font-size: 24px;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            background: #1f2937;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 {
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #6b7280;
+        }
+
+        .client-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .client-row {
+            display: flex;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .client-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .client-label {
+            width: 200px;
+            flex-shrink: 0;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .client-value {
+            flex: 1;
+            color: #4b5563;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .status-active {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn {
+            display: inline-block;
+            background: #f59e0b;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .message {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 18px;
+                flex-wrap: wrap;
+            }
+
+            .container {
+                padding: 18px;
+            }
+
+            .client-card {
+                padding: 20px;
+            }
+
+            .client-row {
+                flex-direction: column;
+                gap: 7px;
+            }
+
+            .client-label {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>KATUBA CRM</h1>
+        <a href="index.html" class="back-btn">Back to Customers</a>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Customer Details</h2>
+            <p>View the complete information for this customer.</p>
+        </div>
+
+        <div class="client-card" id="clientCard">
+            <div class="message">Loading customer details...</div>
+        </div>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        const clientCard = document.getElementById("clientCard");
+
+        function showMessage(message, isError = false) {
+            const box = document.createElement("div");
+            box.className = isError ? "message error" : "message";
+            box.textContent = message;
+            clientCard.replaceChildren(box);
+        }
+
+        function displayValue(value) {
+            return value === null || value === undefined ||
+                String(value).trim() === ""
+                ? "Not provided"
+                : String(value);
+        }
+
+        function addRow(label, value, extraClass = "") {
+            const row = document.createElement("div");
+            row.className = "client-row";
+
+            const heading = document.createElement("div");
+            heading.className = "client-label";
+            heading.textContent = label;
+
+            const content = document.createElement("div");
+            content.className = "client-value " + extraClass;
+            content.textContent = displayValue(value);
+
+            row.append(heading, content);
+            clientCard.appendChild(row);
+        }
+
+        if (!id || !/^\d+$/.test(id) || Number(id) < 1) {
+            showMessage("A valid customer ID is required.", true);
+        } else {
+            fetch("../../backend/clients/get.php")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("The server could not load customers.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success || !Array.isArray(data.clients)) {
+                        throw new Error(
+                            data.message || "Invalid response from the server."
+                        );
+                    }
+
+                    const client = data.clients.find(
+                        item => String(item.client_id) === String(id)
+                    );
+
+                    if (!client) {
+                        showMessage(
+                            "Customer not found. They may have been deleted.",
+                            true
+                        );
+                        return;
+                    }
+
+                    clientCard.replaceChildren();
+
+                    const status = String(client.status || "");
+                    const statusClass =
+                        status.toLowerCase() === "active"
+                            ? "status-active"
+                            : status.toLowerCase() === "inactive"
+                                ? "status-inactive"
+                                : "";
+
+                    addRow("Customer ID", client.client_id);
+                    addRow("Full Name", client.full_name);
+                    addRow("Phone Number", client.phone);
+                    addRow("Email Address", client.email);
+                    addRow("Location", client.location);
+                    addRow("Address", client.address);
+                    addRow("Service Type", client.service_type);
+                    addRow("Package", client.package);
+                    addRow("Schedule", client.schedule);
+                    addRow("Monthly Fee", client.monthly_fee);
+                    addRow("Start Date", client.start_date);
+                    addRow("Payment Status", client.payment_status);
+                    addRow("Customer Status", status, statusClass);
+                    addRow("Notes", client.notes);
+                    addRow("Created At", client.created_at);
+                    addRow("Last Updated", client.updated_at);
+
+                    const actions = document.createElement("div");
+                    actions.className = "actions";
+
+                    const editButton = document.createElement("a");
+                    editButton.className = "edit-btn";
+                    editButton.href =
+                        "edit.html?id=" + encodeURIComponent(client.client_id);
+                    editButton.textContent = "Edit Customer";
+
+                    actions.appendChild(editButton);
+                    clientCard.appendChild(actions);
+                })
+                .catch(error => {
+                    console.error("View customer error:", error);
+                    showMessage(
+                        "Unable to load customer details. Check that the backend is running and try again.",
+                        true
+                    );
+                });
+        }
+    </script>
+</body>
+</html>

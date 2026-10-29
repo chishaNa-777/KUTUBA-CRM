@@ -1,0 +1,575 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Worker - KATUBA CRM</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            color: #252525;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 5%;
+        }
+
+        .topbar h1 {
+            margin: 0 0 6px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .job-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+        }
+
+        .info {
+            background: #f8f8f8;
+            padding: 14px;
+            border-radius: 7px;
+            overflow-wrap: anywhere;
+        }
+
+        .info strong {
+            display: block;
+            color: #777;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .info span {
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+        }
+
+        button {
+            padding: 11px 16px;
+            margin-top: 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .assign {
+            background: #961a1a;
+            color: white;
+        }
+
+        .back {
+            background: #444;
+            color: white;
+        }
+
+        .unassign {
+            background: #b00020;
+            color: white;
+            margin: 0;
+        }
+
+        .view {
+            background: #333;
+            color: white;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #e8f6ed;
+            color: #176b36;
+        }
+
+        .message.error {
+            display: block;
+            background: #fdebec;
+            color: #a51c30;
+        }
+
+        table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e5e5;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #e8f6ed;
+            color: #176b36;
+            font-size: 12px;
+        }
+
+        .muted {
+            color: #777;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 94%;
+                margin: 18px auto;
+            }
+
+            .card {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>KATUBA CRM</h1>
+        <div>Job Worker Assignment</div>
+    </header>
+
+    <main class="container">
+        <section class="card">
+            <h2>Job Information</h2>
+
+            <div class="job-grid">
+                <div class="info">
+                    <strong>Job ID</strong>
+                    <span id="jobId">Loading...</span>
+                </div>
+
+                <div class="info">
+                    <strong>Client</strong>
+                    <span id="clientName">Loading...</span>
+                </div>
+
+                <div class="info">
+                    <strong>Schedule</strong>
+                    <span id="schedule">Loading...</span>
+                </div>
+
+                <div class="info">
+                    <strong>Job Status</strong>
+                    <span id="jobStatus">Loading...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Assign Worker</h2>
+
+            <form id="assignForm">
+                <label for="worker">Select an active worker</label>
+
+                <select id="worker" required>
+                    <option value="">Loading workers...</option>
+                </select>
+
+                <br>
+
+                <button type="submit" class="assign" id="assignButton">
+                    Assign Worker
+                </button>
+            </form>
+
+            <div id="message" class="message" role="status"></div>
+
+            <p class="muted">
+                Each job can have one assigned worker. Assigning a different
+                worker replaces the current assignment.
+            </p>
+        </section>
+
+        <section class="card">
+            <h2>Assigned Worker</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="assignedWorkers">
+                    <tr>
+                        <td colspan="6">Loading assignment...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="actions">
+            <button type="button" class="back"
+                onclick="window.location.href='index.html'">
+                Back to Jobs
+            </button>
+
+            <button type="button" class="view" onclick="goToViewJob()">
+                View Job
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get("id");
+
+        const workerSelect = document.getElementById("worker");
+        const messageBox = document.getElementById("message");
+        const assignButton = document.getElementById("assignButton");
+
+        function showMessage(message, success) {
+            messageBox.textContent = message;
+            messageBox.className = "message " +
+                (success ? "success" : "error");
+        }
+
+        async function getJSON(url, options = {}) {
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (!response.ok && data.success !== false) {
+                throw new Error("The server returned an error.");
+            }
+
+            return data;
+        }
+
+        function goToViewJob() {
+            if (!jobId) {
+                alert("Job ID is missing.");
+                return;
+            }
+
+            window.location.href =
+                "view.html?id=" + encodeURIComponent(jobId);
+        }
+
+        async function loadJob() {
+            if (!jobId) {
+                document.getElementById("jobId").textContent = "Missing";
+                showMessage("Open this page from a job using its Assign button.", false);
+                assignButton.disabled = true;
+                return;
+            }
+
+            document.getElementById("jobId").textContent = jobId;
+
+            try {
+                const data = await getJSON(
+                    "../../backend/jobs/edit.php?id=" +
+                    encodeURIComponent(jobId)
+                );
+
+                if (!data.success || !data.job) {
+                    throw new Error(data.message || "Job not found.");
+                }
+
+                const job = data.job;
+
+                document.getElementById("clientName").textContent =
+                    job.full_name || job.client_name || "-";
+
+                document.getElementById("schedule").textContent =
+                    job.schedule || "-";
+
+                document.getElementById("jobStatus").textContent =
+                    job.status || job.job_status || "-";
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("clientName").textContent =
+                    "Unable to load";
+                document.getElementById("schedule").textContent = "-";
+                document.getElementById("jobStatus").textContent = "-";
+                showMessage("Unable to load job information: " + error.message, false);
+            }
+        }
+
+        async function loadWorkers() {
+            try {
+                const data = await getJSON("../../backend/workers/get.php");
+
+                workerSelect.innerHTML =
+                    '<option value="">Select a worker</option>';
+
+                if (!data.success || !Array.isArray(data.workers)) {
+                    throw new Error(data.message || "Worker list was not returned.");
+                }
+
+                const activeWorkers = data.workers.filter(function(worker) {
+                    return worker.status === "active";
+                });
+
+                activeWorkers.forEach(function(worker) {
+                    const option = document.createElement("option");
+
+                    option.value = worker.worker_id;
+                    option.textContent =
+                        worker.full_name +
+                        " — " + (worker.worker_role || "Worker") +
+                        " (" + (worker.availability || "unknown") + ")";
+
+                    workerSelect.appendChild(option);
+                });
+
+                if (activeWorkers.length === 0) {
+                    workerSelect.innerHTML =
+                        '<option value="">No active workers found</option>';
+                }
+
+            } catch (error) {
+                console.error(error);
+                workerSelect.innerHTML =
+                    '<option value="">Unable to load workers</option>';
+                showMessage("Unable to load workers: " + error.message, false);
+            }
+        }
+
+        async function loadAssignedWorkers() {
+            const table = document.getElementById("assignedWorkers");
+
+            if (!jobId) {
+                table.innerHTML =
+                    '<tr><td colspan="6">Job ID is missing.</td></tr>';
+                return;
+            }
+
+            table.innerHTML =
+                '<tr><td colspan="6">Loading assignment...</td></tr>';
+
+            try {
+                const data = await getJSON(
+                    "../../backend/jobs/assigned_workers.php?job_id=" +
+                    encodeURIComponent(jobId)
+                );
+
+                if (!data.success) {
+                    throw new Error(data.message || "Unable to load assignment.");
+                }
+
+                table.innerHTML = "";
+
+                if (!Array.isArray(data.workers) || data.workers.length === 0) {
+                    table.innerHTML =
+                        '<tr><td colspan="6">No worker is currently assigned.</td></tr>';
+                    return;
+                }
+
+                data.workers.forEach(function(worker) {
+                    const row = document.createElement("tr");
+
+                    [
+                        worker.full_name || "-",
+                        worker.phone || "-",
+                        worker.email || "-",
+                        worker.worker_role || "-",
+                        worker.employment_status || worker.worker_status || "-"
+                    ].forEach(function(value, index) {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+
+                        if (index === 4) {
+                            const status = document.createElement("span");
+                            status.className = "status";
+                            status.textContent = value;
+                            cell.textContent = "";
+                            cell.appendChild(status);
+                        }
+
+                        row.appendChild(cell);
+                    });
+
+                    const actionCell = document.createElement("td");
+                    const button = document.createElement("button");
+
+                    button.type = "button";
+                    button.className = "unassign";
+                    button.textContent = "Unassign";
+                    button.addEventListener("click", function() {
+                        unassignWorker(worker.job_id);
+                    });
+
+                    actionCell.appendChild(button);
+                    row.appendChild(actionCell);
+                    table.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error(error);
+                table.innerHTML =
+                    '<tr><td colspan="6">Unable to load assigned worker.</td></tr>';
+                showMessage("Unable to load assignment: " + error.message, false);
+            }
+        }
+
+        async function unassignWorker(currentJobId) {
+            if (!confirm("Are you sure you want to unassign this worker?")) {
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append("job_id", currentJobId);
+
+            try {
+                const data = await getJSON(
+                    "../../backend/jobs/unassign.php",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: formData.toString()
+                    }
+                );
+
+                showMessage(data.message, data.success);
+
+                if (data.success) {
+                    await loadAssignedWorkers();
+                    await loadWorkers();
+                }
+
+            } catch (error) {
+                console.error(error);
+                showMessage("Unable to unassign worker: " + error.message, false);
+            }
+        }
+
+        document.getElementById("assignForm").addEventListener(
+            "submit",
+            async function(event) {
+                event.preventDefault();
+
+                const workerId = workerSelect.value;
+
+                if (!jobId) {
+                    showMessage("Job ID is missing.", false);
+                    return;
+                }
+
+                if (!workerId) {
+                    showMessage("Please select a worker.", false);
+                    return;
+                }
+
+                if (!confirm(
+                    "Assign this worker to the job? If another worker is assigned, the current assignment will be replaced."
+                )) {
+                    return;
+                }
+
+                const formData = new URLSearchParams();
+                formData.append("job_id", jobId);
+                formData.append("worker_id", workerId);
+
+                assignButton.disabled = true;
+
+                try {
+                    const data = await getJSON(
+                        "../../backend/jobs/assign.php",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body: formData.toString()
+                        }
+                    );
+
+                    showMessage(data.message, data.success);
+
+                    if (data.success) {
+                        workerSelect.value = "";
+                        await loadAssignedWorkers();
+                        await loadWorkers();
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    showMessage("Unable to assign worker: " + error.message, false);
+                } finally {
+                    assignButton.disabled = false;
+                }
+            }
+        );
+
+        loadJob();
+        loadWorkers();
+        loadAssignedWorkers();
+    </script>
+</body>
+</html>

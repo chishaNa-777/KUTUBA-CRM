@@ -1,0 +1,1598 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM | User Management</title>
+
+<style>
+:root {
+    --red: #961a1a;
+    --red-dark: #751313;
+    --sidebar: #20232c;
+    --bg: #f4f6fa;
+    --white: #fff;
+    --text: #252b36;
+    --muted: #747d8c;
+    --border: #e5e8ef;
+    --green: #16834a;
+    --blue: #2563b4;
+    --orange: #b7791f;
+    --shadow: 0 8px 28px rgba(28,39,60,.06);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+}
+
+button, input, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--sidebar);
+    color: white;
+    padding: 25px 15px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.brand {
+    padding: 0 10px;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -.7px;
+}
+
+.brand span { color: #ef6262; }
+
+.brand-subtitle {
+    padding: 7px 10px 28px;
+    color: #aeb4c0;
+    font-size: 12px;
+}
+
+.nav-label {
+    padding: 10px;
+    margin-bottom: 5px;
+    color: #9299a8;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 12px;
+    margin-bottom: 5px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #d5d9e2;
+    text-decoration: none;
+    font-size: 14px;
+    transition: .2s;
+}
+
+.nav-link:hover { background: rgba(255,255,255,.08); }
+
+.nav-link.active {
+    background: linear-gradient(135deg,#961a1a,#b72b2b);
+    color: white;
+    box-shadow: 0 5px 14px rgba(150,26,26,.22);
+}
+
+.nav-icon {
+    width: 22px;
+    text-align: center;
+    font-size: 17px;
+}
+
+/* HEADER */
+
+.main { flex: 1; min-width: 0; }
+
+.topbar {
+    min-height: 80px;
+    padding: 18px 30px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 3px 12px rgba(28,39,60,.03);
+}
+
+.topbar h1 {
+    font-size: 22px;
+    letter-spacing: -.5px;
+}
+
+.topbar p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-align: right;
+    font-size: 13px;
+}
+
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #fff0f0;
+    color: var(--red);
+    font-size: 17px;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.user-info strong {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.user-info span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* CONTENT */
+
+.content {
+    padding: 28px;
+    max-width: 1700px;
+    margin: auto;
+}
+
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.page-heading h2 {
+    font-size: 26px;
+    letter-spacing: -.7px;
+}
+
+.page-heading p {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.button:hover { transform: translateY(-1px); }
+
+.button-primary {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 4px 10px rgba(150,26,26,.12);
+}
+
+.button-primary:hover { background: var(--red-dark); }
+
+.button-light {
+    background: white;
+    border: 1px solid var(--border);
+    color: #374151;
+}
+
+.button-light:hover { background: #f4f5f7; }
+
+.button:disabled { opacity: .6; cursor: not-allowed; }
+
+/* STATISTICS */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 21px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: transform .2s;
+}
+
+.stat-card:hover { transform: translateY(-3px); }
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--red);
+}
+
+.stat-card:nth-child(2)::after { background: var(--green); }
+.stat-card:nth-child(3)::after { background: var(--orange); }
+.stat-card:nth-child(4)::after { background: var(--blue); }
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.stat-label { color: var(--muted); font-size: 13px; }
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.icon-red { background:#fff0f0; color:var(--red); }
+.icon-green { background:#e8f8ee; color:var(--green); }
+.icon-blue { background:#edf4ff; color:var(--blue); }
+.icon-orange { background:#fff5df; color:var(--orange); }
+
+.stat-value {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.stat-note {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* TABLE */
+
+.panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 22px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(to bottom,#fff,#fdfdfe);
+}
+
+.panel-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.panel-title-row h3 {
+    font-size: 17px;
+    margin-bottom: 4px;
+}
+
+.panel-title-row p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: minmax(180px,2fr) minmax(140px,1fr) minmax(140px,1fr) auto;
+    gap: 10px;
+}
+
+.filter-control {
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+    padding: 10px 12px;
+    border: 1px solid #d9dee7;
+    border-radius: 7px;
+    background: white;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: .2s;
+}
+
+.filter-control:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(150,26,26,.08);
+}
+
+.table-info {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 22px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-top: 12px;
+}
+
+table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+th {
+    padding: 15px 17px;
+    background: #f8f9fb;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: #687182;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+td {
+    padding: 15px 17px;
+    border-bottom: 1px solid #edf0f4;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+tbody tr { transition: background .18s; }
+tbody tr:hover { background: #fff8f8; }
+
+.user-id { color: var(--red); font-weight: 700; }
+
+.user-name { font-weight: 700; min-width: 210px; }
+
+.user-name-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 200px;
+}
+
+.user-list-avatar,
+.user-list-avatar-image {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+}
+
+.user-list-avatar {
+    display: grid;
+    place-items: center;
+    background: #fff0f0;
+    color: var(--red);
+    font-size: 15px;
+    font-weight: 800;
+    border: 1px solid #f1d6d6;
+}
+
+.user-list-avatar-image {
+    display: block;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+
+.user-name-text { overflow-wrap: anywhere; }
+
+.email {
+    color: #596273;
+    overflow-wrap: anywhere;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #dfe8ff;
+    border-radius: 20px;
+    background: #f0f4ff;
+    color: #2458a6;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid #ccebd8;
+    border-radius: 20px;
+    background: #e8f8ee;
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.status.inactive {
+    background: #fff0f0;
+    border-color: #f1cccc;
+    color: #b42323;
+}
+
+.status.unknown {
+    background: #f0f2f5;
+    border-color: #e0e3e8;
+    color: #596273;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.action-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 32px;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.action-view { color: var(--green); border-color: #cdebd8; }
+.action-view:hover { background:#eaf8ef; }
+.action-edit { color: var(--blue); border-color: #d2e2ff; }
+.action-edit:hover { background:#edf4ff; }
+.action-delete { color: #b42323; border-color: #f2d1d1; }
+.action-delete:hover { background:#fff0f0; }
+
+.message-cell {
+    padding: 38px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.message-cell.error { color: #b42323; }
+
+.panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 22px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* USER DETAILS MODAL */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    padding: 20px;
+    background: rgba(15,20,30,.62);
+    overflow-y: auto;
+}
+
+.modal.open { display: block; }
+
+.modal-content {
+    width: 100%;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 13px;
+    box-shadow: 0 15px 50px rgba(0,0,0,.2);
+    animation: modalEnter .2s ease-out;
+}
+
+@keyframes modalEnter {
+    from { opacity:0; transform:translateY(10px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 { font-size: 21px; }
+
+.modal-close {
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 6px;
+    background: #f1f3f6;
+    color: #374151;
+    cursor: pointer;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 140px minmax(0,1fr);
+    gap: 15px;
+    padding: 14px 0;
+    border-bottom: 1px solid #edf0f4;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.detail-label { color: #626c7c; font-weight: 700; }
+.detail-value { overflow-wrap: anywhere; }
+
+.modal-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+}
+
+.modal-profile img,
+.modal-profile .user-list-avatar {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.modal-profile-name { font-weight: 800; font-size: 16px; }
+
+.modal-profile-email {
+    color: var(--muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 23px;
+}
+
+/* NOTIFICATIONS */
+
+.toast {
+    display: none;
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1200;
+    max-width: calc(100% - 40px);
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: #252b36;
+    color: white;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+}
+
+.toast.show { display: block; }
+.toast.error-toast { background: #b42323; }
+.toast.success-toast { background: #16834a; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid rgba(150,26,26,.3);
+    outline-offset: 2px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width:1200px) {
+    .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:760px) {
+    .app { display: block; }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        overflow: visible;
+        padding: 18px 12px;
+    }
+
+    .brand { padding: 0 8px; }
+    .brand-subtitle { padding: 6px 8px 15px; }
+    .nav-label { display: none; }
+
+    .sidebar nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .nav-link {
+        margin: 0;
+        padding: 10px;
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .nav-icon { display: none; }
+
+    .topbar {
+        position: static;
+        padding: 18px;
+    }
+
+    .topbar h1 { font-size: 20px; }
+    .content { padding: 18px 13px; }
+    .page-heading h2 { font-size: 22px; }
+    .panel-header { padding: 17px; }
+    .filters { grid-template-columns: 1fr; }
+
+    .table-info,
+    .panel-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+@media (max-width:420px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .user-info { display: none; }
+
+    .detail-row {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .modal-content {
+        margin: 10px auto;
+        padding: 18px;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media print {
+    body * { visibility: hidden !important; }
+
+    #userModal,
+    #userModal * { visibility: visible !important; }
+
+    #userModal {
+        display: block !important;
+        position: absolute;
+        inset: 0;
+        padding: 0;
+        background: white;
+    }
+
+    #userModal .modal-content {
+        max-width: none;
+        margin: 0;
+        box-shadow: none;
+    }
+
+    #userModal .modal-actions,
+    #userModal .modal-close {
+        display: none !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">KATUBA<span> CRM</span></div>
+        <div class="brand-subtitle">Management System</div>
+
+        <div class="nav-label">Main Menu</div>
+
+        <nav>
+            <a class="nav-link" href="../dashboard.html">
+                <span class="nav-icon">⌂</span> Dashboard
+            </a>
+            <a class="nav-link" href="../clients/index.html">
+                <span class="nav-icon">♙</span> Customers
+            </a>
+            <a class="nav-link" href="../workers/index.html">
+                <span class="nav-icon">♧</span> Workers
+            </a>
+            <a class="nav-link" href="../jobs/index.html">
+                <span class="nav-icon">▤</span> Jobs
+            </a>
+            <a class="nav-link" href="../products/index.html">
+                <span class="nav-icon">▦</span> Products
+            </a>
+            <a class="nav-link" href="../reports/index.html">
+                <span class="nav-icon">▥</span> Reports
+            </a>
+            <a class="nav-link active" href="index.html">
+                <span class="nav-icon">♙</span> Users
+            </a>
+            <a class="nav-link" href="../login.html" id="logoutLink">
+                <span class="nav-icon">↪</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h1>User Management</h1>
+                <p>Manage system accounts, roles and access.</p>
+            </div>
+
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">K</div>
+                <div>
+                    <strong id="userName">KATUBA Administrator</strong>
+                    <span id="userRole">Administrator</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-heading">
+                <div>
+                    <h2>Users Dashboard</h2>
+                    <p>Monitor accounts and manage access to the system.</p>
+                </div>
+
+                <a href="add.html" class="button button-primary">+ Add User</a>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-icon icon-red">♙</div>
+                    </div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-note">All registered accounts</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-label">Active Users</div>
+                        <div class="stat-icon icon-green">✓</div>
+                    </div>
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-note">Accounts marked active</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-label">Inactive Users</div>
+                        <div class="stat-icon icon-orange">!</div>
+                    </div>
+                    <div class="stat-value" id="inactiveUsers">0</div>
+                    <div class="stat-note">Accounts marked inactive</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-label">Administrator Accounts</div>
+                        <div class="stat-icon icon-blue">◆</div>
+                    </div>
+                    <div class="stat-value" id="adminUsers">0</div>
+                    <div class="stat-note">Accounts with administrator role</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title-row">
+                        <div>
+                            <h3>System Users</h3>
+                            <p>Search, filter, view, edit and manage accounts.</p>
+                        </div>
+
+                        <button type="button"
+                                class="button button-light"
+                                id="refreshButton">
+                            ↻ Refresh
+                        </button>
+                    </div>
+
+                    <div class="filters">
+                        <input type="search"
+                               id="searchInput"
+                               class="filter-control"
+                               placeholder="Search name, email or ID..."
+                               aria-label="Search users">
+
+                        <select id="roleFilter"
+                                class="filter-control"
+                                aria-label="Filter by role">
+                            <option value="">All Roles</option>
+                        </select>
+
+                        <select id="statusFilter"
+                                class="filter-control"
+                                aria-label="Filter by status">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+
+                        <button type="button"
+                                class="button button-light"
+                                id="clearFilters">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-info">
+                    <span id="resultCount">Loading users...</span>
+                    <span>Account information</span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Email Address</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="6" class="message-cell">
+                                    Loading users...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel-footer">
+                    <span id="footerCount">Loading accounts...</span>
+                    <a href="add.html" class="button button-primary">+ Add User</a>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- USER DETAILS MODAL -->
+
+<div class="modal" id="userModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modalTitle">
+
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">User Details</h2>
+            <button type="button" class="modal-close" id="closeModal">
+                Close ✕
+            </button>
+        </div>
+
+        <div id="userDetails"></div>
+
+        <div class="modal-actions">
+            <button type="button"
+                    class="button button-light"
+                    id="printButton">
+                Print Details
+            </button>
+
+            <button type="button"
+                    class="button button-primary"
+                    id="editFromModal">
+                Edit User
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+const USERS_API = "../../backend/users/";
+const AUTH_API = "../../backend/auth/";
+
+const tableBody = document.getElementById("usersTableBody");
+const searchInput = document.getElementById("searchInput");
+const roleFilter = document.getElementById("roleFilter");
+const statusFilter = document.getElementById("statusFilter");
+const resultCount = document.getElementById("resultCount");
+const footerCount = document.getElementById("footerCount");
+const userModal = document.getElementById("userModal");
+const userDetails = document.getElementById("userDetails");
+
+let allUsers = [];
+let selectedUser = null;
+let toastTimer = null;
+let isLoading = false;
+
+function getUserId(user) {
+    return user.id ?? user.user_id ?? "";
+}
+
+function getUserStatus(user) {
+    return String(user.status || "unknown").trim();
+}
+
+function getUserRole(user) {
+    return String(user.role || "Not assigned").trim();
+}
+
+function formatRole(role) {
+    const labels = {
+        admin: "Administrator",
+        administrator: "Administrator",
+        hr_officer: "HR Officer",
+        operations_manager: "Operations Manager",
+        finance_officer: "Finance Officer"
+    };
+
+    return labels[String(role).toLowerCase()] || role;
+}
+
+function getInitials(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+    return (
+        parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+}
+
+function getPictureUrl(user) {
+    const path = String(user.profile_picture || "").replace(/^\/+/, "");
+
+    if (
+        !path.startsWith("uploads/users/") ||
+        path.includes("..") ||
+        path.includes("\\")
+    ) {
+        return "";
+    }
+
+    return "../../" + path;
+}
+
+function createAvatarElement(user, className = "user-list-avatar") {
+    const name = String(user.full_name || "Unnamed User");
+    const pictureUrl = getPictureUrl(user);
+
+    if (pictureUrl) {
+        const image = document.createElement("img");
+        image.className = className + "-image";
+        image.alt = "Profile picture of " + name;
+        image.loading = "lazy";
+        image.src = pictureUrl;
+
+        image.addEventListener("error", () => {
+            const fallback = document.createElement("div");
+            fallback.className = className;
+            fallback.textContent = getInitials(name);
+            image.replaceWith(fallback);
+        }, { once: true });
+
+        return image;
+    }
+
+    const avatar = document.createElement("div");
+    avatar.className = className;
+    avatar.textContent = getInitials(name);
+
+    return avatar;
+}
+
+function showMessage(message, isError = false) {
+    tableBody.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+
+    cell.colSpan = 6;
+    cell.className = "message-cell" + (isError ? " error" : "");
+    cell.textContent = message;
+
+    row.appendChild(cell);
+    tableBody.appendChild(row);
+}
+
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+    toast.className = "toast show";
+
+    toast.classList.add(
+        type === "error" ? "error-toast" : "success-toast"
+    );
+
+    if (toastTimer) clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
+        toast.className = "toast";
+    }, 3500);
+}
+
+function updateStatistics(users) {
+    const active = users.filter(user =>
+        getUserStatus(user).toLowerCase() === "active"
+    ).length;
+
+    const inactive = users.filter(user =>
+        getUserStatus(user).toLowerCase() === "inactive"
+    ).length;
+
+    const admins = users.filter(user => {
+        const role = getUserRole(user).toLowerCase();
+        return role === "admin" || role === "administrator";
+    }).length;
+
+    document.getElementById("totalUsers").textContent =
+        users.length.toLocaleString();
+
+    document.getElementById("activeUsers").textContent =
+        active.toLocaleString();
+
+    document.getElementById("inactiveUsers").textContent =
+        inactive.toLocaleString();
+
+    document.getElementById("adminUsers").textContent =
+        admins.toLocaleString();
+}
+
+function populateRoleFilter() {
+    const previousValue = roleFilter.value;
+
+    const roles = [
+        ...new Set(
+            allUsers
+                .map(user => getUserRole(user))
+                .filter(role =>
+                    role && role.toLowerCase() !== "not assigned"
+                )
+        )
+    ].sort((a, b) => a.localeCompare(b));
+
+    roleFilter.replaceChildren();
+
+    const allOption = document.createElement("option");
+    allOption.value = "";
+    allOption.textContent = "All Roles";
+    roleFilter.appendChild(allOption);
+
+    roles.forEach(role => {
+        const option = document.createElement("option");
+        option.value = role;
+        option.textContent = formatRole(role);
+        roleFilter.appendChild(option);
+    });
+
+    if (roles.includes(previousValue)) {
+        roleFilter.value = previousValue;
+    }
+}
+
+function createActionButton(label, className, handler) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "action-button " + className;
+    button.textContent = label;
+    button.addEventListener("click", handler);
+
+    return button;
+}
+
+function renderUsers() {
+    const search = searchInput.value.trim().toLowerCase();
+    const role = roleFilter.value;
+    const status = statusFilter.value.toLowerCase();
+
+    const filteredUsers = allUsers.filter(user => {
+        const name = String(user.full_name || "").toLowerCase();
+        const email = String(user.email || "").toLowerCase();
+        const id = String(getUserId(user)).toLowerCase();
+        const userRole = getUserRole(user);
+        const userStatus = getUserStatus(user).toLowerCase();
+
+        const matchesSearch =
+            name.includes(search) ||
+            email.includes(search) ||
+            id.includes(search) ||
+            (id + ".").includes(search);
+
+        const matchesRole = !role || userRole === role;
+        const matchesStatus = !status || userStatus === status;
+
+        return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    resultCount.textContent =
+        `Showing ${filteredUsers.length} of ${allUsers.length} users`;
+
+    footerCount.textContent =
+        `${allUsers.length} registered account${allUsers.length === 1 ? "" : "s"}`;
+
+    tableBody.replaceChildren();
+
+    if (filteredUsers.length === 0) {
+        showMessage(
+            allUsers.length === 0
+                ? "No users found. Select Add User to create an account."
+                : "No users match your search or selected filters."
+        );
+        return;
+    }
+
+    filteredUsers.forEach(user => {
+        const row = document.createElement("tr");
+        const id = getUserId(user);
+
+        const idCell = document.createElement("td");
+        idCell.className = "user-id";
+        idCell.textContent = "#" + id;
+        row.appendChild(idCell);
+
+        const nameCell = document.createElement("td");
+        nameCell.className = "user-name";
+
+        const nameRow = document.createElement("div");
+        nameRow.className = "user-name-row";
+
+        nameRow.appendChild(createAvatarElement(user));
+
+        const nameText = document.createElement("span");
+        nameText.className = "user-name-text";
+        nameText.textContent = user.full_name || "Unnamed User";
+
+        nameRow.appendChild(nameText);
+        nameCell.appendChild(nameRow);
+        row.appendChild(nameCell);
+
+        const emailCell = document.createElement("td");
+        emailCell.className = "email";
+        emailCell.textContent = user.email || "No email";
+        row.appendChild(emailCell);
+
+        const roleCell = document.createElement("td");
+        const roleBadge = document.createElement("span");
+        roleBadge.className = "role-badge";
+        roleBadge.textContent = formatRole(getUserRole(user));
+        roleCell.appendChild(roleBadge);
+        row.appendChild(roleCell);
+
+        const statusCell = document.createElement("td");
+        const badge = document.createElement("span");
+        const currentStatus = getUserStatus(user);
+
+        badge.className = "status";
+
+        if (currentStatus.toLowerCase() === "inactive") {
+            badge.classList.add("inactive");
+        } else if (currentStatus.toLowerCase() !== "active") {
+            badge.classList.add("unknown");
+        }
+
+        badge.textContent =
+            currentStatus.charAt(0).toUpperCase() +
+            currentStatus.slice(1);
+
+        statusCell.appendChild(badge);
+        row.appendChild(statusCell);
+
+        const actionsCell = document.createElement("td");
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        actions.appendChild(createActionButton(
+            "View",
+            "action-view",
+            () => viewUser(user)
+        ));
+
+        const editLink = document.createElement("a");
+        editLink.className = "action-button action-edit";
+        editLink.textContent = "Edit";
+        editLink.href = "edit.html?id=" + encodeURIComponent(String(id));
+        actions.appendChild(editLink);
+
+        actions.appendChild(createActionButton(
+            "Delete",
+            "action-delete",
+            () => deleteUser(id, user.full_name || "this user")
+        ));
+
+        actionsCell.appendChild(actions);
+        row.appendChild(actionsCell);
+
+        tableBody.appendChild(row);
+    });
+}
+
+async function loadUsers() {
+    if (isLoading) return;
+
+    isLoading = true;
+    document.getElementById("refreshButton").disabled = true;
+
+    showMessage("Loading users...");
+    resultCount.textContent = "Loading users...";
+    footerCount.textContent = "Loading accounts...";
+
+    try {
+        const response = await fetch(USERS_API + "get.php", {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success === false) {
+            throw new Error(data.message || "Unable to load users.");
+        }
+
+        let users = [];
+
+        if (Array.isArray(data.users)) {
+            users = data.users;
+        } else if (Array.isArray(data.data)) {
+            users = data.data;
+        } else if (Array.isArray(data)) {
+            users = data;
+        } else {
+            throw new Error("The users endpoint did not return a users array.");
+        }
+
+        allUsers = users;
+        updateStatistics(allUsers);
+        populateRoleFilter();
+        renderUsers();
+
+    } catch (error) {
+        console.error("Load users error:", error);
+        showMessage(error.message || "Unable to load users.", true);
+        resultCount.textContent = "Users could not be loaded.";
+        footerCount.textContent = "Accounts unavailable.";
+
+    } finally {
+        isLoading = false;
+        document.getElementById("refreshButton").disabled = false;
+    }
+}
+
+function viewUser(user) {
+    selectedUser = user;
+    userDetails.replaceChildren();
+
+    const profile = document.createElement("div");
+    profile.className = "modal-profile";
+    profile.appendChild(createAvatarElement(user, "user-list-avatar"));
+
+    const profileText = document.createElement("div");
+
+    const profileName = document.createElement("div");
+    profileName.className = "modal-profile-name";
+    profileName.textContent = user.full_name || "Unnamed User";
+
+    const profileEmail = document.createElement("div");
+    profileEmail.className = "modal-profile-email";
+    profileEmail.textContent = user.email || "No email";
+
+    profileText.append(profileName, profileEmail);
+    profile.appendChild(profileText);
+    userDetails.appendChild(profile);
+
+    const fields = [
+        ["User ID", getUserId(user)],
+        ["Full Name", user.full_name || "Not provided"],
+        ["Email Address", user.email || "Not provided"],
+        ["Role", formatRole(getUserRole(user))],
+        ["Account Status", getUserStatus(user)],
+        ["Date Created", user.created_at || "Not available"]
+    ];
+
+    fields.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "detail-row";
+
+        const labelElement = document.createElement("div");
+        labelElement.className = "detail-label";
+        labelElement.textContent = label;
+
+        const valueElement = document.createElement("div");
+        valueElement.className = "detail-value";
+        valueElement.textContent = String(value ?? "");
+
+        row.append(labelElement, valueElement);
+        userDetails.appendChild(row);
+    });
+
+    userModal.classList.add("open");
+    document.getElementById("closeModal").focus();
+}
+
+function closeModal() {
+    userModal.classList.remove("open");
+    selectedUser = null;
+}
+
+document.getElementById("closeModal")
+    .addEventListener("click", closeModal);
+
+userModal.addEventListener("click", event => {
+    if (event.target === userModal) closeModal();
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && userModal.classList.contains("open")) {
+        closeModal();
+    }
+});
+
+document.getElementById("printButton").addEventListener("click", () => {
+    if (!selectedUser) {
+        showToast("Select a user before printing.", "error");
+        return;
+    }
+
+    window.print();
+});
+
+document.getElementById("editFromModal").addEventListener("click", () => {
+    if (!selectedUser) return;
+
+    window.location.href =
+        "edit.html?id=" + encodeURIComponent(String(getUserId(selectedUser)));
+});
+
+async function deleteUser(id, name) {
+    const confirmed = window.confirm(
+        `Delete the account for ${name} (User #${id})?\n\n` +
+        "This action cannot normally be undone."
+    );
+
+    if (!confirmed) return;
+
+    const formData = new FormData();
+    formData.append("id", id);
+
+    try {
+        const response = await fetch(USERS_API + "delete.php", {
+            method: "POST",
+            body: formData,
+            headers: { "Accept": "application/json" }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.success !== true) {
+            throw new Error(result.message || "Unable to delete user.");
+        }
+
+        showToast(result.message || "User deleted successfully.");
+        await loadUsers();
+
+    } catch (error) {
+        console.error("Delete user error:", error);
+        showToast(error.message || "Unable to connect to the server.", "error");
+    }
+}
+
+searchInput.addEventListener("input", renderUsers);
+roleFilter.addEventListener("change", renderUsers);
+statusFilter.addEventListener("change", renderUsers);
+
+document.getElementById("clearFilters").addEventListener("click", () => {
+    searchInput.value = "";
+    roleFilter.value = "";
+    statusFilter.value = "";
+    renderUsers();
+});
+
+document.getElementById("refreshButton")
+    .addEventListener("click", loadUsers);
+
+async function loadUserInfo() {
+    try {
+        const response = await fetch(
+            "../../backend/auth/check_session.php",
+            {
+                headers: { "Accept": "application/json" },
+                cache: "no-store"
+            }
+        );
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+
+        if (!result.success) {
+            window.location.href = "../login.html";
+            return;
+        }
+
+        const user = result.user || {};
+
+        document.getElementById("userName").textContent =
+            user.full_name || "KATUBA Administrator";
+
+        document.getElementById("userRole").textContent =
+            formatRole(user.role || "Administrator");
+
+        const avatar = document.getElementById("userAvatar");
+        const pictureUrl = getPictureUrl(user);
+
+        if (pictureUrl) {
+            const image = document.createElement("img");
+            image.alt = "Your profile picture";
+            image.src = pictureUrl;
+
+            image.addEventListener("error", () => {
+                avatar.replaceChildren();
+                avatar.textContent = getInitials(user.full_name || "K");
+            }, { once: true });
+
+            avatar.replaceChildren(image);
+        } else {
+            avatar.textContent = getInitials(user.full_name || "K");
+        }
+
+    } catch (error) {
+        console.error("Session check error:", error);
+    }
+}
+
+document.getElementById("logoutLink").addEventListener("click", async event => {
+    event.preventDefault();
+
+    const link = event.currentTarget;
+    link.style.pointerEvents = "none";
+
+    try {
+        const response = await fetch(AUTH_API + "logout.php", {
+            method: "POST",
+            headers: { "Accept": "application/json" }
+        });
+
+        if (!response.ok) throw new Error("Logout request failed.");
+
+        window.location.href = "../login.html";
+
+    } catch (error) {
+        console.error("Logout error:", error);
+        showToast("Unable to log out. Please try again.", "error");
+        link.style.pointerEvents = "";
+    }
+});
+
+loadUsers();
+loadUserInfo();
+</script>
+</body>
+</html>

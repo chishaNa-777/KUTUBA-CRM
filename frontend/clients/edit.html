@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Customer | KATUBA CRM</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #961a1a;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d5d9df;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button, .cancel {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        button {
+            background: #961a1a;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .cancel {
+            background: #e8ebef;
+            color: #222;
+        }
+
+        #message {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        #message.error {
+            display: block;
+            background: #ffe8e8;
+            color: #9b1717;
+        }
+
+        #message.success {
+            display: block;
+            background: #e5f7e9;
+            color: #17652b;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <h1>Update Customer Details</h1>
+        <p class="description">
+            Make changes to the selected customer's information.
+        </p>
+
+        <div id="message" role="alert"></div>
+
+        <form id="editCustomerForm">
+            <input type="hidden" id="id" name="id">
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="full_name">Customer Name *</label>
+                    <input type="text" id="full_name" name="full_name"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a class="cancel" href="index.html">Cancel</a>
+                <button type="submit" id="updateButton">
+                    Update Customer
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const API = "../../backend/clients/";
+        const params = new URLSearchParams(window.location.search);
+        const customerId = params.get("id");
+
+        const form = document.getElementById("editCustomerForm");
+        const message = document.getElementById("message");
+        const updateButton = document.getElementById("updateButton");
+
+        function showMessage(text, type = "error") {
+            message.textContent = text;
+            message.className = type;
+        }
+
+        async function loadCustomer() {
+            if (!customerId || !/^\d+$/.test(customerId) ||
+                Number(customerId) < 1) {
+                form.hidden = true;
+                showMessage(
+                    "A valid customer ID is missing. Return to the Customers list."
+                );
+                return;
+            }
+
+            document.getElementById("id").value = customerId;
+
+            try {
+                const response = await fetch(
+                    API + "edit.php?id=" +
+                    encodeURIComponent(customerId),
+                    { cache: "no-store" }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || data.success !== true || !data.client) {
+                    throw new Error(
+                        data.message || "Unable to load this customer."
+                    );
+                }
+
+                const customer = data.client;
+
+                // Use the real database primary key.
+                document.getElementById("id").value =
+                    customer.client_id ?? customerId;
+
+                document.getElementById("full_name").value =
+                    customer.full_name ?? "";
+
+                document.getElementById("phone").value =
+                    customer.phone ?? "";
+
+                document.getElementById("email").value =
+                    customer.email ?? "";
+
+                document.getElementById("address").value =
+                    customer.address ?? "";
+
+                const currentStatus = String(
+                    customer.status ?? "Active"
+                ).toLowerCase();
+
+                document.getElementById("status").value =
+                    currentStatus === "inactive" ? "Inactive" : "Active";
+
+            } catch (error) {
+                form.hidden = true;
+                showMessage(error.message);
+            }
+        }
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            // Read the ID again immediately before sending.
+            const id = document.getElementById("id").value;
+
+            if (!id || !/^\d+$/.test(id) || Number(id) < 1) {
+                showMessage("A valid customer ID is required.");
+                return;
+            }
+
+            updateButton.disabled = true;
+            updateButton.textContent = "Updating...";
+
+            try {
+                const formData = new FormData(form);
+
+                // Explicitly include the correct ID in the POST request.
+                formData.set("id", id);
+
+                const response = await fetch(API + "update.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.success !== true) {
+                    throw new Error(
+                        data.message || "Customer update failed."
+                    );
+                }
+
+                showMessage(
+                    data.message || "Customer updated successfully.",
+                    "success"
+                );
+
+                setTimeout(function() {
+                    window.location.href = "index.html";
+                }, 1000);
+
+            } catch (error) {
+                showMessage(error.message);
+            } finally {
+                updateButton.disabled = false;
+                updateButton.textContent = "Update Customer";
+            }
+        });
+
+        loadCustomer();
+    </script>
+</body>
+</html>

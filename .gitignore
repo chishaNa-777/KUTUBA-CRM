@@ -1,0 +1,35 @@
+
+# Database credentials and environment secrets
+.env
+.env.*
+!.env.example
+backend/config/database.php
+
+# Database exports, backups and dumps
+*.sql
+*.sql.gz
+*.dump
+*.backup
+*.bak
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Dependencies and generated files
+vendor/
+node_modules/
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+uploads/
+generate_password.php
+test_db.php
+
+backend/auth/reset_admin_password.php
+frontend/test.php

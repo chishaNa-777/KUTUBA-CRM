@@ -1,0 +1,1449 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers | KATUBA CRM</title>
+
+    <style>
+        :root {
+            --red: #961a1a;
+            --red-dark: #741313;
+            --sidebar: #202124;
+            --background: #f5f6fa;
+            --white: #ffffff;
+            --text: #24262b;
+            --muted: #777d87;
+            --border: #e8e9ef;
+            --green: #16834a;
+            --orange: #bd6900;
+            --blue: #2764b5;
+            --shadow: 0 5px 20px rgba(0, 0, 0, 0.045);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .sidebar {
+            width: 245px;
+            position: fixed;
+            inset: 0 auto 0 0;
+            background: var(--sidebar);
+            color: #fff;
+            padding: 25px 15px;
+            z-index: 20;
+            overflow-y: auto;
+            transition: transform .25s ease;
+        }
+
+        .brand {
+            padding: 4px 12px 28px;
+            border-bottom: 1px solid #3a3b3f;
+            margin-bottom: 25px;
+        }
+
+        .brand h2 {
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+
+        .brand h2 span {
+            color: #e65a5a;
+        }
+
+        .brand p {
+            color: #a9abb1;
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        .nav-label {
+            color: #888b94;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin: 20px 0 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 14px;
+            margin: 5px 0;
+            border-radius: 8px;
+            color: #d5d6da;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--red);
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: 35px;
+            border-top: 1px solid #3a3b3f;
+            padding-top: 18px;
+        }
+
+        .main {
+            margin-left: 245px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 76px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar h1 {
+            font-size: 20px;
+        }
+
+        .topbar p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .avatar {
+            height: 38px;
+            width: 38px;
+            border-radius: 50%;
+            background: #f8e6e6;
+            color: var(--red);
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+        }
+
+        .menu-toggle {
+            display: none;
+            border: 0;
+            background: transparent;
+            font-size: 25px;
+            cursor: pointer;
+        }
+
+        .content {
+            padding: 30px;
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        .page-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .page-heading h2 {
+            font-size: 25px;
+            margin-bottom: 7px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: .2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: var(--red);
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-light {
+            color: var(--text);
+            background: #fff;
+            border-color: var(--border);
+        }
+
+        .btn-light:hover {
+            background: #f7f7f9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 21px;
+            box-shadow: var(--shadow);
+            min-width: 0;
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 17px;
+        }
+
+        .stat-title {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .stat-icon {
+            height: 37px;
+            width: 37px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            background: #f8e7e7;
+            color: var(--red);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-description {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .panel {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-heading {
+            padding: 21px 23px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-heading h3 {
+            font-size: 16px;
+        }
+
+        .panel-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: minmax(180px, 1fr) 180px 180px auto;
+            gap: 12px;
+            padding: 20px 23px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .field {
+            width: 100%;
+            min-width: 0;
+            height: 42px;
+            border: 1px solid #dedfe5;
+            border-radius: 7px;
+            padding: 0 12px;
+            background: #fff;
+            outline: none;
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        .field:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(150, 26, 26, .08);
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1050px;
+        }
+
+        thead {
+            background: #fafafb;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 17px;
+            color: #777d87;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 17px;
+            border-top: 1px solid #f0f0f3;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fdfafa;
+        }
+
+        .customer-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #262830;
+            margin-bottom: 5px;
+        }
+
+        .secondary {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .badge-green {
+            background: #e5f5ec;
+            color: #167744;
+        }
+
+        .badge-red {
+            background: #fdeaea;
+            color: #a32121;
+        }
+
+        .badge-orange {
+            background: #fff1dc;
+            color: #9b5b00;
+        }
+
+        .badge-blue {
+            background: #e8f0ff;
+            color: #2457a6;
+        }
+
+        .badge-grey {
+            background: #eeeeF1;
+            color: #5c606a;
+        }
+
+        .actions {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            background: #f8eeee;
+            border-color: #e8bebe;
+        }
+
+        .action-delete:hover {
+            background: #fdeaea;
+            border-color: #eababa;
+        }
+
+        .empty-state {
+            padding: 55px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 35px;
+            margin-bottom: 13px;
+        }
+
+        .empty-state h3 {
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .loading {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .panel-footer {
+            padding: 17px 23px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .results-text {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            min-width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0 8px;
+            font-size: 12px;
+        }
+
+        .page-btn.active {
+            background: var(--red);
+            color: white;
+            border-color: var(--red);
+        }
+
+        .page-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .notice {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .notice.error {
+            display: block;
+            color: #8e1d1d;
+            background: #fdeaea;
+            border: 1px solid #f3caca;
+        }
+
+        .notice.success {
+            display: block;
+            color: #17673d;
+            background: #e7f6ed;
+            border: 1px solid #c9e9d5;
+        }
+
+        .overlay {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filters {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .overlay.show {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, .4);
+                z-index: 15;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                height: 68px;
+                padding: 0 16px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .topbar h1 {
+                font-size: 17px;
+            }
+
+            .user-chip span {
+                display: none;
+            }
+
+            .content {
+                padding: 20px 14px;
+            }
+
+            .page-heading {
+                align-items: flex-start;
+            }
+
+            .page-heading h2 {
+                font-size: 21px;
+            }
+
+            .page-heading .btn {
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 23px;
+            }
+
+            .stat-title {
+                font-size: 11px;
+            }
+
+            .panel-heading {
+                padding: 17px;
+            }
+
+            .filters {
+                padding: 15px;
+                gap: 9px;
+            }
+
+            .filters .field {
+                font-size: 11px;
+                padding: 0 8px;
+            }
+
+            .panel-footer {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .page-heading {
+                flex-direction: column;
+            }
+
+            .page-heading .btn {
+                width: 100%;
+            }
+        }
+
+        @media print {
+            .sidebar,
+            .topbar,
+            .filters,
+            .actions,
+            .page-heading .btn,
+            .panel-footer,
+            .overlay {
+                display: none !important;
+            }
+
+            .main {
+                margin: 0;
+            }
+
+            .content {
+                padding: 0;
+            }
+
+            body {
+                background: white;
+            }
+
+            .panel,
+            .stat-card {
+                box-shadow: none;
+            }
+
+            .table-wrap {
+                overflow: visible;
+            }
+
+            table {
+                min-width: 0;
+            }
+
+            th, td {
+                padding: 7px;
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <h2>KATUBA <span>CRM</span></h2>
+            <p>Customer Management System</p>
+        </div>
+
+        <div class="nav-label">MAIN MENU</div>
+
+        <a href="../dashboard.html" class="nav-link">
+            <span class="nav-icon">▦</span> Dashboard
+        </a>
+
+        <a href="index.html" class="nav-link active">
+            <span class="nav-icon">♙</span> Customers
+        </a>
+
+        <a href="../workers/index.html" class="nav-link">
+            <span class="nav-icon">♟</span> Workers
+        </a>
+
+        <a href="../jobs/index.html" class="nav-link">
+            <span class="nav-icon">▤</span> Jobs
+        </a>
+
+        <a href="../products/index.html" class="nav-link">
+            <span class="nav-icon">▣</span> Products
+        </a>
+
+        <a href="../reports/index.html" class="nav-link">
+            <span class="nav-icon">▥</span> Reports
+        </a>
+
+        <a href="../users/index.html" class="nav-link">
+            <span class="nav-icon">♧</span> Users
+        </a>
+
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-link" id="logoutBtn">
+                <span class="nav-icon">⇥</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+                <div>
+                    <h1>Customers</h1>
+                    <p>Manage and monitor your customers</p>
+                </div>
+            </div>
+
+            <div class="user-chip">
+                <div class="avatar">♙</div>
+                <span>Administrator</span>
+            </div>
+        </header>
+
+        <section class="content">
+            <div class="page-heading">
+                <div>
+                    <h2>Customers Overview</h2>
+                    <p>View customer details, service packages and payment information.</p>
+                </div>
+
+                <a href="add.html" class="btn btn-primary">＋ Add Customer</a>
+            </div>
+
+            <div id="notice" class="notice" role="alert"></div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-title">Total Customers</span>
+                        <span class="stat-icon">♙</span>
+                    </div>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-description">All registered customers</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-title">Active Customers</span>
+                        <span class="stat-icon" style="background:#e5f5ec;color:#16834a">✓</span>
+                    </div>
+                    <div class="stat-value" id="activeCustomers">0</div>
+                    <div class="stat-description">Customers with active status</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-title">Monthly Fees</span>
+                        <span class="stat-icon" style="background:#e8f0ff;color:#2764b5">ZK</span>
+                    </div>
+                    <div class="stat-value" id="monthlyFees">K0</div>
+                    <div class="stat-description">Combined listed monthly fees</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-title">Payment Follow-up</span>
+                        <span class="stat-icon" style="background:#fff1dc;color:#bd6900">!</span>
+                    </div>
+                    <div class="stat-value" id="paymentFollowup">0</div>
+                    <div class="stat-description">Due, overdue or unpaid records</div>
+                </div>
+            </div>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Customer Directory</h3>
+                        <p>Search, filter and manage registered customers.</p>
+                    </div>
+
+                    <button class="btn btn-light" id="printBtn">⎙ Print</button>
+                </div>
+
+                <div class="filters">
+                    <input
+                        type="search"
+                        class="field"
+                        id="searchInput"
+                        placeholder="Search name, phone, email or location..."
+                        aria-label="Search customers"
+                    >
+
+                    <select class="field" id="statusFilter" aria-label="Filter by status">
+                        <option value="">All statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+
+                    <select class="field" id="paymentFilter" aria-label="Filter by payment">
+                        <option value="">All payments</option>
+                        <option value="paid">Paid</option>
+                        <option value="prepaid">Prepaid</option>
+                        <option value="due">Due</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="unpaid">Unpaid</option>
+                    </select>
+
+                    <button class="btn btn-light" id="resetBtn">Reset</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Service</th>
+                                <th>Package</th>
+                                <th>Monthly Fee</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="customerTableBody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="loading">Loading customers...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel-footer">
+                    <div class="results-text" id="resultsText">Loading records...</div>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        "use strict";
+
+        const API = "../../backend/clients/";
+        const PAGE_SIZE = 10;
+
+        let customers = [];
+        let filteredCustomers = [];
+        let currentPage = 1;
+
+        const tableBody = document.getElementById("customerTableBody");
+        const notice = document.getElementById("notice");
+        const searchInput = document.getElementById("searchInput");
+        const statusFilter = document.getElementById("statusFilter");
+        const paymentFilter = document.getElementById("paymentFilter");
+        const pagination = document.getElementById("pagination");
+        const resultsText = document.getElementById("resultsText");
+
+        async function requestJSON(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options
+            });
+
+            const text = await response.text();
+
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(
+                    "The server did not return valid JSON. Check the PHP endpoint."
+                );
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || "The request failed.");
+            }
+
+            return data;
+        }
+
+        function showNotice(message, type = "error") {
+            notice.textContent = message;
+            notice.className = "notice " + type;
+            notice.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        function hideNotice() {
+            notice.textContent = "";
+            notice.className = "notice";
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[character]);
+        }
+
+        function formatMoney(value) {
+            const amount = Number(value || 0);
+
+            return "K" + amount.toLocaleString("en-ZM", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function normalise(value) {
+            return String(value ?? "").trim().toLowerCase();
+        }
+
+        function statusBadge(status) {
+            const value = normalise(status) || "unknown";
+
+            let style = "badge-grey";
+
+            if (value === "active") style = "badge-green";
+            if (value === "inactive" || value === "cancelled") style = "badge-red";
+            if (value === "pending") style = "badge-orange";
+
+            return `<span class="badge ${style}">${escapeHTML(value)}</span>`;
+        }
+
+        function paymentBadge(payment) {
+            const value = normalise(payment) || "unknown";
+
+            let style = "badge-grey";
+
+            if (value === "paid" || value === "prepaid") {
+                style = "badge-green";
+            } else if (value === "due" || value === "unpaid") {
+                style = "badge-orange";
+            } else if (value === "overdue") {
+                style = "badge-red";
+            }
+
+            return `<span class="badge ${style}">${escapeHTML(value)}</span>`;
+        }
+
+        function getCustomerId(customer) {
+            return customer.client_id ?? customer.id;
+        }
+
+        function getCustomerName(customer) {
+            return customer.full_name
+                || customer.company_name
+                || "Unnamed customer";
+        }
+
+        function updateStats() {
+            document.getElementById("totalCustomers").textContent =
+                customers.length;
+
+            document.getElementById("activeCustomers").textContent =
+                customers.filter(c => normalise(c.status) === "active").length;
+
+            const totalFees = customers.reduce(
+                (sum, customer) => sum + Number(customer.monthly_fee || 0),
+                0
+            );
+
+            document.getElementById("monthlyFees").textContent =
+                "K" + totalFees.toLocaleString("en-ZM", {
+                    maximumFractionDigits: 2
+                });
+
+            const followupCount = customers.filter(customer => {
+                const payment = normalise(customer.payment_status);
+                return ["due", "overdue", "unpaid"].includes(payment);
+            }).length;
+
+            document.getElementById("paymentFollowup").textContent =
+                followupCount;
+        }
+
+        function applyFilters() {
+            const search = normalise(searchInput.value);
+            const status = normalise(statusFilter.value);
+            const payment = normalise(paymentFilter.value);
+
+            filteredCustomers = customers.filter(customer => {
+                const searchableText = [
+                    getCustomerId(customer),
+                    getCustomerName(customer),
+                    customer.phone,
+                    customer.email,
+                    customer.location,
+                    customer.address,
+                    customer.service_type,
+                    customer.package,
+                    customer.payment_status,
+                    customer.status,
+                    customer.schedule,
+                    customer.notes
+                ].join(" ").toLowerCase();
+
+                const matchesSearch =
+                    !search || searchableText.includes(search);
+
+                const matchesStatus =
+                    !status || normalise(customer.status) === status;
+
+                const matchesPayment =
+                    !payment || normalise(customer.payment_status) === payment;
+
+                return matchesSearch && matchesStatus && matchesPayment;
+            });
+
+            currentPage = 1;
+            renderCustomers();
+        }
+
+        function renderCustomers() {
+            const total = filteredCustomers.length;
+            const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+            if (currentPage > pageCount) currentPage = pageCount;
+
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = Math.min(startIndex + PAGE_SIZE, total);
+            const pageCustomers = filteredCustomers.slice(startIndex, endIndex);
+
+            if (total === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">♙</div>
+                                <h3>No customers found</h3>
+                                <p>
+                                    No customer records match your search or filters.
+                                    Try resetting the filters.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tableBody.innerHTML = pageCustomers.map(customer => {
+                    const id = Number(getCustomerId(customer));
+                    const name = getCustomerName(customer);
+                    const service = customer.service_type || "Not specified";
+                    const packageName = customer.package || "Not specified";
+                    const fee = formatMoney(customer.monthly_fee);
+
+                    return `
+                        <tr>
+                            <td>
+                                <div class="customer-name">
+                                    ${escapeHTML(name)}
+                                </div>
+                                <div class="secondary">
+                                    ID: ${escapeHTML(id)}
+                                </div>
+                                <div class="secondary">
+                                    ${escapeHTML(customer.location || customer.address || "No location")}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div>${escapeHTML(customer.phone || "No phone")}</div>
+                                <div class="secondary">
+                                    ${escapeHTML(customer.email || "No email")}
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge badge-blue">
+                                    ${escapeHTML(service)}
+                                </span>
+                                <div class="secondary">
+                                    ${escapeHTML(customer.schedule || "")}
+                                </div>
+                            </td>
+
+                            <td>${escapeHTML(packageName)}</td>
+
+                            <td><strong>${escapeHTML(fee)}</strong></td>
+
+                            <td>${paymentBadge(customer.payment_status)}</td>
+
+                            <td>${statusBadge(customer.status)}</td>
+
+                            <td>
+                                <div class="actions">
+                                    <button
+                                        class="action-btn"
+                                        title="View customer"
+                                        aria-label="View customer ${escapeHTML(name)}"
+                                        data-action="view"
+                                        data-id="${id}"
+                                    >👁</button>
+
+                                    <button
+                                        class="action-btn"
+                                        title="Edit customer"
+                                        aria-label="Edit customer ${escapeHTML(name)}"
+                                        data-action="edit"
+                                        data-id="${id}"
+                                    >✎</button>
+
+                                    <button
+                                        class="action-btn action-delete"
+                                        title="Delete customer"
+                                        aria-label="Delete customer ${escapeHTML(name)}"
+                                        data-action="delete"
+                                        data-id="${id}"
+                                    >🗑</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            }
+
+            resultsText.textContent = total === 0
+                ? "Showing 0 customers"
+                : `Showing ${startIndex + 1}–${endIndex} of ${total} customers`;
+
+            renderPagination(pageCount);
+        }
+
+        function renderPagination(pageCount) {
+            pagination.innerHTML = "";
+
+            const previous = document.createElement("button");
+            previous.className = "page-btn";
+            previous.textContent = "‹";
+            previous.disabled = currentPage === 1;
+            previous.setAttribute("aria-label", "Previous page");
+            previous.addEventListener("click", () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCustomers();
+                }
+            });
+
+            pagination.appendChild(previous);
+
+            for (let page = 1; page <= pageCount; page++) {
+                const button = document.createElement("button");
+                button.className =
+                    "page-btn" + (page === currentPage ? " active" : "");
+                button.textContent = page;
+                button.setAttribute("aria-label", "Page " + page);
+
+                button.addEventListener("click", () => {
+                    currentPage = page;
+                    renderCustomers();
+                });
+
+                pagination.appendChild(button);
+            }
+
+            const next = document.createElement("button");
+            next.className = "page-btn";
+            next.textContent = "›";
+            next.disabled = currentPage === pageCount;
+            next.setAttribute("aria-label", "Next page");
+            next.addEventListener("click", () => {
+                if (currentPage < pageCount) {
+                    currentPage++;
+                    renderCustomers();
+                }
+            });
+
+            pagination.appendChild(next);
+        }
+
+        async function loadCustomers() {
+            hideNotice();
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8">
+                        <div class="loading">Loading customers...</div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const data = await requestJSON(API + "get.php");
+
+                if (data.success === false) {
+                    throw new Error(data.message || "Unable to load customers.");
+                }
+
+                const list = Array.isArray(data.clients)
+                    ? data.clients
+                    : Array.isArray(data.data)
+                        ? data.data
+                        : Array.isArray(data)
+                            ? data
+                            : null;
+
+                if (!list) {
+                    throw new Error(
+                        "The API response does not contain a customers list."
+                    );
+                }
+
+                customers = list
+                    .filter(customer => getCustomerId(customer) != null)
+                    .map(customer => ({
+                        ...customer,
+                        client_id: getCustomerId(customer)
+                    }));
+
+                updateStats();
+                applyFilters();
+
+            } catch (error) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">⚠</div>
+                                <h3>Unable to load customers</h3>
+                                <p>${escapeHTML(error.message)}</p>
+                                <br>
+                                <button class="btn btn-primary" id="retryBtn">
+                                    Try Again
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                document.getElementById("retryBtn")
+                    .addEventListener("click", loadCustomers);
+
+                resultsText.textContent = "Could not load records";
+                pagination.innerHTML = "";
+                showNotice(error.message);
+            }
+        }
+
+        function findCustomer(id) {
+            return customers.find(
+                customer => String(getCustomerId(customer)) === String(id)
+            );
+        }
+
+        function viewCustomer(id) {
+            const customer = findCustomer(id);
+
+            if (!customer) {
+                showNotice("Customer record could not be found.");
+                return;
+            }
+
+            const details = [
+                "Customer: " + getCustomerName(customer),
+                "Customer ID: " + getCustomerId(customer),
+                "Phone: " + (customer.phone || "Not provided"),
+                "Email: " + (customer.email || "Not provided"),
+                "Location: " + (customer.location || "Not provided"),
+                "Address: " + (customer.address || "Not provided"),
+                "Service: " + (customer.service_type || "Not specified"),
+                "Package: " + (customer.package || "Not specified"),
+                "Schedule: " + (customer.schedule || "Not specified"),
+                "Monthly fee: " + formatMoney(customer.monthly_fee),
+                "Payment: " + (customer.payment_status || "Not specified"),
+                "Status: " + (customer.status || "Not specified"),
+                "Start date: " + (customer.start_date || "Not provided"),
+                "Notes: " + (customer.notes || "None")
+            ].join("\n");
+
+            alert(details);
+        }
+
+        function editCustomer(id) {
+            window.location.href =
+                "edit.html?id=" + encodeURIComponent(id);
+        }
+
+        async function deleteCustomer(id) {
+            const customer = findCustomer(id);
+
+            if (!customer) {
+                showNotice("Customer record could not be found.");
+                return;
+            }
+
+            const confirmed = confirm(
+                `Are you sure you want to delete "${getCustomerName(customer)}"?\n\nThis action cannot be undone.`
+            );
+
+            if (!confirmed) return;
+
+            hideNotice();
+
+            try {
+                const formData = new FormData();
+                formData.append("id", id);
+
+                const data = await requestJSON(API + "delete.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (data.success === false) {
+                    throw new Error(data.message || "Unable to delete customer.");
+                }
+
+                showNotice(
+                    data.message || "Customer deleted successfully.",
+                    "success"
+                );
+
+                await loadCustomers();
+
+            } catch (error) {
+                showNotice(error.message);
+            }
+        }
+
+        tableBody.addEventListener("click", event => {
+            const button = event.target.closest("button[data-action]");
+            if (!button) return;
+
+            const id = button.dataset.id;
+
+            if (button.dataset.action === "view") viewCustomer(id);
+            if (button.dataset.action === "edit") editCustomer(id);
+            if (button.dataset.action === "delete") deleteCustomer(id);
+        });
+
+        searchInput.addEventListener("input", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
+        paymentFilter.addEventListener("change", applyFilters);
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            searchInput.value = "";
+            statusFilter.value = "";
+            paymentFilter.value = "";
+            hideNotice();
+            applyFilters();
+        });
+
+        document.getElementById("printBtn").addEventListener("click", () => {
+            window.print();
+        });
+
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+
+        function closeSidebar() {
+            sidebar.classList.remove("open");
+            overlay.classList.remove("show");
+        }
+
+        document.getElementById("menuToggle").addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+            overlay.classList.toggle("show");
+        });
+
+        overlay.addEventListener("click", closeSidebar);
+
+        document.querySelectorAll(".sidebar .nav-link").forEach(link => {
+            link.addEventListener("click", () => {
+                if (window.innerWidth <= 760) closeSidebar();
+            });
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", async event => {
+            event.preventDefault();
+
+            if (!confirm("Are you sure you want to log out?")) return;
+
+            try {
+                await requestJSON("../../backend/auth/logout.php", {
+                    method: "POST"
+                });
+            } catch (error) {
+                console.error("Logout request:", error);
+            }
+
+            window.location.href = "../login.html";
+        });
+
+        loadCustomers();
+    </script>
+</body>
+</html>

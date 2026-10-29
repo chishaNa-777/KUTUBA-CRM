@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KATUBA CRM - Login</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.10);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .intro {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #961a1a;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .password-container input {
+            width: 100%;
+            padding: 12px 60px 12px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .view-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 5px 8px;
+            background: transparent;
+            color: #961a1a;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: #961a1a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .login-button:hover {
+            background: #751414;
+        }
+
+        .login-button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a,
+        .register-link a {
+            color: #961a1a;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover,
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .register-link {
+            border-top: 1px solid #eee;
+            margin-top: 22px;
+            padding-top: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .notice {
+            margin-top: 12px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 5px;
+            color: #666;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h1>KATUBA CRM</h1>
+
+        <p class="intro">
+            Please enter your credentials to log in.
+        </p>
+
+        <form id="loginForm">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                autocomplete="username"
+                required
+            >
+
+            <label for="password">Password</label>
+
+            <div class="password-container">
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button
+                    type="button"
+                    class="view-password"
+                    id="viewPassword"
+                    title="View password"
+                    aria-label="Show password"
+                >👁️</button>
+            </div>
+
+            <button type="submit" class="login-button">
+                Login
+            </button>
+
+            <div class="forgot-password">
+                <a href="forgot-password.html">Forgot Password?</a>
+            </div>
+
+            <div id="message" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="register-link">
+            Need a staff account?<br>
+            <a href="register.html"><strong>Create Staff Account</strong></a>
+
+            <div class="notice">
+                New staff accounts require administrator approval
+                before they can access the system.
+            </div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+
+    <script>
+        document.getElementById("viewPassword").addEventListener("click", function () {
+            const passwordInput = document.getElementById("password");
+            const isHidden = passwordInput.type === "password";
+
+            passwordInput.type = isHidden ? "text" : "password";
+            this.innerHTML = isHidden ? "🚫" : "👁️";
+            this.title = isHidden ? "Hide password" : "View password";
+            this.setAttribute(
+                "aria-label",
+                isHidden ? "Hide password" : "Show password"
+            );
+        });
+    </script>
+</body>
+</html>

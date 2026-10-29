@@ -1,0 +1,624 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User - KATUBA CRM</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #222;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background: #222;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 12px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover {
+            background: #961a1a;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            max-width: 700px;
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-container h2 {
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #961a1a;
+        }
+
+        button {
+            background: #961a1a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #7d1515;
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #961a1a;
+            text-decoration: none;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 7px;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .picture-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .picture-preview {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #eee;
+            background: #f0f0f0;
+        }
+
+        .picture-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: #961a1a;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            border: 3px solid #eee;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 18px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2>KATUBA CRM</h2>
+
+        <ul>
+            <li><a href="../dashboard.html">Dashboard</a></li>
+            <li><a href="../clients/index.html">Customers</a></li>
+            <li><a href="../workers/index.html">Workers</a></li>
+            <li><a href="../jobs/index.html">Jobs</a></li>
+            <li><a href="../products/index.html">Products</a></li>
+            <li><a href="../reports/index.html">Reports</a></li>
+            <li><a href="index.html">Users</a></li>
+            <li><a href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>Edit User</h1>
+        </div>
+
+        <a href="index.html" class="back-btn">← Back to Users</a>
+
+        <div class="form-container">
+            <h2>User Information</h2>
+
+            <form id="userForm" enctype="multipart/form-data">
+
+                <div class="form-group">
+                    <label>Current Profile Picture</label>
+
+                    <div class="picture-area">
+                        <img
+                            id="picturePreview"
+                            class="picture-preview"
+                            src=""
+                            alt="User profile picture"
+                            hidden
+                        >
+
+                        <div
+                            id="picturePlaceholder"
+                            class="picture-placeholder"
+                        >?</div>
+                    </div>
+
+                    <label for="profile_picture">
+                        Choose a New Picture (Optional)
+                    </label>
+
+                    <input
+                        type="file"
+                        id="profile_picture"
+                        name="profile_picture"
+                        accept="image/jpeg,image/png,image/webp"
+                    >
+
+                    <span class="help-text">
+                        JPG, PNG, or WebP only. Maximum size: 2 MB.
+                        Leave this field empty to keep the current picture.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input
+                        type="text"
+                        id="full_name"
+                        name="full_name"
+                        maxlength="120"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        maxlength="150"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        placeholder="Leave blank to keep current password"
+                    >
+                    <span class="help-text">
+                        Only enter a password if you want to change it.
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="admin">Admin</option>
+                        <option value="hr_officer">HR Officer</option>
+                        <option value="operations_manager">
+                            Operations Manager
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="updateBtn">Update User</button>
+
+                <div id="message" role="status" aria-live="polite"></div>
+
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get("id");
+
+        const form = document.getElementById("userForm");
+        const message = document.getElementById("message");
+        const updateBtn = document.getElementById("updateBtn");
+        const pictureInput = document.getElementById("profile_picture");
+        const picturePreview = document.getElementById("picturePreview");
+        const picturePlaceholder =
+            document.getElementById("picturePlaceholder");
+
+        let originalPictureUrl = "";
+
+        function showMessage(text, color = "#961a1a") {
+            message.textContent = text;
+            message.style.color = color;
+        }
+
+        function getInitials(name) {
+            return (name || "?")
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part.charAt(0).toUpperCase())
+                .join("") || "?";
+        }
+
+        function showPlaceholder(name) {
+            picturePreview.hidden = true;
+            picturePreview.removeAttribute("src");
+            picturePlaceholder.textContent = getInitials(name);
+            picturePlaceholder.style.display = "flex";
+        }
+
+        function showPicture(url, fallbackName) {
+            picturePreview.onload = () => {
+                picturePreview.hidden = false;
+                picturePlaceholder.style.display = "none";
+            };
+
+            picturePreview.onerror = () => {
+                showPlaceholder(fallbackName);
+            };
+
+            picturePreview.src = url;
+        }
+
+        function getPictureUrl(path) {
+            if (
+                typeof path !== "string" ||
+                !path.startsWith("uploads/users/") ||
+                path.includes("..") ||
+                path.includes("\\")
+            ) {
+                return "";
+            }
+
+            return "../../" + path
+                .split("/")
+                .map(encodeURIComponent)
+                .join("/");
+        }
+
+        // Verify the login session.
+        fetch("../../backend/auth/check_session.php")
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    window.location.href = "../login.html";
+                }
+            })
+            .catch(error => {
+                console.error("Session check error:", error);
+            });
+
+        // Load the selected user's existing information.
+        async function loadUser() {
+            if (!userId || !/^\d+$/.test(userId)) {
+                showMessage("A valid user ID is required.");
+                updateBtn.disabled = true;
+                return;
+            }
+
+            showPlaceholder("");
+
+            try {
+                const response = await fetch(
+                    "../../backend/users/edit.php?id=" +
+                    encodeURIComponent(userId)
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success || !result.user) {
+                    showMessage(
+                        result.message || "Unable to load user information."
+                    );
+                    return;
+                }
+
+                const user = result.user;
+
+                document.getElementById("full_name").value =
+                    user.full_name || "";
+
+                document.getElementById("email").value =
+                    user.email || "";
+
+                document.getElementById("role").value =
+                    user.role || "";
+
+                document.getElementById("status").value =
+                    user.status || "active";
+
+                showPlaceholder(user.full_name);
+
+                originalPictureUrl = getPictureUrl(user.profile_picture);
+
+                if (originalPictureUrl) {
+                    showPicture(originalPictureUrl, user.full_name);
+                }
+
+            } catch (error) {
+                console.error("Load user error:", error);
+                showMessage("Unable to connect to the server.");
+            }
+        }
+
+        loadUser();
+
+        // Preview the replacement picture before saving.
+        pictureInput.addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (!file) {
+                if (originalPictureUrl) {
+                    showPicture(
+                        originalPictureUrl,
+                        document.getElementById("full_name").value
+                    );
+                } else {
+                    showPlaceholder(
+                        document.getElementById("full_name").value
+                    );
+                }
+
+                return;
+            }
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            if (!allowedTypes.includes(file.type)) {
+                this.value = "";
+                showMessage(
+                    "Choose a JPG, PNG, or WebP image."
+                );
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                this.value = "";
+                showMessage("The picture must not exceed 2 MB.");
+                return;
+            }
+
+            const temporaryUrl = URL.createObjectURL(file);
+
+            picturePreview.onload = () => {
+                picturePreview.hidden = false;
+                picturePlaceholder.style.display = "none";
+                URL.revokeObjectURL(temporaryUrl);
+            };
+
+            picturePreview.onerror = () => {
+                URL.revokeObjectURL(temporaryUrl);
+                if (originalPictureUrl) {
+                    showPicture(
+                        originalPictureUrl,
+                        document.getElementById("full_name").value
+                    );
+                } else {
+                    showPlaceholder(
+                        document.getElementById("full_name").value
+                    );
+                }
+
+                showMessage("Unable to preview this image.");
+            };
+
+            picturePreview.src = temporaryUrl;
+            showMessage("");
+        });
+
+        // Save user details and optional new picture.
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            if (!userId || !/^\d+$/.test(userId)) {
+                showMessage("A valid user ID is required.");
+                return;
+            }
+
+            const selectedFile = pictureInput.files[0];
+
+            if (selectedFile) {
+                if (
+                    ![
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp"
+                    ].includes(selectedFile.type)
+                ) {
+                    showMessage("Choose a JPG, PNG, or WebP image.");
+                    return;
+                }
+
+                if (selectedFile.size > 2 * 1024 * 1024) {
+                    showMessage("The picture must not exceed 2 MB.");
+                    return;
+                }
+            }
+
+            const formData = new FormData(form);
+            formData.set("id", userId);
+
+            updateBtn.disabled = true;
+            showMessage("Updating user...", "#374151");
+
+            try {
+                const response = await fetch(
+                    "../../backend/users/update.php",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showMessage(
+                        "User updated successfully. Returning to Users...",
+                        "green"
+                    );
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } else {
+                    showMessage(
+                        result.message || "Failed to update user."
+                    );
+                    updateBtn.disabled = false;
+                }
+
+            } catch (error) {
+                console.error("Update user error:", error);
+                showMessage("Unable to connect to the server.");
+                updateBtn.disabled = false;
+            }
+        });
+
+        // Log out using the existing authentication endpoint.
+        document.getElementById("logoutBtn").addEventListener(
+            "click",
+            async function (event) {
+                event.preventDefault();
+
+                try {
+                    const response = await fetch(
+                        "../../backend/auth/logout.php",
+                        { method: "POST" }
+                    );
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        window.location.href = "../login.html";
+                    } else {
+                        showMessage("Unable to log out. Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    showMessage("Unable to connect while logging out.");
+                }
+            }
+        );
+    </script>
+
+</body>
+</html>

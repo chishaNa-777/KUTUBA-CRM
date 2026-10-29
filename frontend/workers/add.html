@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Add Worker</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: #1f2937;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .container {
+            padding: 30px 15px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 5px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: 2px solid #e8b4b4;
+            border-color: #961a1a;
+        }
+
+        .photo-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #photoPreview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #eee;
+            background: #f4f6f9;
+            display: none;
+        }
+
+        .photo-help {
+            color: #666;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button, .cancel {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        button {
+            background: #15803d;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .cancel {
+            background: #6b7280;
+            color: white;
+        }
+
+        .message {
+            display: none;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+
+        .success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 18px;
+                flex-wrap: wrap;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>KATUBA CRM</h1>
+        <a href="index.html" class="back-btn">Back to Workers</a>
+    </header>
+
+    <main class="container">
+        <section class="form-container">
+            <h2>Add New Worker</h2>
+            <p class="intro">
+                Enter the worker's details below. Fields marked * are required.
+            </p>
+
+            <div id="message" class="message" role="alert" aria-live="polite"></div>
+
+            <form id="workerForm" enctype="multipart/form-data">
+                <div class="form-grid">
+
+                    <div class="form-group full-width">
+                        <label for="worker_photo">Worker Photo</label>
+
+                        <div class="photo-area">
+                            <img id="photoPreview" alt="Selected worker photo preview">
+
+                            <div>
+                                <input
+                                    type="file"
+                                    id="worker_photo"
+                                    name="worker_photo"
+                                    accept="image/jpeg,image/png,image/webp"
+                                >
+                                <p class="photo-help">
+                                    Optional. JPG, PNG or WebP. Maximum size: 2 MB.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="full_name">Full Name *</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="worker_role">Worker Role *</label>
+                        <input type="text" id="worker_role" name="worker_role"
+                               placeholder="e.g. Technician" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nrc_number">NRC Number</label>
+                        <input type="text" id="nrc_number" name="nrc_number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience_years">Years of Experience</label>
+                        <input type="number" id="experience_years"
+                               name="experience_years" min="0" step="1">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skills">Skills</label>
+                        <textarea id="skills" name="skills"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="availability">Availability</label>
+                        <select id="availability" name="availability">
+                            <option value="">Select availability</option>
+                            <option value="Available">Available</option>
+                            <option value="Unavailable">Unavailable</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="napsa_number">NAPSA Number</label>
+                        <input type="text" id="napsa_number" name="napsa_number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nhima_number">NHIMA Number</label>
+                        <input type="text" id="nhima_number" name="nhima_number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_method">Payment Method</label>
+                        <select id="payment_method" name="payment_method">
+                            <option value="">Select payment method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Mobile Money">Mobile Money</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_details">Payment Details</label>
+                        <input type="text" id="payment_details" name="payment_details">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Worker Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="notes">Additional Notes</label>
+                        <textarea id="notes" name="notes"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="buttons">
+                    <button type="submit" id="saveButton">Save Worker</button>
+                    <a href="index.html" class="cancel">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const workerForm = document.getElementById("workerForm");
+        const message = document.getElementById("message");
+        const saveButton = document.getElementById("saveButton");
+        const photoInput = document.getElementById("worker_photo");
+        const photoPreview = document.getElementById("photoPreview");
+
+        let previewUrl = null;
+
+        photoInput.addEventListener("change", function () {
+            message.className = "message";
+            message.textContent = "";
+
+            const file = photoInput.files[0];
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+
+            photoPreview.removeAttribute("src");
+            photoPreview.style.display = "none";
+
+            if (!file) return;
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            if (!allowedTypes.includes(file.type)) {
+                photoInput.value = "";
+                showError("Choose a JPG, PNG or WebP image.");
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                photoInput.value = "";
+                showError("The photo must not exceed 2 MB.");
+                return;
+            }
+
+            previewUrl = URL.createObjectURL(file);
+            photoPreview.src = previewUrl;
+            photoPreview.style.display = "block";
+        });
+
+        function showError(text) {
+            message.className = "message error";
+            message.textContent = text;
+        }
+
+        workerForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            message.className = "message";
+            message.textContent = "";
+            saveButton.disabled = true;
+            saveButton.textContent = "Saving...";
+
+            try {
+                const response = await fetch("../../backend/workers/add.php", {
+                    method: "POST",
+                    body: new FormData(workerForm)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Unable to add worker.");
+                }
+
+                message.className = "message success";
+                message.textContent = data.message || "Worker added successfully!";
+
+                workerForm.reset();
+
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                    previewUrl = null;
+                }
+
+                photoPreview.removeAttribute("src");
+                photoPreview.style.display = "none";
+
+                setTimeout(function () {
+                    window.location.href = "index.html";
+                }, 1200);
+
+            } catch (error) {
+                showError(error.message || "Unable to connect to the server.");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = "Save Worker";
+            }
+        });
+    </script>
+</body>
+</html>

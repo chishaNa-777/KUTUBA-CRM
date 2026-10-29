@@ -1,0 +1,455 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - View Invoice</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #252a34;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        .topbar h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .topbar p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #961a1a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+            margin-bottom: 22px;
+        }
+
+        .invoice-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .invoice-heading h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .muted {
+            color: #737986;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .status.paid {
+            background: #d9f5e5;
+            color: #17683b;
+        }
+
+        .status.unpaid {
+            background: #fff0d2;
+            color: #895600;
+        }
+
+        .status.partial {
+            background: #dceaff;
+            color: #174c91;
+        }
+
+        .status.overdue {
+            background: #fde1e1;
+            color: #a31c1c;
+        }
+
+        .status.cancelled {
+            background: #e9e9ed;
+            color: #555966;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .detail {
+            padding-bottom: 14px;
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .detail-label {
+            display: block;
+            color: #737986;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .amount-card {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .amount-box {
+            padding: 20px;
+            border: 1px solid #edf0f4;
+            border-radius: 9px;
+        }
+
+        .amount-box span {
+            display: block;
+            color: #737986;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .amount-box strong {
+            font-size: 21px;
+            overflow-wrap: anywhere;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 7px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #e9ecf1;
+            color: #303643;
+        }
+
+        .btn-primary {
+            background: #961a1a;
+            color: white;
+        }
+
+        .message {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            color: #737986;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 650px) {
+            .container {
+                padding: 0 12px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .details-grid,
+            .amount-card {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                padding: 20px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                text-align: center;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .topbar {
+                background: white;
+                color: #222;
+                border-bottom: 2px solid #961a1a;
+            }
+
+            .container {
+                max-width: 100%;
+                margin: 15px 0;
+                padding: 0;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+
+            .back-link,
+            .actions {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>Invoice Details</h1>
+        <p>KATUBA CRM — Invoices &amp; Billing</p>
+    </header>
+
+    <main class="container">
+        <a class="back-link" href="invoices.html">
+            &larr; Back to Invoices
+        </a>
+
+        <div id="loading" class="message">
+            Loading invoice details...
+        </div>
+
+        <div id="error" class="message hidden" role="alert"></div>
+
+        <div id="invoiceContent" class="hidden">
+            <section class="card">
+                <div class="invoice-heading">
+                    <div>
+                        <h2 id="invoiceNumber">Invoice</h2>
+                        <p class="muted">
+                            Customer: <strong id="customerName"></strong>
+                        </p>
+                        <p class="muted">
+                            Invoice ID: <span id="invoiceId"></span>
+                        </p>
+                    </div>
+
+                    <span id="invoiceStatus" class="status">Unpaid</span>
+                </div>
+
+                <div class="details-grid">
+                    <div class="detail">
+                        <span class="detail-label">Billing Period Start</span>
+                        <span class="detail-value" id="periodStart"></span>
+                    </div>
+
+                    <div class="detail">
+                        <span class="detail-label">Billing Period End</span>
+                        <span class="detail-value" id="periodEnd"></span>
+                    </div>
+
+                    <div class="detail">
+                        <span class="detail-label">Invoice Date</span>
+                        <span class="detail-value" id="invoiceDate"></span>
+                    </div>
+
+                    <div class="detail">
+                        <span class="detail-label">Payment Due Date</span>
+                        <span class="detail-value" id="dueDate"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2 style="margin-bottom: 20px;">Payment Summary</h2>
+
+                <div class="amount-card">
+                    <div class="amount-box">
+                        <span>Invoice Amount</span>
+                        <strong id="invoiceAmount"></strong>
+                    </div>
+
+                    <div class="amount-box">
+                        <span>Amount Paid</span>
+                        <strong id="amountPaid"></strong>
+                    </div>
+
+                    <div class="amount-box">
+                        <span>Outstanding Balance</span>
+                        <strong id="balance"></strong>
+                    </div>
+                </div>
+            </section>
+
+            <div class="actions">
+                <a href="invoices.html" class="btn btn-secondary">
+                    Back to Invoices
+                </a>
+
+                <button class="btn btn-primary" onclick="window.print()">
+                    Print Invoice
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const loading = document.getElementById("loading");
+        const errorBox = document.getElementById("error");
+        const invoiceContent = document.getElementById("invoiceContent");
+
+        function formatDate(value) {
+            if (!value) {
+                return "Not specified";
+            }
+
+            const parts = String(value).split("-");
+
+            if (parts.length !== 3) {
+                return value;
+            }
+
+            return parts[2] + "/" + parts[1] + "/" + parts[0];
+        }
+
+        function formatAmount(value) {
+            const amount = Number(value);
+
+            if (!Number.isFinite(amount)) {
+                return "0.00";
+            }
+
+            return amount.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function setText(id, value) {
+            document.getElementById(id).textContent =
+                value === null || value === undefined || value === ""
+                    ? "Not specified"
+                    : value;
+        }
+
+        async function loadInvoice() {
+            const params = new URLSearchParams(window.location.search);
+            const invoiceId = params.get("id");
+
+            if (!invoiceId || !/^\d+$/.test(invoiceId) ||
+                Number(invoiceId) < 1) {
+                loading.classList.add("hidden");
+                errorBox.textContent =
+                    "A valid invoice ID is required. Return to the invoices list and select an invoice.";
+                errorBox.classList.remove("hidden");
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    "../../backend/invoices/view.php?id=" +
+                    encodeURIComponent(invoiceId)
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.invoice) {
+                    throw new Error(
+                        data.message || "Unable to load invoice details."
+                    );
+                }
+
+                const invoice = data.invoice;
+
+                setText("invoiceNumber", invoice.invoice_number);
+                setText("customerName", invoice.customer_name);
+                setText("invoiceId", invoice.invoice_id);
+                setText("periodStart", formatDate(invoice.period_start));
+                setText("periodEnd", formatDate(invoice.period_end));
+                setText("invoiceDate", formatDate(invoice.created_at
+                    ? invoice.created_at.substring(0, 10)
+                    : ""));
+                setText("dueDate", formatDate(invoice.due_date));
+
+                setText("invoiceAmount", formatAmount(invoice.amount));
+                setText("amountPaid", formatAmount(invoice.amount_paid));
+                setText("balance", formatAmount(invoice.balance));
+
+                const status = String(invoice.status || "unpaid").toLowerCase();
+                const statusElement = document.getElementById("invoiceStatus");
+
+                statusElement.textContent = status;
+                statusElement.className = "status " + status;
+
+                loading.classList.add("hidden");
+                invoiceContent.classList.remove("hidden");
+
+            } catch (error) {
+                loading.classList.add("hidden");
+                errorBox.textContent = error.message;
+                errorBox.classList.remove("hidden");
+            }
+        }
+
+        loadInvoice();
+    </script>
+</body>
+</html>

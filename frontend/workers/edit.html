@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Edit Worker</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            background: #1f2937;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .container {
+            padding: 30px 20px;
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .photo-section {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .worker-photo,
+        .photo-placeholder {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #961a1a;
+            background: #e5e7eb;
+        }
+
+        .photo-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 55px;
+            color: #6b7280;
+        }
+
+        .photo-controls {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .photo-controls p {
+            margin-bottom: 10px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .photo-controls input {
+            max-width: 100%;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-group {
+            min-width: 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .cancel {
+            display: inline-block;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            color: white;
+        }
+
+        button {
+            background: #f59e0b;
+        }
+
+        button:hover {
+            background: #d97706;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .cancel {
+            background: #6b7280;
+        }
+
+        .message {
+            display: none;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #22c55e;
+        }
+
+        .error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 15px 10px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+
+            .photo-section {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>KATUBA CRM</h1>
+    <a href="index.html" class="back-btn">Back to Workers</a>
+</header>
+
+<main class="container">
+    <section class="form-container">
+        <h2>Edit Worker</h2>
+
+        <div id="message" class="message" role="alert"></div>
+
+        <form id="workerForm" enctype="multipart/form-data">
+            <input type="hidden" id="worker_id" name="id">
+
+            <div class="photo-section">
+                <img id="workerPhoto" class="worker-photo"
+                     alt="Current worker photo" hidden>
+
+                <div id="photoPlaceholder" class="photo-placeholder">
+                    &#128100;
+                </div>
+
+                <div class="photo-controls">
+                    <label for="photo">Worker Photo</label>
+                    <p>Choose a new photo if you want to replace the current one. Leave this empty to keep the existing photo.</p>
+                    <input type="file" id="photo" name="photo"
+                           accept="image/jpeg,image/png,image/webp">
+                    <p id="photoMessage">JPG, PNG or WebP. Maximum 2 MB.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="full_name">Full Name *</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nrc_number">NRC Number</label>
+                    <input type="text" id="nrc_number" name="nrc_number">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="worker_role">Worker Role *</label>
+                    <input type="text" id="worker_role" name="worker_role" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience_years">Experience (Years)</label>
+                    <input type="number" id="experience_years"
+                           name="experience_years" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="skills">Skills</label>
+                    <textarea id="skills" name="skills"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="availability">Availability</label>
+                    <select id="availability" name="availability">
+                        <option value="">Select availability</option>
+                        <option value="Available">Available</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Standby">Standby</option>
+                        <option value="Unavailable">Unavailable</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="napsa_number">NAPSA Number</label>
+                    <input type="text" id="napsa_number" name="napsa_number">
+                </div>
+
+                <div class="form-group">
+                    <label for="nhima_number">NHIMA Number</label>
+                    <input type="text" id="nhima_number" name="nhima_number">
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_method">Payment Method</label>
+                    <input type="text" id="payment_method" name="payment_method">
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_details">Payment Details</label>
+                    <textarea id="payment_details" name="payment_details"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes"></textarea>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button type="submit" id="updateButton" disabled>
+                    Update Worker
+                </button>
+
+                <a href="index.html" class="cancel">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const workerId = params.get("id");
+
+    const form = document.getElementById("workerForm");
+    const message = document.getElementById("message");
+    const updateButton = document.getElementById("updateButton");
+    const photoInput = document.getElementById("photo");
+    const workerPhoto = document.getElementById("workerPhoto");
+    const photoPlaceholder = document.getElementById("photoPlaceholder");
+    const photoMessage = document.getElementById("photoMessage");
+
+    let originalPhotoPath = "";
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = "message " + type;
+        message.style.display = "block";
+    }
+
+    function setValue(field, value) {
+        document.getElementById(field).value = value ?? "";
+    }
+
+    function displayPhoto(photoPath) {
+        const path = String(photoPath ?? "").trim();
+        const validPath =
+            /^uploads\/workers\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/i;
+
+        workerPhoto.hidden = true;
+        photoPlaceholder.hidden = false;
+
+        if (!path || !validPath.test(path)) {
+            return;
+        }
+
+        workerPhoto.onload = function() {
+            workerPhoto.hidden = false;
+            photoPlaceholder.hidden = true;
+        };
+
+        workerPhoto.onerror = function() {
+            workerPhoto.hidden = true;
+            photoPlaceholder.hidden = false;
+        };
+
+        workerPhoto.src = "../../" + path;
+    }
+
+    photoInput.addEventListener("change", function() {
+        const file = photoInput.files[0];
+
+        if (!file) {
+            displayPhoto(originalPhotoPath);
+            photoMessage.textContent =
+                "JPG, PNG or WebP. Maximum 2 MB.";
+            return;
+        }
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowedTypes.includes(file.type) ||
+            file.size > 2 * 1024 * 1024) {
+            photoInput.value = "";
+            displayPhoto(originalPhotoPath);
+            showMessage(
+                "Choose a JPG, PNG or WebP image no larger than 2 MB.",
+                "error"
+            );
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        workerPhoto.src = previewUrl;
+        workerPhoto.hidden = false;
+        photoPlaceholder.hidden = true;
+        photoMessage.textContent = "New photo selected: " + file.name;
+        message.style.display = "none";
+    });
+
+    async function loadWorker() {
+        if (!workerId || !/^\d+$/.test(workerId)) {
+            showMessage("A valid worker ID is required.", "error");
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                "../../backend/workers/get.php",
+                { cache: "no-store" }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success ||
+                !Array.isArray(data.workers)) {
+                throw new Error(
+                    data.message || "Unable to retrieve workers."
+                );
+            }
+
+            const worker = data.workers.find(
+                item => String(item.worker_id) === String(workerId)
+            );
+
+            if (!worker) {
+                throw new Error("The selected worker could not be found.");
+            }
+
+            setValue("worker_id", worker.worker_id);
+            setValue("full_name", worker.full_name);
+            setValue("nrc_number", worker.nrc_number);
+            setValue("phone", worker.phone);
+            setValue("email", worker.email);
+            setValue("address", worker.address);
+            setValue("worker_role", worker.worker_role);
+            setValue("experience_years", worker.experience_years);
+            setValue("skills", worker.skills);
+            setValue("availability", worker.availability);
+            setValue("napsa_number", worker.napsa_number);
+            setValue("nhima_number", worker.nhima_number);
+            setValue("payment_method", worker.payment_method);
+            setValue("payment_details", worker.payment_details);
+            setValue("start_date", worker.start_date);
+            setValue("status", worker.status || "Active");
+            setValue("notes", worker.notes);
+
+            originalPhotoPath = worker.photo_path || "";
+            displayPhoto(originalPhotoPath);
+
+            message.style.display = "none";
+            updateButton.disabled = false;
+
+        } catch (error) {
+            console.error("Load worker error:", error);
+            showMessage(
+                error.message || "Unable to load worker details.",
+                "error"
+            );
+        }
+    }
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        if (!workerId || !document.getElementById("worker_id").value) {
+            showMessage(
+                "Worker information has not loaded. Please refresh the page.",
+                "error"
+            );
+            return;
+        }
+
+        const file = photoInput.files[0];
+
+        if (file && file.size > 2 * 1024 * 1024) {
+            showMessage("The photo must not exceed 2 MB.", "error");
+            return;
+        }
+
+        updateButton.disabled = true;
+        updateButton.textContent = "Updating...";
+
+        try {
+            const formData = new FormData(form);
+            formData.set("id", workerId);
+            formData.set("worker_id", workerId);
+
+            const response = await fetch(
+                "../../backend/workers/update.php",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message || "Unable to update worker."
+                );
+            }
+
+            showMessage("Worker updated successfully.", "success");
+
+            setTimeout(function() {
+                window.location.href = "index.html";
+            }, 1200);
+
+        } catch (error) {
+            console.error("Update worker error:", error);
+            showMessage(
+                error.message || "Unable to update worker.",
+                "error"
+            );
+
+            updateButton.disabled = false;
+            updateButton.textContent = "Update Worker";
+        }
+    });
+
+    loadWorker();
+</script>
+
+</body>
+</html>

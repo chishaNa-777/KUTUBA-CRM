@@ -1,0 +1,979 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs Dashboard | KATUBA CRM</title>
+
+    <style>
+        :root {
+            --red: #961a1a;
+            --red-dark: #741313;
+            --dark: #222222;
+            --background: #f4f6f9;
+            --white: #ffffff;
+            --text: #252b36;
+            --muted: #737b89;
+            --border: #e4e7ec;
+            --blue: #2463b4;
+            --green: #16834a;
+            --orange: #c77912;
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 245px;
+            background: var(--dark);
+            color: white;
+            padding: 25px 16px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 0 12px 8px;
+        }
+
+        .brand span {
+            color: #f04b4b;
+        }
+
+        .brand-subtitle {
+            padding: 0 12px 28px;
+            font-size: 12px;
+            color: #b9bdc6;
+        }
+
+        .nav-label {
+            color: #999faa;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 12px;
+        }
+
+        .nav-link {
+            display: block;
+            text-decoration: none;
+            color: #d5d8df;
+            padding: 13px 14px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--red);
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topbar {
+            min-height: 76px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 30px;
+            gap: 15px;
+        }
+
+        .topbar h1 {
+            font-size: 23px;
+        }
+
+        .topbar p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .admin {
+            color: var(--red);
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .page-heading h2 {
+            font-size: 23px;
+            margin-bottom: 7px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 7px;
+            border: none;
+            border-radius: 7px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 29px;
+            font-weight: 800;
+        }
+
+        .stat-note {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 9px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .card-header h3 {
+            font-size: 17px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input,
+        select {
+            padding: 10px 12px;
+            border: 1px solid #d8dce3;
+            border-radius: 7px;
+            font-size: 13px;
+            outline: none;
+            background: white;
+            max-width: 100%;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--red);
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #edf0f4;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #fafbfc;
+            color: #697180;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-size: 11px;
+        }
+
+        tbody tr:hover {
+            background: #fcfcfd;
+        }
+
+        .job-number {
+            font-weight: bold;
+            color: var(--red);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .status-active {
+            background: #e7f7ed;
+            color: #16834a;
+        }
+
+        .status-paused {
+            background: #fff2d9;
+            color: #a76b0b;
+        }
+
+        .status-completed {
+            background: #e6efff;
+            color: #2458a6;
+        }
+
+        .status-cancelled {
+            background: #ffe8e8;
+            color: #b42b2b;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+            min-width: 360px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 7px 9px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-decoration: none;
+            background: white;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .action-view {
+            color: var(--blue);
+        }
+
+        .action-view:hover {
+            background: #edf4ff;
+        }
+
+        .action-edit {
+            color: var(--red);
+        }
+
+        .action-edit:hover {
+            background: #fff0f0;
+        }
+
+        .action-assign {
+            color: var(--green);
+            border-color: #cdebd8;
+            background: #f0faf4;
+        }
+
+        .action-assign:hover {
+            background: #e1f5e8;
+        }
+
+        .action-delete {
+            color: #bd3030;
+        }
+
+        .action-delete:hover {
+            background: #fff0f0;
+        }
+
+        .empty,
+        .loading,
+        .error {
+            padding: 35px 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .error {
+            color: #b42b2b;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 17px 22px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            padding: 14px 18px;
+            background: #222;
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            display: none;
+            z-index: 1000;
+            max-width: calc(100% - 40px);
+        }
+
+        @media (max-width: 1100px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .layout {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px 12px;
+            }
+
+            .brand {
+                padding-bottom: 5px;
+            }
+
+            .brand-subtitle {
+                padding-bottom: 15px;
+            }
+
+            .nav-label {
+                display: none;
+            }
+
+            .sidebar nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .nav-link {
+                margin: 0;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .topbar {
+                padding: 18px;
+            }
+
+            .topbar h1 {
+                font-size: 19px;
+            }
+
+            .admin {
+                display: none;
+            }
+
+            .content {
+                padding: 17px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .card-header {
+                padding: 16px;
+            }
+
+            .filters {
+                width: 100%;
+            }
+
+            .filters input,
+            .filters select {
+                flex: 1;
+                min-width: 130px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="brand">KATUBA<span> CRM</span></div>
+        <div class="brand-subtitle">Management System</div>
+
+        <div class="nav-label">Main Menu</div>
+
+        <nav>
+            <a class="nav-link" href="../dashboard.html">Dashboard</a>
+            <a class="nav-link" href="../clients/index.html">Customers</a>
+            <a class="nav-link" href="../workers/index.html">Workers</a>
+            <a class="nav-link active" href="index.html">Jobs</a>
+            <a class="nav-link" href="../products/index.html">Products</a>
+            <a class="nav-link" href="../reports/index.html">Reports</a>
+            <a class="nav-link" href="../users/index.html">Users</a>
+            <a class="nav-link" href="../login.html" id="logoutLink">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h1>Jobs Management</h1>
+                <p>Manage jobs, schedules and worker assignments.</p>
+            </div>
+            <div class="admin">KATUBA ADMINISTRATOR</div>
+        </header>
+
+        <section class="content">
+
+            <div class="page-heading">
+                <div>
+                    <h2>Jobs Dashboard</h2>
+                    <p>View jobs and manage their assigned workers.</p>
+                </div>
+
+                <a href="add.html" class="btn btn-primary">
+                    + Add New Job
+                </a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total Jobs</div>
+                    <div class="stat-value" id="totalJobs">0</div>
+                    <div class="stat-note">All registered jobs</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Active Jobs</div>
+                    <div class="stat-value" id="activeJobs">0</div>
+                    <div class="stat-note">Currently active</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Completed Jobs</div>
+                    <div class="stat-value" id="completedJobs">0</div>
+                    <div class="stat-note">Successfully completed</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Rates</div>
+                    <div class="stat-value" id="monthlyRates">ZMW 0</div>
+                    <div class="stat-note">Total monthly rate value</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>All Jobs</h3>
+
+                    <div class="filters">
+                        <input
+                            type="search"
+                            id="searchInput"
+                            placeholder="Search jobs or customers..."
+                            aria-label="Search jobs">
+
+                        <select id="statusFilter" aria-label="Filter by status">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="paused">Paused</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+
+                        <button class="btn btn-primary" id="refreshBtn" type="button">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Customer</th>
+                                <th>Assigned Worker</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Schedule</th>
+                                <th>Monthly Rate</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="jobsTableBody">
+                            <tr>
+                                <td colspan="9" class="loading">Loading jobs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <span id="recordCount">Loading records...</span>
+                    <span>Use Assign Worker to manage job assignments.</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const API = "../../backend/jobs/";
+
+    let allJobs = [];
+
+    const tableBody = document.getElementById("jobsTableBody");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function (character) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[character];
+        });
+    }
+
+    function formatMoney(value) {
+        const amount = Number(value || 0);
+
+        return "ZMW " + amount.toLocaleString("en-ZM", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatDate(value) {
+        if (!value) {
+            return "—";
+        }
+
+        const parts = String(value).split("-");
+
+        if (parts.length !== 3) {
+            return escapeHTML(value);
+        }
+
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function normalizeStatus(status) {
+        return String(status || "active").toLowerCase();
+    }
+
+    function statusBadge(status) {
+        const normalized = normalizeStatus(status);
+
+        const labels = {
+            active: "Active",
+            paused: "Paused",
+            completed: "Completed",
+            cancelled: "Cancelled"
+        };
+
+        const label = labels[normalized] || normalized;
+
+        return `
+            <span class="status status-${escapeHTML(normalized)}">
+                ${escapeHTML(label)}
+            </span>
+        `;
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+
+        toast.textContent = message;
+        toast.style.display = "block";
+
+        window.setTimeout(function () {
+            toast.style.display = "none";
+        }, 3000);
+    }
+
+    function getJobId(job) {
+        return job.job_id ?? job.id ?? "";
+    }
+
+    function getClientName(job) {
+        return job.client_name
+            ?? job.customer_name
+            ?? job.full_name
+            ?? "Customer #" + (job.client_id ?? "—");
+    }
+
+    function getWorkerName(job) {
+        return job.worker_name
+            ?? job.assigned_worker
+            ?? job.worker_full_name
+            ?? "";
+    }
+
+    function updateStatistics(jobs) {
+        const total = jobs.length;
+
+        const active = jobs.filter(function (job) {
+            return normalizeStatus(job.status) === "active";
+        }).length;
+
+        const completed = jobs.filter(function (job) {
+            return normalizeStatus(job.status) === "completed";
+        }).length;
+
+        const monthlyTotal = jobs.reduce(function (sum, job) {
+            return sum + Number(job.monthly_rate || 0);
+        }, 0);
+
+        document.getElementById("totalJobs").textContent = total;
+        document.getElementById("activeJobs").textContent = active;
+        document.getElementById("completedJobs").textContent = completed;
+        document.getElementById("monthlyRates").textContent =
+            "ZMW " + monthlyTotal.toLocaleString("en-ZM", {
+                maximumFractionDigits: 0
+            });
+    }
+
+    function renderJobs() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        const filteredJobs = allJobs.filter(function (job) {
+            const id = String(getJobId(job));
+            const client = String(getClientName(job)).toLowerCase();
+            const worker = String(getWorkerName(job)).toLowerCase();
+            const schedule = String(job.schedule || "").toLowerCase();
+            const status = normalizeStatus(job.status);
+
+            const matchesSearch =
+                id.includes(searchTerm) ||
+                client.includes(searchTerm) ||
+                worker.includes(searchTerm) ||
+                schedule.includes(searchTerm);
+
+            const matchesStatus =
+                !selectedStatus || status === selectedStatus;
+
+            return matchesSearch && matchesStatus;
+        });
+
+        if (filteredJobs.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="empty">
+                        No jobs found. Try changing your search or status filter.
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById("recordCount").textContent =
+                "Showing 0 of " + allJobs.length + " jobs";
+
+            return;
+        }
+
+        tableBody.innerHTML = filteredJobs.map(function (job) {
+            const id = getJobId(job);
+            const safeId = encodeURIComponent(String(id));
+            const workerName = getWorkerName(job);
+
+            return `
+                <tr>
+                    <td>
+                        <span class="job-number">#${escapeHTML(id)}</span>
+                    </td>
+
+                    <td>${escapeHTML(getClientName(job))}</td>
+
+                    <td>
+                        ${workerName
+                            ? escapeHTML(workerName)
+                            : '<span style="color:#a76b0b;">Not assigned</span>'}
+                    </td>
+
+                    <td>${formatDate(job.start_date)}</td>
+
+                    <td>${formatDate(job.end_date)}</td>
+
+                    <td>${escapeHTML(job.schedule || "—")}</td>
+
+                    <td>${formatMoney(job.monthly_rate)}</td>
+
+                    <td>${statusBadge(job.status)}</td>
+
+                    <td>
+                        <div class="actions">
+                            <a
+                                class="action-btn action-view"
+                                href="view.html?id=${safeId}">
+                                View
+                            </a>
+
+                            <a
+                                class="action-btn action-edit"
+                                href="edit.html?id=${safeId}">
+                                Edit
+                            </a>
+
+                            <a
+                                class="action-btn action-assign"
+                                href="assign.html?id=${safeId}">
+                                Assign Worker
+                            </a>
+
+                            <button
+                                type="button"
+                                class="action-btn action-delete"
+                                data-delete-id="${escapeHTML(id)}">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        document.getElementById("recordCount").textContent =
+            "Showing " + filteredJobs.length + " of " + allJobs.length + " jobs";
+    }
+
+    async function loadJobs() {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="9" class="loading">Loading jobs...</td>
+            </tr>
+        `;
+
+        try {
+            const response = await fetch(API + "get.php", {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                },
+                cache: "no-store"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || "Unable to load jobs.");
+            }
+
+            let jobs = [];
+
+            if (Array.isArray(data.jobs)) {
+                jobs = data.jobs;
+            } else if (Array.isArray(data.data)) {
+                jobs = data.data;
+            } else if (Array.isArray(data)) {
+                jobs = data;
+            }
+
+            allJobs = jobs;
+
+            updateStatistics(allJobs);
+            renderJobs();
+
+        } catch (error) {
+            console.error("Load jobs error:", error);
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="error">
+                        Unable to load jobs. Check that the jobs/get.php endpoint
+                        is working and returns valid JSON.
+                        <br><br>
+                        ${escapeHTML(error.message)}
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById("recordCount").textContent =
+                "Could not load records";
+        }
+    }
+
+    async function deleteJob(jobId) {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete Job #" + jobId + "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("job_id", jobId);
+            formData.append("id", jobId);
+
+            const response = await fetch(API + "delete.php", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.success !== true) {
+                throw new Error(data.message || "Unable to delete the job.");
+            }
+
+            showToast("Job deleted successfully.");
+            await loadJobs();
+
+        } catch (error) {
+            console.error("Delete job error:", error);
+            showToast(error.message || "Unable to delete the job.");
+        }
+    }
+
+    tableBody.addEventListener("click", function (event) {
+        const deleteButton = event.target.closest("[data-delete-id]");
+
+        if (!deleteButton) {
+            return;
+        }
+
+        deleteJob(deleteButton.dataset.deleteId);
+    });
+
+    searchInput.addEventListener("input", renderJobs);
+    statusFilter.addEventListener("change", renderJobs);
+
+    document.getElementById("refreshBtn").addEventListener("click", loadJobs);
+
+    document.getElementById("logoutLink").addEventListener("click", function (event) {
+        event.preventDefault();
+
+        window.location.href = "../login.html";
+    });
+
+    loadJobs();
+</script>
+
+</body>
+</html>

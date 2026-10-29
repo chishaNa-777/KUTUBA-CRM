@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM | Add Customer</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6fa;color:#1f2937}.sidebar{position:fixed;inset:0 auto 0 0;width:230px;background:#171c26;padding:25px 16px;color:white}.brand{font-size:21px;font-weight:bold;padding:0 10px 28px}.brand span{color:#f87171}.nav a{display:block;padding:13px 12px;margin:4px 0;color:#cbd5e1;text-decoration:none;border-radius:8px;font-size:14px}.nav a:hover,.nav a.active{background:#961a1a;color:white}.main{margin-left:230px}.topbar{background:white;padding:25px 30px;border-bottom:1px solid #e5e7eb}.content{padding:30px;max-width:1000px;margin:auto}.heading{margin-bottom:22px}.heading h2{margin:0 0 8px}.heading p{color:#6b7280;font-size:14px}.form-card{background:white;border:1px solid #e5e7eb;border-radius:13px;padding:28px;box-shadow:0 3px 12px #11182705}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.group{display:flex;flex-direction:column;gap:8px}.group.full{grid-column:1/-1}label{font-size:13px;font-weight:700}input,select,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font:14px Arial;background:white}input:focus,select:focus,textarea:focus{outline:2px solid #961a1a22;border-color:#961a1a}textarea{min-height:100px;resize:vertical}.hint{font-size:12px;color:#6b7280}.buttons{display:flex;gap:10px;justify-content:flex-end;margin-top:25px}.btn{padding:12px 17px;border-radius:8px;border:0;font-weight:bold;font-size:13px;text-decoration:none;cursor:pointer}.primary{background:#961a1a;color:white}.secondary{background:white;color:#374151;border:1px solid #d1d5db}.message{display:none;margin-top:18px;padding:13px;border-radius:8px;font-size:13px;white-space:pre-wrap}.message.show{display:block}.ok{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#991b1b}button:disabled{opacity:.6;cursor:wait}@media(max-width:700px){.sidebar{position:static;width:100%;padding:15px}.brand{padding-bottom:12px}.nav{display:flex;flex-wrap:wrap}.nav a{padding:9px;font-size:12px}.main{margin-left:0}.content{padding:18px}.grid{grid-template-columns:1fr}.group.full{grid-column:auto}.form-card{padding:20px}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="brand">KATUBA <span>CRM</span></div>
+    <nav class="nav">
+        <a href="../dashboard.html">Dashboard</a>
+        <a href="index.html" class="active">Customers</a>
+        <a href="../workers/index.html">Workers</a>
+        <a href="../jobs/index.html">Jobs</a>
+        <a href="../products/index.html">Products</a>
+        <a href="../reports/index.html">Reports</a>
+        <a href="../users/index.html">Users</a>
+    </nav>
+</aside>
+
+<main class="main">
+    <header class="topbar"><h1>Add Customer</h1></header>
+    <section class="content">
+        <div class="heading">
+            <h2>Register a Customer</h2>
+            <p>Enter the customer's company and contact information.</p>
+        </div>
+
+        <div class="form-card">
+            <form id="customerForm">
+                <div class="grid">
+                    <div class="group">
+                        <label for="company_name">Company Name *</label>
+                        <input id="company_name" name="company_name" maxlength="150" required>
+                    </div>
+                    <div class="group">
+                        <label for="contact_person">Contact Person *</label>
+                        <input id="contact_person" name="contact_person" maxlength="150" required>
+                    </div>
+                    <div class="group">
+                        <label for="phone">Phone Number *</label>
+                        <input id="phone" name="phone" type="tel" maxlength="30" required>
+                    </div>
+                    <div class="group">
+                        <label for="email">Email Address</label>
+                        <input id="email" name="email" type="email" maxlength="150">
+                    </div>
+                    <div class="group full">
+                        <label for="address">Address</label>
+                        <textarea id="address" name="address" maxlength="1000" placeholder="Enter the customer's address"></textarea>
+                    </div>
+                    <div class="group">
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                        <span class="hint">Inactive customers remain in your records.</span>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <a class="btn secondary" href="index.html">Cancel</a>
+                    <button class="btn primary" id="saveBtn" type="submit">Save Customer</button>
+                </div>
+            </form>
+            <div id="message" class="message" role="status" aria-live="polite"></div>
+        </div>
+    </section>
+</main>
+
+<script>
+const form = document.getElementById("customerForm");
+const message = document.getElementById("message");
+const saveBtn = document.getElementById("saveBtn");
+
+function showMessage(text, success = false) {
+    message.textContent = text;
+    message.className = "message show " + (success ? "ok" : "error");
+}
+
+form.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+    showMessage("Saving customer...", true);
+
+    try {
+        const response = await fetch("../../backend/clients/add.php", {
+            method: "POST",
+            body: new FormData(form),
+            cache: "no-store"
+        });
+        const text = await response.text();
+        let data;
+        try { data = JSON.parse(text); }
+        catch {
+            console.error(text);
+            throw new Error("The server returned an invalid response. Check backend/clients/add.php.");
+        }
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to save the customer.");
+        }
+        showMessage(data.message || "Customer added successfully. Returning to the list...", true);
+        form.reset();
+        setTimeout(() => window.location.href = "index.html", 900);
+    } catch (error) {
+        showMessage(error.message);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Customer";
+    }
+});
+</script>
+</body>
+</html>

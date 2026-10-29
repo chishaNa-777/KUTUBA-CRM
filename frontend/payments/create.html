@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Create Invoice</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #252a34;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        .topbar h1 {
+            font-size: 25px;
+            margin-bottom: 6px;
+        }
+
+        .topbar p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #961a1a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            font-size: 21px;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #737986;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d8dce3;
+            border-radius: 7px;
+            background: white;
+            color: #252a34;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #961a1a;
+            box-shadow: 0 0 0 3px rgba(150, 26, 26, 0.09);
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #737986;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 30px;
+            padding-top: 22px;
+            border-top: 1px solid #edf0f4;
+        }
+
+        .btn {
+            display: inline-block;
+            border: none;
+            border-radius: 7px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e9ecf1;
+            color: #303643;
+        }
+
+        .btn-secondary:hover {
+            background: #dce1e8;
+        }
+
+        .btn-primary {
+            background: #961a1a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #791414;
+        }
+
+        .notice {
+            display: none;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            border-radius: 7px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .notice.info {
+            display: block;
+            background: #fff4e5;
+            color: #80520b;
+            border: 1px solid #f2d5a6;
+        }
+
+        @media (max-width: 650px) {
+            .topbar {
+                padding: 20px;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 0 12px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>Create Invoice</h1>
+        <p>KATUBA CRM — Invoices &amp; Billing</p>
+    </header>
+
+    <main class="container">
+        <a class="back-link" href="invoices.html">
+            &larr; Back to Invoices
+        </a>
+
+        <section class="card">
+            <h2>Invoice Details</h2>
+            <p class="description">
+                Complete the details below to prepare a new customer invoice.
+                Required fields are marked with an asterisk (*).
+            </p>
+
+            <div id="notice" class="notice" role="status"></div>
+
+            <form id="invoiceForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="client_id">Customer *</label>
+                        <select id="client_id" name="client_id" required>
+                            <option value="">Loading customers...</option>
+                        </select>
+                        <span class="help-text">
+                            Select the customer who will receive this invoice.
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="invoice_number">Invoice Number *</label>
+                        <input
+                            type="text"
+                            id="invoice_number"
+                            name="invoice_number"
+                            maxlength="50"
+                            placeholder="e.g. INV-2026-0006"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Invoice Amount *</label>
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            min="0.01"
+                            max="99999999.99"
+                            step="0.01"
+                            placeholder="Enter amount"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="period_start">Billing Period Start *</label>
+                        <input
+                            type="date"
+                            id="period_start"
+                            name="period_start"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="period_end">Billing Period End *</label>
+                        <input
+                            type="date"
+                            id="period_end"
+                            name="period_end"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="due_date">Payment Due Date</label>
+                        <input
+                            type="date"
+                            id="due_date"
+                            name="due_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Initial Status</label>
+                        <select id="status" name="status">
+                            <option value="unpaid">Unpaid</option>
+                        </select>
+                        <span class="help-text">
+                            New invoices start as unpaid.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="invoices.html" class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        Create Invoice
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+   
+       
+<script>
+    const customerSelect = document.getElementById("client_id");
+    const invoiceForm = document.getElementById("invoiceForm");
+    const notice = document.getElementById("notice");
+
+    function showNotice(message, type = "info") {
+        notice.textContent = message;
+        notice.className = "notice " + type;
+    }
+
+    async function loadCustomers() {
+        try {
+            const response = await fetch(
+                "../../backend/invoices/get_clients.php"
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message || "Unable to load customers."
+                );
+            }
+
+            customerSelect.innerHTML =
+                '<option value="">Select a customer</option>';
+
+            data.clients.forEach(function (client) {
+                const option = document.createElement("option");
+                option.value = client.client_id;
+                option.textContent = client.full_name;
+                customerSelect.appendChild(option);
+            });
+
+            if (data.clients.length === 0) {
+                customerSelect.innerHTML =
+                    '<option value="">No customers available</option>';
+            }
+        } catch (error) {
+            customerSelect.innerHTML =
+                '<option value="">Could not load customers</option>';
+
+            showNotice(
+                "Could not load customers. Please refresh the page.",
+                "info"
+            );
+        }
+    }
+
+    invoiceForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const start = document.getElementById("period_start").value;
+        const end = document.getElementById("period_end").value;
+
+        if (end < start) {
+            showNotice(
+                "The billing period end cannot be before the start.",
+                "info"
+            );
+            return;
+        }
+
+        const submitButton = invoiceForm.querySelector(
+            'button[type="submit"]'
+        );
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Saving...";
+
+        try {
+            const response = await fetch(
+                "../../backend/invoices/create.php",
+                {
+                    method: "POST",
+                    body: new FormData(invoiceForm)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message || "Unable to create invoice."
+                );
+            }
+
+            showNotice(
+                "Invoice " + data.invoice_number +
+                " created successfully. Returning to invoices...",
+                "info"
+            );
+
+            setTimeout(function () {
+                window.location.href = "invoices.html";
+            }, 1500);
+
+        } catch (error) {
+            showNotice(error.message, "info");
+            submitButton.disabled = false;
+            submitButton.textContent = "Create Invoice";
+        }
+    });
+
+    loadCustomers();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details | KATUBA CRM</title>
+
+    <style>
+        :root {
+            --red: #961a1a;
+            --dark: #202124;
+            --bg: #f5f6fa;
+            --text: #282a30;
+            --muted: #777b87;
+            --border: #e8e9ef;
+            --green: #16834a;
+            --blue: #2864c5;
+            --orange: #a56308;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        a { text-decoration: none; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 250px;
+            background: var(--dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid #38393c;
+        }
+
+        .brand strong { font-size: 18px; letter-spacing: 1px; }
+        .brand small { display: block; color: #b7b8bd; margin-top: 5px; }
+
+        .nav-label {
+            padding: 25px 22px 10px;
+            color: #92949c;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+
+        nav { padding: 0 12px; }
+
+        nav a {
+            display: block;
+            padding: 13px;
+            margin-bottom: 5px;
+            color: #d4d5da;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        nav a:hover, nav a.active {
+            background: var(--red);
+            color: white;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 20px;
+            color: #b7b8bd;
+            border-top: 1px solid #38393c;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .main { margin-left: 250px; min-width: 0; }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .topbar h2 { font-size: 17px; }
+        .topbar small { color: var(--muted); }
+
+        .content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .breadcrumb { color: var(--muted); font-size: 12px; margin-bottom: 9px; }
+        .breadcrumb a { color: var(--red); }
+        h1 { font-size: 27px; }
+        .subtitle { color: var(--muted); font-size: 13px; margin-top: 7px; }
+
+        .actions { display: flex; gap: 9px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: #454650;
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--red); border-color: var(--red); color: white; }
+        .btn-primary:hover { background: #751313; }
+
+        .notice {
+            display: none;
+            padding: 13px 15px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 13px;
+        }
+
+        .notice.show { display: block; }
+        .notice.error { background: #fce8e8; color: #a51f1f; }
+
+        .hero {
+            background: linear-gradient(120deg, #961a1a, #651515);
+            border-radius: 14px;
+            color: white;
+            padding: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .hero-label {
+            color: #f0caca;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .hero h2 { font-size: 26px; margin: 8px 0; overflow-wrap: anywhere; }
+        .hero p { font-size: 13px; color: #f4dddd; }
+
+        .hero-rate {
+            font-size: 25px;
+            font-weight: 750;
+            text-align: right;
+        }
+
+        .hero-rate small {
+            display: block;
+            font-size: 11px;
+            color: #f0caca;
+            font-weight: 400;
+            margin-top: 5px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 750;
+            background: #e4f6eb;
+            color: var(--green);
+        }
+
+        .status.paused { background: #fff1d9; color: var(--orange); }
+        .status.completed { background: #e7efff; color: var(--blue); }
+        .status.cancelled { background: #fce8e8; color: #b42323; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 { font-size: 15px; }
+        .card-header p { color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+        .card-body { padding: 8px 22px 18px; }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f4;
+        }
+
+        .detail:last-child { border-bottom: 0; }
+        .detail-label { color: var(--muted); font-size: 12px; }
+        .detail-value {
+            text-align: right;
+            font-size: 13px;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+            max-width: 65%;
+        }
+
+        .notes {
+            padding: 16px;
+            border-radius: 9px;
+            background: #fafafd;
+            color: #454650;
+            font-size: 13px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            min-height: 70px;
+        }
+
+        .loading, .error-state {
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--muted);
+            background: white;
+            border-radius: 12px;
+        }
+
+        .error-state h3 { color: var(--text); margin-bottom: 9px; }
+        .error-state p { font-size: 13px; margin-bottom: 18px; }
+
+        @media (max-width: 1000px) {
+            .sidebar { width: 210px; }
+            .main { margin-left: 210px; }
+            .content { padding: 22px; }
+        }
+
+        @media (max-width: 720px) {
+            .sidebar { position: static; width: 100%; }
+            .sidebar .nav-label, .sidebar-bottom { display: none; }
+            .sidebar nav { display: flex; flex-wrap: wrap; padding: 10px; }
+            .sidebar nav a { margin: 0; }
+            .main { margin-left: 0; }
+            .topbar { padding: 16px; }
+            .content { padding: 17px 13px; }
+            .grid { grid-template-columns: 1fr; }
+            .hero { padding: 21px; }
+            .hero h2 { font-size: 22px; }
+            .hero-rate { text-align: left; }
+            h1 { font-size: 23px; }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="brand">
+            <strong>KATUBA CRM</strong>
+            <small>Management System</small>
+        </div>
+
+        <div class="nav-label">MAIN MENU</div>
+
+        <nav>
+            <a href="../dashboard.html">▦ Dashboard</a>
+            <a href="../clients/index.html">♙ Customers</a>
+            <a href="../workers/index.html">♧ Workers</a>
+            <a href="index.html" class="active">▤ Jobs</a>
+            <a href="../products/index.html">▣ Products</a>
+            <a href="../reports/index.html">▥ Reports</a>
+            <a href="../users/index.html">♙ Users</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <strong>KATUBA CRM</strong><br>
+            Job Management
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h2>Job Details</h2>
+                <small>Review the selected job record</small>
+            </div>
+            <strong>Katuba Administrator</strong>
+        </header>
+
+        <section class="content">
+            <div class="heading">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="index.html">Jobs</a> / Job Details
+                    </div>
+                    <h1>Job Overview</h1>
+                    <p class="subtitle">Job information, customer and worker assignment.</p>
+                </div>
+
+                <div class="actions">
+                    <a href="index.html" class="btn">← Back to Jobs</a>
+                    <a href="#" id="editBtn" class="btn btn-primary">Edit Job</a>
+                </div>
+            </div>
+
+            <div id="notice" class="notice" role="alert"></div>
+            <div id="jobContent">
+                <div class="loading">Loading job details...</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get("id");
+        const jobContent = document.getElementById("jobContent");
+        const notice = document.getElementById("notice");
+
+        document.getElementById("editBtn").href =
+            "edit.html?id=" + encodeURIComponent(jobId || "");
+
+        function escapeHTML(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[char]);
+        }
+
+        function money(value) {
+            const number = Number(value);
+            return "ZMW " + (Number.isFinite(number) ? number : 0)
+                .toLocaleString("en-ZM", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+        }
+
+        function date(value) {
+            if (!value) return "Not set";
+            const parts = String(value).split("-");
+            return parts.length === 3
+                ? `${parts[2]}/${parts[1]}/${parts[0]}`
+                : escapeHTML(value);
+        }
+
+        function showError(message) {
+            notice.textContent = message;
+            notice.className = "notice show error";
+
+            jobContent.innerHTML = `
+                <div class="error-state">
+                    <h3>Unable to load job details</h3>
+                    <p>${escapeHTML(message)}</p>
+                    <button class="btn btn-primary" onclick="loadJob()">Try Again</button>
+                </div>`;
+        }
+
+        async function fetchJSON(url) {
+            const response = await fetch(url, {
+                cache: "no-store",
+                headers: { "Accept": "application/json" }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.success !== true) {
+                throw new Error(data.message || "The request failed.");
+            }
+
+            return data;
+        }
+
+        async function getWorkerName(workerId) {
+            if (!workerId) return "Not assigned";
+
+            try {
+                const data = await fetchJSON("../../backend/workers/get.php");
+                const workers = Array.isArray(data.workers)
+                    ? data.workers
+                    : Array.isArray(data.data) ? data.data : [];
+
+                const worker = workers.find(item =>
+                    String(item.worker_id ?? item.id) === String(workerId)
+                );
+
+                if (!worker) return "Worker #" + workerId;
+
+                const fullName = worker.full_name ||
+                    [worker.first_name, worker.last_name]
+                        .filter(Boolean).join(" ") ||
+                    worker.worker_name ||
+                    worker.name;
+
+                return fullName || ("Worker #" + workerId);
+            } catch (error) {
+                console.warn("Worker name lookup failed:", error);
+                return "Worker #" + workerId;
+            }
+        }
+
+        function statusHTML(value) {
+            const allowed = ["active", "paused", "completed", "cancelled"];
+            const status = String(value || "").toLowerCase();
+            const safeStatus = allowed.includes(status) ? status : "";
+
+            return `<span class="status ${safeStatus}">
+                ${escapeHTML(status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown")}
+            </span>`;
+        }
+
+        function renderJob(job, workerName) {
+            const customer = job.full_name || "Customer not assigned";
+
+            jobContent.innerHTML = `
+                <section class="hero">
+                    <div>
+                        <div class="hero-label">Job Reference #${escapeHTML(job.job_id)}</div>
+                        <h2>${escapeHTML(customer)}</h2>
+                        <p>Customer ID: ${escapeHTML(job.client_id ?? "—")}</p>
+                        <div style="margin-top:14px">${statusHTML(job.status)}</div>
+                    </div>
+
+                    <div class="hero-rate">
+                        ${money(job.monthly_rate)}
+                        <small>Monthly rate</small>
+                    </div>
+                </section>
+
+                <div class="grid">
+                    <section class="card">
+                        <div class="card-header">
+                            <h3>Job Information</h3>
+                            <p>Schedule and assignment details</p>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="detail">
+                                <span class="detail-label">Job ID</span>
+                                <span class="detail-value">#${escapeHTML(job.job_id)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">${escapeHTML(customer)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Assigned Worker</span>
+                                <span class="detail-value">${escapeHTML(workerName)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Worker ID</span>
+                                <span class="detail-value">${escapeHTML(job.worker_id || "Not assigned")}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Schedule</span>
+                                <span class="detail-value">${escapeHTML(job.schedule || "Not specified")}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Monthly Rate</span>
+                                <span class="detail-value">${money(job.monthly_rate)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-header">
+                            <h3>Dates and Status</h3>
+                            <p>Job timeline and current progress</p>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="detail">
+                                <span class="detail-label">Start Date</span>
+                                <span class="detail-value">${date(job.start_date)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">End Date</span>
+                                <span class="detail-value">${date(job.end_date)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Current Status</span>
+                                <span class="detail-value">${statusHTML(job.status)}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Created</span>
+                                <span class="detail-value">${escapeHTML(job.created_at || "Not available")}</span>
+                            </div>
+
+                            <div class="detail">
+                                <span class="detail-label">Last Updated</span>
+                                <span class="detail-value">${escapeHTML(job.updated_at || "Not available")}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card" style="grid-column:1 / -1">
+                        <div class="card-header">
+                            <h3>Job Notes</h3>
+                            <p>Additional instructions or information</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="notes">${escapeHTML(job.notes || "No notes have been added to this job.")}</div>
+                        </div>
+                    </section>
+                </div>`;
+        }
+
+        async function loadJob() {
+            notice.className = "notice";
+            jobContent.innerHTML = '<div class="loading">Loading job details...</div>';
+
+            if (!jobId || !/^[1-9]\d*$/.test(jobId)) {
+                showError("A valid job ID is missing from the page URL.");
+                return;
+            }
+
+            try {
+                const data = await fetchJSON(
+                    "../../backend/jobs/edit.php?id=" + encodeURIComponent(jobId)
+                );
+
+                const job = data.job || data.data;
+
+                if (!job) throw new Error("The server did not return the job record.");
+
+                const workerName = await getWorkerName(job.worker_id);
+                renderJob(job, workerName);
+
+            } catch (error) {
+                console.error("Job details error:", error);
+                showError(error.message || "Please try again.");
+            }
+        }
+
+        loadJob();
+    </script>
+</body>
+</html>
