@@ -1,9 +1,10 @@
 
 <?php
 
-require_once __DIR__ . "/../config/database.php";
+session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate");
 
 function respond(int $statusCode, array $data): void
 {
@@ -12,12 +13,31 @@ function respond(int $statusCode, array $data): void
     exit;
 }
 
+// Require login.
+if (empty($_SESSION["user_id"])) {
+    respond(401, [
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+}
+
+// Only administrators can create user accounts.
+if (($_SESSION["role"] ?? "") !== "admin") {
+    respond(403, [
+        "success" => false,
+        "message" => "You are not authorised to create user accounts."
+    ]);
+}
+
+// Allow POST requests only.
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     respond(405, [
         "success" => false,
         "message" => "Invalid request method."
     ]);
 }
+
+require_once __DIR__ . "/../config/database.php";
 
 $full_name = trim($_POST["full_name"] ?? "");
 $email = trim($_POST["email"] ?? "");
@@ -72,7 +92,6 @@ if (!in_array($status, ["active", "inactive"], true)) {
     ]);
 }
 
-// Profile pictures are optional.
 $profilePicturePath = null;
 $uploadedFilePath = null;
 
@@ -85,7 +104,7 @@ $allowedMimeTypes = [
 ];
 
 try {
-    // Check whether the email already exists.
+
     $check = $conn->prepare("
         SELECT user_id
         FROM users
@@ -102,8 +121,8 @@ try {
         ]);
     }
 
-    // Process the optional profile picture.
     if (isset($_FILES["profile_picture"])) {
+
         $file = $_FILES["profile_picture"];
 
         if ($file["error"] !== UPLOAD_ERR_NO_FILE) {
@@ -115,7 +134,6 @@ try {
                 ]);
             }
 
-            // Maximum picture size: 2 MB.
             if ($file["size"] > 2 * 1024 * 1024) {
                 respond(400, [
                     "success" => false,
@@ -130,7 +148,6 @@ try {
                 ]);
             }
 
-            // Check the actual file type, not just its extension.
             $finfo = new finfo(FILEINFO_MIME_TYPE);
             $mimeType = $finfo->file($file["tmp_name"]);
 
@@ -141,7 +158,6 @@ try {
                 ]);
             }
 
-            // Create the upload directory if it does not exist.
             if (
                 !is_dir($uploadDirectory) &&
                 !mkdir($uploadDirectory, 0755, true) &&
@@ -152,7 +168,6 @@ try {
                 );
             }
 
-            // Generate a random filename to avoid collisions.
             $filename = bin2hex(random_bytes(16))
                 . "."
                 . $allowedMimeTypes[$mimeType];
@@ -170,7 +185,6 @@ try {
         }
     }
 
-    // Hash the password securely.
     $hashedPassword = password_hash(
         $password,
         PASSWORD_DEFAULT
@@ -180,7 +194,6 @@ try {
         throw new RuntimeException("Unable to secure the password.");
     }
 
-    // Save the user and the picture path.
     $stmt = $conn->prepare("
         INSERT INTO users (
             full_name,
@@ -212,7 +225,7 @@ try {
     ]);
 
 } catch (Throwable $e) {
-    // Remove the newly uploaded file if saving the user fails.
+
     if (
         $uploadedFilePath !== null &&
         is_file($uploadedFilePath)
@@ -227,4 +240,3 @@ try {
         "message" => "Unable to add the user. Check the PHP error log for details."
     ]);
 }
-?>

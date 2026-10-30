@@ -1,8 +1,81 @@
+
 <?php
 
 require_once "../config/database.php";
 
 header("Content-Type: application/json; charset=UTF-8");
+
+/*
+|--------------------------------------------------------------------------
+| Helper functions
+|--------------------------------------------------------------------------
+*/
+
+function normalizeWorkerRole($value)
+{
+    $value = strtolower(trim((string) $value));
+
+    $allowed = [
+        "maid",
+        "gardener",
+        "daycare",
+        "supervisor",
+        "other"
+    ];
+
+    if (in_array($value, $allowed, true)) {
+        return $value;
+    }
+
+    return "other";
+}
+
+function normalizeAvailability($value)
+{
+    $value = strtolower(trim((string) $value));
+
+    $aliases = [
+        "available" => "available",
+        "assigned"  => "assigned",
+        "standby"   => "standby",
+        "inactive"  => "inactive"
+    ];
+
+    return $aliases[$value] ?? "";
+}
+
+function normalizePaymentMethod($value)
+{
+    $value = strtolower(trim((string) $value));
+
+    $aliases = [
+        "cash"          => "cash",
+        "airtel money"  => "airtel_money",
+        "airtel_money"  => "airtel_money",
+        "mtn money"     => "mtn_money",
+        "mtn_money"     => "mtn_money",
+        "bank"          => "bank",
+        "bank transfer" => "bank",
+        "bank_transfer" => "bank"
+    ];
+
+    return $aliases[$value] ?? null;
+}
+
+function normalizeStatus($value)
+{
+    $value = strtolower(trim((string) $value));
+
+    return in_array($value, ["active", "inactive"], true)
+        ? $value
+        : "";
+}
+
+/*
+|--------------------------------------------------------------------------
+| Only accept POST requests
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -15,8 +88,16 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+$newPhotoPath = null;
+
 try {
-    // 1. Get and validate worker ID
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Get worker ID
+    |--------------------------------------------------------------------------
+    */
+
     $worker_id = filter_var(
         $_POST["worker_id"] ?? $_POST["id"] ?? "",
         FILTER_VALIDATE_INT
@@ -33,121 +114,17 @@ try {
         exit;
     }
 
-    // 2. Get form fields
-    $full_name = trim($_POST["full_name"] ?? "");
-    $nrc_number = trim($_POST["nrc_number"] ?? "");
-    $phone = trim($_POST["phone"] ?? "");
-    $email = trim($_POST["email"] ?? "");
-    $address = trim($_POST["address"] ?? "");
-    $worker_role = trim($_POST["worker_role"] ?? "");
-    $experience_years = $_POST["experience_years"] ?? "";
-    $skills = trim($_POST["skills"] ?? "");
-    $availability = trim($_POST["availability"] ?? "");
-    $napsa_number = trim($_POST["napsa_number"] ?? "");
-    $nhima_number = trim($_POST["nhima_number"] ?? "");
-    $payment_method = trim($_POST["payment_method"] ?? "");
-    $payment_details = trim($_POST["payment_details"] ?? "");
-    $start_date = trim($_POST["start_date"] ?? "");
-    $status = trim($_POST["status"] ?? "");
-    $notes = trim($_POST["notes"] ?? "");
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Retrieve existing worker
+    |--------------------------------------------------------------------------
+    */
 
-    // 3. Validate required fields
-    if (
-        $full_name === "" ||
-        $phone === "" ||
-        $worker_role === ""
-    ) {
-        http_response_code(400);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Full name, phone number and worker role are required."
-        ]);
-
-        exit;
-    }
-
-    if (!in_array($status, ["Active", "Inactive"], true)) {
-        http_response_code(400);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Please select a valid worker status."
-        ]);
-
-        exit;
-    }
-
-    // 4. Validate email
-    if (
-        $email !== "" &&
-        !filter_var($email, FILTER_VALIDATE_EMAIL)
-    ) {
-        http_response_code(400);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Please enter a valid email address."
-        ]);
-
-        exit;
-    }
-
-    // 5. Validate experience
-    if (
-        $experience_years !== "" &&
-        !ctype_digit((string) $experience_years)
-    ) {
-        http_response_code(400);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Experience must be a whole number of years."
-        ]);
-
-        exit;
-    }
-
-    $experience_years = $experience_years === ""
-        ? null
-        : (int) $experience_years;
-
-    // 6. Convert empty optional values to NULL
-    $nrc_number = $nrc_number === "" ? null : $nrc_number;
-    $email = $email === "" ? null : $email;
-    $address = $address === "" ? null : $address;
-    $skills = $skills === "" ? null : $skills;
-    $availability = $availability === "" ? null : $availability;
-    $napsa_number = $napsa_number === "" ? null : $napsa_number;
-    $nhima_number = $nhima_number === "" ? null : $nhima_number;
-    $payment_method = $payment_method === "" ? null : $payment_method;
-    $payment_details = $payment_details === "" ? null : $payment_details;
-    $notes = $notes === "" ? null : $notes;
-
-    // 7. Validate optional start date
-    if ($start_date === "") {
-        $start_date = null;
-    } else {
-        $date = DateTime::createFromFormat("!Y-m-d", $start_date);
-
-        if (!$date || $date->format("Y-m-d") !== $start_date) {
-            http_response_code(400);
-
-            echo json_encode([
-                "success" => false,
-                "message" => "Please enter a valid start date."
-            ]);
-
-            exit;
-        }
-    }
-
-    // 8. Find the worker and retrieve the existing photo path
-    $check = $conn->prepare(
-        "SELECT worker_id, photo_path
-         FROM workers
-         WHERE worker_id = :worker_id"
-    );
+    $check = $conn->prepare("
+        SELECT worker_id, photo_path, availability
+        FROM workers
+        WHERE worker_id = :worker_id
+    ");
 
     $check->execute([
         ":worker_id" => $worker_id
@@ -166,128 +143,315 @@ try {
         exit;
     }
 
-    // Keep the existing photo unless a new photo is uploaded.
-    $photo_path = $existingWorker["photo_path"] ?? null;
+    /*
+    |--------------------------------------------------------------------------
+    | 3. Get submitted form values
+    |--------------------------------------------------------------------------
+    */
 
-    // 9. Process an optional photo upload
-    if (isset($_FILES["photo"])) {
-        $photo = $_FILES["photo"];
+    $full_name = trim($_POST["full_name"] ?? "");
+    $nrc_number = trim($_POST["nrc_number"] ?? "");
+    $phone = trim($_POST["phone"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+    $address = trim($_POST["address"] ?? "");
 
-        if ($photo["error"] !== UPLOAD_ERR_NO_FILE) {
+    $submittedRole = trim($_POST["worker_role"] ?? "");
+    $worker_role = normalizeWorkerRole($submittedRole);
 
-            if ($photo["error"] !== UPLOAD_ERR_OK) {
-                http_response_code(400);
+    $experience_years = trim((string) (
+        $_POST["experience_years"] ?? ""
+    ));
 
-                echo json_encode([
-                    "success" => false,
-                    "message" => "The photo upload failed. Please try again."
-                ]);
+    $skills = trim($_POST["skills"] ?? "");
 
-                exit;
-            }
+    $submittedAvailability = trim(
+        $_POST["availability"] ?? ""
+    );
 
-            // Maximum file size: 2 MB
-            if ($photo["size"] > 2 * 1024 * 1024) {
-                http_response_code(400);
+    $availability = normalizeAvailability(
+        $submittedAvailability
+    );
 
-                echo json_encode([
-                    "success" => false,
-                    "message" => "The photo must not exceed 2 MB."
-                ]);
+    // Preserve the existing availability if the form omitted it.
+    if ($submittedAvailability === "") {
+        $availability = normalizeAvailability(
+            $existingWorker["availability"] ?? ""
+        );
+    }
 
-                exit;
-            }
+    // Final fallback for an empty or invalid legacy value.
+    if ($availability === "") {
+        $availability = "available";
+    }
 
-            if (!is_uploaded_file($photo["tmp_name"])) {
-                http_response_code(400);
+    $napsa_number = trim($_POST["napsa_number"] ?? "");
+    $nhima_number = trim($_POST["nhima_number"] ?? "");
 
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Invalid photo upload."
-                ]);
+    $payment_method = normalizePaymentMethod(
+        $_POST["payment_method"] ?? ""
+    );
 
-                exit;
-            }
+    $payment_details = trim(
+        $_POST["payment_details"] ?? ""
+    );
 
-            // Check the actual file type instead of trusting its filename.
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->file($photo["tmp_name"]);
+    $start_date = trim($_POST["start_date"] ?? "");
 
-            $allowedTypes = [
-                "image/jpeg" => "jpg",
-                "image/png"  => "png",
-                "image/webp" => "webp"
-            ];
+    $status = normalizeStatus($_POST["status"] ?? "");
 
-            if (!isset($allowedTypes[$mimeType])) {
-                http_response_code(400);
+    $notes = trim($_POST["notes"] ?? "");
 
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Only JPG, PNG and WebP photos are allowed."
-                ]);
+    /*
+    |--------------------------------------------------------------------------
+    | 4. Validate required fields
+    |--------------------------------------------------------------------------
+    */
 
-                exit;
-            }
+    if ($full_name === "" || $phone === "" || $submittedRole === "") {
+        http_response_code(400);
 
-            // Confirm the uploaded file contains valid image data.
-            $imageInfo = @getimagesize($photo["tmp_name"]);
+        echo json_encode([
+            "success" => false,
+            "message" => "Full name, phone number and worker role are required."
+        ]);
 
-            if (
-                $imageInfo === false ||
-                $imageInfo["mime"] !== $mimeType
-            ) {
-                http_response_code(400);
+        exit;
+    }
 
-                echo json_encode([
-                    "success" => false,
-                    "message" => "The uploaded file is not a valid image."
-                ]);
+    if ($status === "") {
+        http_response_code(400);
 
-                exit;
-            }
+        echo json_encode([
+            "success" => false,
+            "message" => "Please select a valid worker status."
+        ]);
 
-            // Project folder: C:\xampp\htdocs\KUTUBA-CRM
-            $projectRoot = dirname(__DIR__, 2);
+        exit;
+    }
 
-            // Store worker photos in the project's uploads/workers folder.
-            $uploadDirectory = $projectRoot
-                . DIRECTORY_SEPARATOR . "uploads"
-                . DIRECTORY_SEPARATOR . "workers";
+    /*
+    |--------------------------------------------------------------------------
+    | 5. Handle custom worker roles
+    |--------------------------------------------------------------------------
+    */
 
-            if (
-                !is_dir($uploadDirectory) &&
-                !mkdir($uploadDirectory, 0755, true) &&
-                !is_dir($uploadDirectory)
-            ) {
-                throw new RuntimeException(
-                    "Unable to create the worker photo upload folder."
-                );
-            }
+    $standardRoles = [
+        "maid",
+        "gardener",
+        "daycare",
+        "supervisor",
+        "other"
+    ];
 
-            // Generate a unique filename.
-            $extension = $allowedTypes[$mimeType];
+    if (!in_array(strtolower($submittedRole), $standardRoles, true)) {
 
-            $filename = bin2hex(random_bytes(16))
-                . "."
-                . $extension;
+        if ($skills !== "") {
+            $skills .= ", ";
+        }
 
-            $destination = $uploadDirectory
-                . DIRECTORY_SEPARATOR
-                . $filename;
+        $skills .= "Custom role: " . $submittedRole;
+    }
 
-            if (!move_uploaded_file($photo["tmp_name"], $destination)) {
-                throw new RuntimeException(
-                    "Unable to save the new worker photo."
-                );
-            }
+    /*
+    |--------------------------------------------------------------------------
+    | 6. Validate email
+    |--------------------------------------------------------------------------
+    */
 
-            // Store a relative path in the database.
-            $photo_path = "uploads/workers/" . $filename;
+    if (
+        $email !== "" &&
+        !filter_var($email, FILTER_VALIDATE_EMAIL)
+    ) {
+        http_response_code(400);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Please enter a valid email address."
+        ]);
+
+        exit;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7. Validate experience
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $experience_years !== "" &&
+        !ctype_digit($experience_years)
+    ) {
+        http_response_code(400);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Experience must be a whole number of years."
+        ]);
+
+        exit;
+    }
+
+    $experience_years = $experience_years === ""
+        ? null
+        : (int) $experience_years;
+
+    if (
+        $experience_years !== null &&
+        ($experience_years < 0 || $experience_years > 255)
+    ) {
+        http_response_code(400);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Experience must be between 0 and 255 years."
+        ]);
+
+        exit;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8. Convert optional empty values to NULL
+    |--------------------------------------------------------------------------
+    */
+
+    $nrc_number = $nrc_number === "" ? null : $nrc_number;
+    $email = $email === "" ? null : $email;
+    $address = $address === "" ? null : $address;
+    $skills = $skills === "" ? null : $skills;
+
+    $napsa_number = $napsa_number === "" ? null : $napsa_number;
+    $nhima_number = $nhima_number === "" ? null : $nhima_number;
+    $payment_details = $payment_details === "" ? null : $payment_details;
+    $notes = $notes === "" ? null : $notes;
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9. Validate start date
+    |--------------------------------------------------------------------------
+    */
+
+    if ($start_date === "") {
+        $start_date = null;
+    } else {
+        $date = DateTime::createFromFormat("!Y-m-d", $start_date);
+
+        if (!$date || $date->format("Y-m-d") !== $start_date) {
+            http_response_code(400);
+
+            echo json_encode([
+                "success" => false,
+                "message" => "Please enter a valid start date."
+            ]);
+
+            exit;
         }
     }
 
-    // 10. Update worker details and photo path
+    /*
+    |--------------------------------------------------------------------------
+    | 10. Preserve existing worker photo
+    |--------------------------------------------------------------------------
+    */
+
+    $photo_path = $existingWorker["photo_path"] ?? null;
+
+    /*
+    |--------------------------------------------------------------------------
+    | 11. Process optional photo upload
+    |--------------------------------------------------------------------------
+    */
+
+    $photo = $_FILES["photo"] ?? $_FILES["worker_photo"] ?? null;
+
+    if ($photo && $photo["error"] !== UPLOAD_ERR_NO_FILE) {
+
+        if ($photo["error"] !== UPLOAD_ERR_OK) {
+            throw new RuntimeException(
+                "The photo upload failed. Please try again."
+            );
+        }
+
+        if ($photo["size"] > 2 * 1024 * 1024) {
+            throw new RuntimeException(
+                "The photo must not exceed 2 MB."
+            );
+        }
+
+        if (!is_uploaded_file($photo["tmp_name"])) {
+            throw new RuntimeException(
+                "Invalid photo upload."
+            );
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($photo["tmp_name"]);
+
+        $allowedTypes = [
+            "image/jpeg" => "jpg",
+            "image/png"  => "png",
+            "image/webp" => "webp"
+        ];
+
+        if (!isset($allowedTypes[$mimeType])) {
+            throw new RuntimeException(
+                "Only JPG, PNG and WebP photos are allowed."
+            );
+        }
+
+        $imageInfo = @getimagesize($photo["tmp_name"]);
+
+        if (
+            $imageInfo === false ||
+            $imageInfo["mime"] !== $mimeType
+        ) {
+            throw new RuntimeException(
+                "The uploaded file is not a valid image."
+            );
+        }
+
+        $projectRoot = dirname(__DIR__, 2);
+
+        $uploadDirectory = $projectRoot
+            . DIRECTORY_SEPARATOR . "uploads"
+            . DIRECTORY_SEPARATOR . "workers";
+
+        if (
+            !is_dir($uploadDirectory) &&
+            !mkdir($uploadDirectory, 0755, true) &&
+            !is_dir($uploadDirectory)
+        ) {
+            throw new RuntimeException(
+                "Unable to create the worker photo upload folder."
+            );
+        }
+
+        $filename = bin2hex(random_bytes(16))
+            . "."
+            . $allowedTypes[$mimeType];
+
+        $destination = $uploadDirectory
+            . DIRECTORY_SEPARATOR
+            . $filename;
+
+        if (!move_uploaded_file($photo["tmp_name"], $destination)) {
+            throw new RuntimeException(
+                "Unable to save the new worker photo."
+            );
+        }
+
+        $newPhotoPath = $destination;
+
+        $photo_path = "uploads/workers/" . $filename;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 12. Update worker in PostgreSQL
+    |--------------------------------------------------------------------------
+    */
+
     $sql = "
         UPDATE workers SET
             full_name = :full_name,
@@ -334,7 +498,12 @@ try {
         ":worker_id" => $worker_id
     ]);
 
-    // 11. Return success response
+    /*
+    |--------------------------------------------------------------------------
+    | 13. Return success
+    |--------------------------------------------------------------------------
+    */
+
     echo json_encode([
         "success" => true,
         "message" => "Worker updated successfully.",
@@ -343,7 +512,15 @@ try {
     ]);
 
 } catch (PDOException $e) {
-    error_log("Worker update database error: " . $e->getMessage());
+
+    // Remove a newly uploaded photo if the database update failed.
+    if ($newPhotoPath && file_exists($newPhotoPath)) {
+        unlink($newPhotoPath);
+    }
+
+    error_log(
+        "Worker update database error: " . $e->getMessage()
+    );
 
     http_response_code(500);
 
@@ -353,13 +530,21 @@ try {
     ]);
 
 } catch (Throwable $e) {
-    error_log("Worker update error: " . $e->getMessage());
+
+    if ($newPhotoPath && file_exists($newPhotoPath)) {
+        unlink($newPhotoPath);
+    }
+
+    error_log(
+        "Worker update error: " . $e->getMessage()
+    );
 
     http_response_code(500);
 
     echo json_encode([
         "success" => false,
-        "message" => "An unexpected error occurred while updating the worker."
+        "message" => $e->getMessage()
     ]);
 }
+
 ?>

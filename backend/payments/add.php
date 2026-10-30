@@ -3,9 +3,19 @@
 
 session_start();
 
-require_once __DIR__ . "/../config/database.php";
+header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate");
 
-header("Content-Type: application/json");
+if (empty($_SESSION["user_id"])) {
+    http_response_code(401);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+
+    exit;
+}
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -14,8 +24,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         "success" => false,
         "message" => "Invalid request method."
     ]);
+
     exit;
 }
+
+require_once __DIR__ . "/../config/database.php";
 
 $invoice_id = filter_var(
     $_POST["invoice_id"] ?? "",
@@ -61,6 +74,7 @@ if (
         "success" => false,
         "message" => "Please provide a valid invoice, amount, date, payment method and payment type."
     ]);
+
     exit;
 }
 
@@ -73,6 +87,7 @@ if (!$date || $date->format("Y-m-d") !== $payment_date) {
         "success" => false,
         "message" => "The payment date is invalid."
     ]);
+
     exit;
 }
 
@@ -83,6 +98,7 @@ if (strlen($reference) > 100) {
         "success" => false,
         "message" => "The payment reference cannot exceed 100 characters."
     ]);
+
     exit;
 }
 
@@ -118,6 +134,7 @@ try {
             "success" => false,
             "message" => "Invoice not found."
         ]);
+
         exit;
     }
 
@@ -130,6 +147,7 @@ try {
             "success" => false,
             "message" => "Payments cannot be recorded against a cancelled invoice."
         ]);
+
         exit;
     }
 
@@ -148,6 +166,7 @@ try {
             "message" => "Payment exceeds the outstanding balance of " .
                 number_format(max(0, $balance), 2, ".", "")
         ]);
+
         exit;
     }
 
@@ -160,6 +179,7 @@ try {
             "success" => false,
             "message" => "This invoice has already been fully paid."
         ]);
+
         exit;
     }
 

@@ -3,9 +3,32 @@
 
 session_start();
 
-require_once __DIR__ . "/../config/database.php";
-
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+
+// Require an authenticated session.
+if (empty($_SESSION["user_id"])) {
+    http_response_code(401);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+
+    exit;
+}
+
+// Only administrators can delete user accounts.
+if (($_SESSION["role"] ?? "") !== "admin") {
+    http_response_code(403);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "You are not authorised to delete user accounts."
+    ]);
+
+    exit;
+}
 
 // Only allow POST requests.
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -19,6 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+require_once __DIR__ . "/../config/database.php";
+
 // Get the user ID sent by the frontend.
 $id = filter_var(
     $_POST["id"] ?? "",
@@ -26,6 +51,8 @@ $id = filter_var(
 );
 
 if (!$id || $id < 1) {
+    http_response_code(400);
+
     echo json_encode([
         "success" => false,
         "message" => "A valid User ID is required."
@@ -37,16 +64,11 @@ if (!$id || $id < 1) {
 try {
 
     // Prevent deleting the currently logged-in account.
-    // Check common session keys used for the logged-in user ID.
-    $loggedInUserId = $_SESSION["user_id"]
-        ?? $_SESSION["user"]["user_id"]
-        ?? $_SESSION["user"]["id"]
-        ?? null;
+    $loggedInUserId = (int) $_SESSION["user_id"];
 
-    if (
-        $loggedInUserId !== null &&
-        (int) $loggedInUserId === (int) $id
-    ) {
+    if ($loggedInUserId === (int) $id) {
+        http_response_code(400);
+
         echo json_encode([
             "success" => false,
             "message" => "You cannot delete your own account while logged in."
@@ -66,6 +88,8 @@ try {
     $check->execute([$id]);
 
     if (!$check->fetch(PDO::FETCH_ASSOC)) {
+        http_response_code(404);
+
         echo json_encode([
             "success" => false,
             "message" => "User account not found."
@@ -87,7 +111,7 @@ try {
         "message" => "User deleted successfully."
     ]);
 
-} catch (PDOException $e) {
+} catch (Throwable $e) {
 
     error_log("User delete error: " . $e->getMessage());
 

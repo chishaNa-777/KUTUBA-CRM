@@ -1,69 +1,86 @@
+
 <?php
 
-require_once "../config/database.php";
+session_start();
 
 header("Content-Type: application/json");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+
+
+// Check whether the user is logged in
+if (empty($_SESSION["user_id"])) {
+
+    http_response_code(401);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+
+    exit;
+}
+
+
+// Connect to the database
+require_once __DIR__ . "/../config/database.php";
+
 
 try {
 
     // Count clients
     $clientStmt = $conn->query("SELECT COUNT(*) FROM clients");
-    $clients = $clientStmt->fetchColumn();
+    $clients = (int) $clientStmt->fetchColumn();
 
 
     // Count workers
     $workerStmt = $conn->query("SELECT COUNT(*) FROM workers");
-    $workers = $workerStmt->fetchColumn();
+    $workers = (int) $workerStmt->fetchColumn();
 
 
     // Count users
     $userStmt = $conn->query("SELECT COUNT(*) FROM users");
-    $users = $userStmt->fetchColumn();
+    $users = (int) $userStmt->fetchColumn();
 
 
     // Count jobs
     $jobStmt = $conn->query("SELECT COUNT(*) FROM jobs");
-    $jobs = $jobStmt->fetchColumn();
+    $jobs = (int) $jobStmt->fetchColumn();
 
 
-    // Count Pending jobs
+    // Count pending jobs
     $pendingStmt = $conn->query("
         SELECT COUNT(*)
         FROM jobs
         WHERE status = 'Pending'
     ");
+    $pending = (int) $pendingStmt->fetchColumn();
 
-    $pending = $pendingStmt->fetchColumn();
 
-
-    // Count In Progress jobs
+    // Count in-progress jobs
     $progressStmt = $conn->query("
         SELECT COUNT(*)
         FROM jobs
         WHERE status = 'In Progress'
     ");
+    $inProgress = (int) $progressStmt->fetchColumn();
 
-    $inProgress = $progressStmt->fetchColumn();
 
-
-    // Count Completed jobs
+    // Count completed jobs
     $completedStmt = $conn->query("
         SELECT COUNT(*)
         FROM jobs
         WHERE status = 'Completed'
     ");
+    $completed = (int) $completedStmt->fetchColumn();
 
-    $completed = $completedStmt->fetchColumn();
 
-
-    // Count Cancelled jobs
+    // Count cancelled jobs
     $cancelledStmt = $conn->query("
         SELECT COUNT(*)
         FROM jobs
         WHERE status = 'Cancelled'
     ");
-
-    $cancelled = $cancelledStmt->fetchColumn();
+    $cancelled = (int) $cancelledStmt->fetchColumn();
 
 
     // Calculate total records
@@ -71,40 +88,26 @@ try {
 
 
     echo json_encode([
-
         "success" => true,
-
-        "clients" => (int)$clients,
-
-        "workers" => (int)$workers,
-
-        "users" => (int)$users,
-
-        "jobs" => (int)$jobs,
-
-        "pending" => (int)$pending,
-
-        "in_progress" => (int)$inProgress,
-
-        "completed" => (int)$completed,
-
-        "cancelled" => (int)$cancelled,
-
-        "total" => (int)$total
-
+        "clients" => $clients,
+        "workers" => $workers,
+        "users" => $users,
+        "jobs" => $jobs,
+        "pending" => $pending,
+        "in_progress" => $inProgress,
+        "completed" => $completed,
+        "cancelled" => $cancelled,
+        "total" => $total
     ]);
-
 
 } catch (PDOException $e) {
 
+    error_log("Dashboard statistics error: " . $e->getMessage());
+
+    http_response_code(500);
+
     echo json_encode([
-
         "success" => false,
-
-        "message" => $e->getMessage()
-
+        "message" => "Unable to load dashboard statistics."
     ]);
-
 }
-
-?>

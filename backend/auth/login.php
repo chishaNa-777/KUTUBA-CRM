@@ -26,7 +26,16 @@ if ($email === "" || $password === "") {
     exit;
 }
 
+// Argon2id configuration.
+$hashOptions = [
+    "memory_cost" => 19456,
+    "time_cost" => 2,
+    "threads" => 1
+];
+
 try {
+
+    // Find the user account.
     $sql = "SELECT
                 user_id,
                 full_name,
@@ -42,12 +51,14 @@ try {
             LIMIT 1";
 
     $stmt = $conn->prepare($sql);
+
     $stmt->execute([
         ":email" => $email
     ]);
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Verify the supplied password.
     if (
         !$user ||
         !password_verify($password, $user["password_hash"])
@@ -59,6 +70,7 @@ try {
         exit;
     }
 
+    // Check account approval.
     if ($user["approval_status"] === "pending") {
         echo json_encode([
             "success" => false,
@@ -75,6 +87,7 @@ try {
         exit;
     }
 
+    // Check account status.
     if (strtolower($user["status"]) !== "active") {
         echo json_encode([
             "success" => false,
@@ -83,12 +96,59 @@ try {
         exit;
     }
 
+    /*
+     * Automatically upgrade old password hashes.
+     * Existing passwords remain unchanged.
+     */
+    if (
+        password_needs_rehash(
+            $user["password_hash"],
+            PASSWORD_ARGON2ID,
+            $hashOptions
+        )
+    ) {
+
+        $newHash = password_hash(
+            $password,
+            PASSWORD_ARGON2ID,
+            $hashOptions
+        );
+
+        try {
+
+            $rehashSql = "
+                UPDATE users
+                SET
+                    password_hash = :new_hash,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = :user_id
+                  AND password_hash = :old_hash
+            ";
+
+            $rehashStmt = $conn->prepare($rehashSql);
+
+            $rehashStmt->execute([
+                ":new_hash" => $newHash,
+                ":user_id" => $user["user_id"],
+                ":old_hash" => $user["password_hash"]
+            ]);
+
+        } catch (PDOException $rehashError) {
+
+            // Do not prevent a valid login if rehashing fails.
+            error_log(
+                "KATUBA CRM password rehash error: " .
+                $rehashError->getMessage()
+            );
+        }
+    }
+
     // Select whichever profile photo path is available.
     $profilePhoto = !empty($user["profile_photo"])
         ? $user["profile_photo"]
         : ($user["profile_picture"] ?? null);
 
-    // Create a new session ID after successful authentication.
+    // Regenerate session ID after successful authentication.
     session_regenerate_id(true);
 
     // Store user information in the session.
