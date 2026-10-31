@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Contracts</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f4f5f8;color:#252525}
+.sidebar{width:235px;height:100vh;background:#171c26;color:white;position:fixed;top:0;left:0;padding:25px 15px}
+.brand{font-size:21px;font-weight:bold;padding:0 12px 30px}
+.sidebar a{display:block;color:#cbd0d9;text-decoration:none;padding:13px 14px;margin-bottom:5px;border-radius:7px;font-size:14px}
+.sidebar a:hover,.sidebar a.active{background:#961a1a;color:white}
+.main{margin-left:235px;padding:30px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:28px}
+.topbar h1{font-size:26px}
+.add-btn{background:#961a1a;color:white;padding:12px 18px;border-radius:7px;text-decoration:none;font-weight:bold;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:25px}
+.stat-card,.panel{background:white;padding:22px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.04)}
+.stat-card p{color:#777;font-size:13px;margin-bottom:12px}
+.stat-card h2{font-size:27px}
+.filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.filters input,.filters select{padding:11px;border:1px solid #ddd;border-radius:7px;font-size:14px}
+.filters input{flex:1;min-width:200px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{text-align:left;padding:15px 12px;border-bottom:1px solid #eee;font-size:13px}
+th{background:#fafafa;color:#666}
+.table-wrap{overflow-x:auto}
+.status{display:inline-block;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+.Draft{background:#fff3cd;color:#856404}
+.Active{background:#d4edda;color:#155724}
+.Expired{background:#e2e3e5;color:#383d41}
+.Terminated{background:#f8d7da;color:#721c24}
+.empty{text-align:center;padding:30px;color:#777}
+.message{margin-bottom:15px;color:#a51d1d}
+.view-btn,.edit-btn,.delete-btn{display:inline-block;padding:7px 10px;border-radius:5px;color:white;font-size:12px;text-decoration:none;border:none;cursor:pointer}
+.view-btn{background:#2563eb;margin-right:4px}
+.edit-btn{background:#961a1a;margin-right:4px}
+.delete-btn{background:#dc3545}
+.view-btn:hover{background:#1d4ed8}
+.edit-btn:hover{background:#741313}
+.delete-btn:hover{background:#bd2130}
+@media(max-width:950px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){
+.sidebar{width:65px;padding:20px 6px}
+.brand{font-size:11px;padding:0 2px 20px}
+.sidebar a{font-size:0;text-align:center;padding:13px 4px}
+.sidebar a::first-letter{font-size:16px}
+.main{margin-left:65px;padding:18px 12px}
+.stats{grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{padding:15px}
+.topbar h1{font-size:20px}
+.add-btn{padding:10px;font-size:12px}
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+<div class="brand">KATUBA CRM</div>
+<a href="../dashboard.html">⌂ Dashboard</a>
+<a href="../clients/index.html">♙ Customers</a>
+<a href="../workers/index.html">♟ Workers</a>
+<a href="../jobs/index.html">▣ Jobs</a>
+<a href="../products/index.html">▤ Products</a>
+<a href="index.html" class="active">▧ Contracts</a>
+<a href="../reports/index.html">▥ Reports</a>
+<a href="../users/index.html">⚙ Users</a>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+<div>
+<h1>Customer Contracts</h1>
+<p style="color:#777;margin-top:7px">Manage customer service agreements</p>
+</div>
+<a href="add.html" class="add-btn">+ Add Contract</a>
+</header>
+
+<section class="stats">
+<div class="stat-card"><p>Total Contracts</p><h2 id="totalContracts">0</h2></div>
+<div class="stat-card"><p>Active Contracts</p><h2 id="activeContracts">0</h2></div>
+<div class="stat-card"><p>Draft Contracts</p><h2 id="draftContracts">0</h2></div>
+<div class="stat-card"><p>Expired Contracts</p><h2 id="expiredContracts">0</h2></div>
+</section>
+
+<section class="panel">
+
+<div class="filters">
+<input type="search" id="searchInput" placeholder="Search contract number or customer...">
+
+<select id="statusFilter">
+<option value="">All statuses</option>
+<option value="Draft">Draft</option>
+<option value="Active">Active</option>
+<option value="Expired">Expired</option>
+<option value="Terminated">Terminated</option>
+</select>
+</div>
+
+<div id="message" class="message"></div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Contract Number</th>
+<th>Customer</th>
+<th>Service</th>
+<th>Package</th>
+<th>Start Date</th>
+<th>End Date</th>
+<th>Monthly Fee</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="contractsTable">
+<tr><td colspan="9" class="empty">Loading contracts...</td></tr>
+</tbody>
+</table>
+</div>
+
+</section>
+</main>
+
+<script>
+let contracts=[];
+
+function formatDate(value){
+if(!value)return "—";
+const parts=String(value).slice(0,10).split("-");
+if(parts.length!==3)return value;
+return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function escapeHTML(value){
+return String(value??"").replace(/[&<>"']/g,char=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+})[char]);
+}
+
+function renderContracts(){
+
+const search=document.getElementById("searchInput").value.trim().toLowerCase();
+const selectedStatus=document.getElementById("statusFilter").value;
+
+const filtered=contracts.filter(contract=>{
+
+const matchesSearch=
+String(contract.contract_number||"").toLowerCase().includes(search)||
+String(contract.client_name||"").toLowerCase().includes(search);
+
+const matchesStatus=!selectedStatus||contract.status===selectedStatus;
+
+return matchesSearch&&matchesStatus;
+});
+
+const table=document.getElementById("contractsTable");
+
+if(filtered.length===0){
+table.innerHTML=`<tr><td colspan="9" class="empty">No matching contracts found.</td></tr>`;
+return;
+}
+
+table.innerHTML=filtered.map(contract=>{
+
+const status=["Draft","Active","Expired","Terminated"].includes(contract.status)
+?contract.status:"Draft";
+
+return `
+<tr>
+<td>${escapeHTML(contract.contract_number)}</td>
+<td>${escapeHTML(contract.client_name)}</td>
+<td>${escapeHTML(contract.service_type)}</td>
+<td>${escapeHTML(contract.package)}</td>
+<td>${formatDate(contract.start_date)}</td>
+<td>${formatDate(contract.end_date)}</td>
+<td>K ${Number(contract.monthly_fee).toLocaleString("en-US",{
+minimumFractionDigits:2,
+maximumFractionDigits:2
+})}</td>
+
+<td><span class="status ${status}">${escapeHTML(status)}</span></td>
+
+<td style="white-space:nowrap;">
+
+<a href="view.html?id=${encodeURIComponent(contract.contract_id)}" class="view-btn">View</a>
+
+<a href="edit.html?id=${encodeURIComponent(contract.contract_id)}" class="edit-btn">Edit</a>
+
+<button type="button" class="delete-btn"
+onclick="deleteContract(${Number(contract.contract_id)})">
+Delete
+</button>
+
+</td>
+</tr>
+`;
+}).join("");
+}
+
+async function loadContracts(){
+
+const message=document.getElementById("message");
+
+try{
+
+const response=await fetch("../../backend/contracts/get.php",{
+credentials:"same-origin",
+cache:"no-store"
+});
+
+const result=await response.json();
+
+if(!response.ok||!result.success){
+throw new Error(result.message||"Unable to load contracts.");
+}
+
+contracts=Array.isArray(result.data)?result.data:[];
+
+document.getElementById("totalContracts").textContent=contracts.length;
+
+document.getElementById("activeContracts").textContent=
+contracts.filter(c=>c.status==="Active").length;
+
+document.getElementById("draftContracts").textContent=
+contracts.filter(c=>c.status==="Draft").length;
+
+document.getElementById("expiredContracts").textContent=
+contracts.filter(c=>c.status==="Expired").length;
+
+renderContracts();
+
+}catch(error){
+
+message.textContent=error.message;
+
+document.getElementById("contractsTable").innerHTML=
+`<tr><td colspan="9" class="empty">Unable to load contracts.</td></tr>`;
+
+}
+}
+
+async function deleteContract(contractId){
+
+const contract=contracts.find(item=>
+Number(item.contract_id)===Number(contractId)
+);
+
+if(!contract){
+alert("Contract not found.");
+return;
+}
+
+const confirmed=confirm(
+`Are you sure you want to delete contract ${contract.contract_number}? This action cannot be undone.`
+);
+
+if(!confirmed)return;
+
+try{
+
+const formData=new FormData();
+formData.append("contract_id",contractId);
+
+const response=await fetch("../../backend/contracts/delete.php",{
+method:"POST",
+body:formData,
+credentials:"same-origin"
+});
+
+const result=await response.json();
+
+if(!response.ok||!result.success){
+throw new Error(result.message||"Unable to delete contract.");
+}
+
+alert("Contract deleted successfully.");
+await loadContracts();
+
+}catch(error){
+alert(error.message);
+}
+}
+
+document.getElementById("searchInput")
+.addEventListener("input",renderContracts);
+
+document.getElementById("statusFilter")
+.addEventListener("change",renderContracts);
+
+loadContracts();
+</script>
+
+</body>
+</html>

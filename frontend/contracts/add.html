@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Add Contract</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f5f8;
+            color: #222;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 35px auto;
+            padding: 0 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #961a1a;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button, .back-link {
+            border: none;
+            border-radius: 7px;
+            padding: 12px 20px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .save-btn {
+            background: #961a1a;
+            color: white;
+        }
+
+        .back-link {
+            background: #eee;
+            color: #333;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 7px;
+            display: none;
+        }
+
+        #message.success {
+            display: block;
+            background: #e8f7ed;
+            color: #176b35;
+        }
+
+        #message.error {
+            display: block;
+            background: #fdeaea;
+            color: #a51d1d;
+        }
+
+        @media (max-width: 650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h2>KATUBA CRM</h2>
+    <p>Customer Contracts Management</p>
+</header>
+
+<main class="container">
+    <section class="card">
+        <h2>Create New Contract</h2>
+        <p class="subtitle">Enter the service agreement details below.</p>
+
+        <form id="contractForm">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="contract_number">Contract Number *</label>
+                    <input type="text" id="contract_number"
+                           name="contract_number" required
+                           placeholder="e.g. KAT-CON-001">
+                </div>
+
+                <div class="form-group">
+                    <label for="client_id">Customer *</label>
+                    <select id="client_id" name="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="service_type">Service Type *</label>
+                    <input type="text" id="service_type"
+                           name="service_type" required
+                           placeholder="e.g. Cleaning">
+                </div>
+
+                <div class="form-group">
+                    <label for="package">Package *</label>
+                    <input type="text" id="package"
+                           name="package" required
+                           placeholder="e.g. Premium">
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date *</label>
+                    <input type="date" id="start_date"
+                           name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="monthly_fee">Monthly Fee *</label>
+                    <input type="number" id="monthly_fee"
+                           name="monthly_fee" min="0" step="0.01"
+                           required placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Contract Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="Draft">Draft</option>
+                        <option value="Active">Active</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Terminated">Terminated</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label for="payment_terms">Payment Terms</label>
+                    <textarea id="payment_terms" name="payment_terms"
+                              placeholder="Enter payment arrangements..."></textarea>
+                </div>
+
+                <div class="form-group full">
+                    <label for="terms_conditions">Terms and Conditions</label>
+                    <textarea id="terms_conditions" name="terms_conditions"
+                              placeholder="Enter the contract terms and conditions..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    Save Contract
+                </button>
+
+                <a href="index.html" class="back-link">Cancel</a>
+            </div>
+
+            <div id="message" role="alert"></div>
+        </form>
+    </section>
+</main>
+
+<script>
+const form = document.getElementById("contractForm");
+const customerSelect = document.getElementById("client_id");
+const message = document.getElementById("message");
+const saveBtn = document.getElementById("saveBtn");
+
+async function loadCustomers() {
+    try {
+        const response = await fetch("../../backend/clients/get.php", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Could not load customers.");
+        }
+
+       const customers = Array.isArray(result.clients) ? result.clients : [];
+
+        customerSelect.innerHTML =
+            '<option value="">Select a customer</option>';
+
+        customers.forEach(customer => {
+            const option = document.createElement("option");
+            option.value = customer.client_id;
+            option.textContent =
+                customer.full_name + " (" + customer.client_id + ")";
+            customerSelect.appendChild(option);
+        });
+
+        if (customers.length === 0) {
+            customerSelect.innerHTML =
+                '<option value="">No customers available</option>';
+        }
+
+    } catch (error) {
+        customerSelect.innerHTML =
+            '<option value="">Unable to load customers</option>';
+        showMessage(error.message, "error");
+    }
+}
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = type;
+}
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    if (!form.reportValidity()) return;
+
+    const startDate = document.getElementById("start_date").value;
+    const endDate = document.getElementById("end_date").value;
+
+    if (endDate && endDate < startDate) {
+        showMessage("End date cannot be earlier than start date.", "error");
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    try {
+        const response = await fetch("../../backend/contracts/add.php", {
+            method: "POST",
+            body: new FormData(form),
+            credentials: "same-origin"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to save contract.");
+        }
+
+        showMessage("Contract created successfully! Returning to dashboard...", "success");
+
+setTimeout(() => {
+    window.location.href = "../dashboard.html";
+}, 1500);
+
+    } catch (error) {
+        showMessage(error.message, "error");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Contract";
+    }
+});
+
+loadCustomers();
+</script>
+
+</body>
+</html>

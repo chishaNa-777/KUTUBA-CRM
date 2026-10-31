@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - View Contract</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f4f5f8;color:#252525}
+.sidebar{width:235px;height:100vh;background:#171c26;color:white;position:fixed;top:0;left:0;padding:25px 15px}
+.brand{font-size:21px;font-weight:bold;padding:0 12px 30px}
+.sidebar a{display:block;color:#cbd0d9;text-decoration:none;padding:13px 14px;margin-bottom:5px;border-radius:7px;font-size:14px}
+.sidebar a:hover,.sidebar a.active{background:#961a1a;color:white}
+.main{margin-left:235px;padding:30px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:25px}
+h1{font-size:26px}
+.card{background:white;border-radius:12px;padding:25px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid #eee;margin-bottom:22px}
+.section{color:#961a1a;font-size:15px;margin:24px 0 14px}
+.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.detail{padding:14px;background:#fafafa;border:1px solid #eee;border-radius:8px;min-width:0}
+.detail label{display:block;color:#777;font-size:12px;margin-bottom:7px}
+.detail p{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.status{display:inline-block;padding:7px 12px;border-radius:20px;font-size:12px;font-weight:bold}
+.Draft{background:#fff3cd;color:#856404}
+.Active{background:#d4edda;color:#155724}
+.Expired{background:#e2e3e5;color:#383d41}
+.Terminated{background:#f8d7da;color:#721c24}
+.btn{display:inline-block;padding:11px 16px;border:0;border-radius:7px;text-decoration:none;color:white;font-size:13px;font-weight:bold;cursor:pointer}
+.back{background:#555}
+.edit{background:#961a1a}
+.print{background:#263b57}
+.pdf{background:#167044}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.message{color:#a51d1d;margin-bottom:15px}
+.company-heading{display:none}
+
+@media(max-width:700px){
+.sidebar{width:65px;padding:20px 6px}
+.brand{font-size:11px;padding:0 2px 20px}
+.sidebar a{font-size:0;text-align:center;padding:13px 4px}
+.sidebar a::first-letter{font-size:16px}
+.main{margin-left:65px;padding:18px 12px}
+.details{grid-template-columns:1fr}
+h1{font-size:20px}
+}
+
+@page{
+size:A4;
+margin:18mm;
+}
+
+@media print{
+body{background:white;color:#000}
+.sidebar,.topbar,.actions{display:none!important}
+.main{margin:0;padding:0}
+.card{display:block!important;box-shadow:none;border:0;padding:0}
+.company-heading{
+display:block;
+text-align:center;
+border-bottom:2px solid #961a1a;
+padding-bottom:15px;
+margin-bottom:25px;
+}
+.company-heading h2{font-size:23px;color:#961a1a;margin-bottom:5px}
+.company-heading p{font-size:11px;color:#555}
+.heading{margin-bottom:20px}
+.section{color:#961a1a;break-after:avoid}
+.details{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.detail{background:white;border:1px solid #ddd;break-inside:avoid}
+.detail p{color:#111}
+.status{border:1px solid #aaa;background:white!important;color:#111!important}
+.message{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+<div class="brand">KATUBA CRM</div>
+<a href="../dashboard.html">⌂ Dashboard</a>
+<a href="../clients/index.html">♙ Customers</a>
+<a href="../workers/index.html">♟ Workers</a>
+<a href="../jobs/index.html">▣ Jobs</a>
+<a href="../products/index.html">▤ Products</a>
+<a href="index.html" class="active">▧ Contracts</a>
+<a href="../reports/index.html">▥ Reports</a>
+<a href="../users/index.html">⚙ Users</a>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+<div>
+<h1>View Contract</h1>
+<p style="color:#777;margin-top:7px">
+Complete customer service agreement details
+</p>
+</div>
+<a class="btn back" href="index.html">← Back to Contracts</a>
+</header>
+
+<div id="message" class="message"></div>
+
+<section id="card" class="card" style="display:none">
+
+<div class="company-heading">
+<h2>KATUBA CRM</h2>
+<p>Customer Service Agreement</p>
+</div>
+
+<div class="heading">
+<h2 id="contractNumber"></h2>
+<span id="status" class="status"></span>
+</div>
+
+<h3 class="section">Customer and Service Information</h3>
+
+<div class="details">
+<div class="detail"><label>Customer name</label><p id="clientName"></p></div>
+<div class="detail"><label>Phone number</label><p id="clientPhone"></p></div>
+<div class="detail"><label>Email address</label><p id="clientEmail"></p></div>
+<div class="detail"><label>Service type</label><p id="serviceType"></p></div>
+<div class="detail"><label>Package</label><p id="package"></p></div>
+<div class="detail"><label>Monthly fee</label><p id="monthlyFee"></p></div>
+</div>
+
+<h3 class="section">Contract Period</h3>
+
+<div class="details">
+<div class="detail"><label>Start date</label><p id="startDate"></p></div>
+<div class="detail"><label>End date</label><p id="endDate"></p></div>
+</div>
+
+<h3 class="section">Payment and Agreement</h3>
+
+<div class="details">
+<div class="detail"><label>Payment terms</label><p id="paymentTerms"></p></div>
+<div class="detail"><label>Terms and conditions</label><p id="termsConditions"></p></div>
+</div>
+
+<div class="actions">
+<button class="btn print" type="button" onclick="printContract()">Print Contract</button>
+<button class="btn pdf" type="button" onclick="downloadPDF()">Download PDF</button>
+<a id="editLink" class="btn edit" href="#">Edit Contract</a>
+</div>
+
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+
+function setText(id,value){
+document.getElementById(id).textContent=
+(value===null||value===undefined||String(value).trim()==="")
+?"—":String(value);
+}
+
+function formatDate(value){
+if(!value)return "—";
+const parts=String(value).slice(0,10).split("-");
+return parts.length===3
+?`${parts[2]}/${parts[1]}/${parts[0]}`
+:value;
+}
+
+function printContract(){
+if(document.getElementById("card").style.display==="none"){
+alert("Please wait for the contract to load.");
+return;
+}
+window.print();
+}
+
+function downloadPDF(){
+if(document.getElementById("card").style.display==="none"){
+alert("Please wait for the contract to load.");
+return;
+}
+const element=document.getElementById("card");
+const opt={
+margin:10,
+filename:"contract.pdf",
+image:{type:"jpeg",quality:0.98},
+html2canvas:{scale:2},
+jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+};
+html2pdf().set(opt).from(element).save();
+}
+
+async function loadContract(){
+
+const message=document.getElementById("message");
+const id=new URLSearchParams(window.location.search).get("id");
+
+if(!id||!/^\d+$/.test(id)){
+message.textContent="A valid contract ID is required.";
+return;
+}
+
+try{
+
+const response=await fetch("../../backend/contracts/get.php",{
+credentials:"same-origin",
+cache:"no-store"
+});
+
+const result=await response.json();
+
+if(!response.ok||!result.success){
+throw new Error(result.message||"Unable to load contract.");
+}
+
+const contracts=Array.isArray(result.data)?result.data:[];
+const contract=contracts.find(c=>
+Number(c.contract_id)===Number(id)
+);
+
+if(!contract){
+message.textContent="Contract not found.";
+return;
+}
+
+setText("contractNumber","Contract: "+contract.contract_number);
+
+const status=["Draft","Active","Expired","Terminated"].includes(contract.status)
+?contract.status:"Draft";
+
+setText("status",status);
+document.getElementById("status").className="status "+status;
+
+setText("clientName",contract.client_name);
+setText("clientPhone",contract.client_phone);
+setText("clientEmail",contract.client_email);
+setText("serviceType",contract.service_type);
+setText("package",contract.package);
+
+setText("monthlyFee","K "+Number(contract.monthly_fee||0).toLocaleString("en-US",{
+minimumFractionDigits:2,
+maximumFractionDigits:2
+}));
+
+setText("startDate",formatDate(contract.start_date));
+setText("endDate",formatDate(contract.end_date));
+setText("paymentTerms",contract.payment_terms);
+setText("termsConditions",contract.terms_conditions);
+
+document.getElementById("editLink").href=
+"edit.html?id="+encodeURIComponent(contract.contract_id);
+
+document.getElementById("card").style.display="block";
+
+}catch(error){
+message.textContent=error.message||"Unable to load contract details.";
+}
+
+}
+
+loadContract();
+
+</script>
+
+</body>
+</html>
