@@ -37,10 +37,35 @@ document.getElementById("loginForm").addEventListener("submit", async function (
             // Change button
             loginButton.textContent = "✓ Login Successful";
 
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 700);
+           setTimeout(() => {
 
+    const role = result.user.role.toLowerCase();
+
+    if (role === "admin") {
+        window.location.href = "admin-dashboard.html";
+    }
+
+    else if (role === "hr_officer") {
+        window.location.href = "staff-dashboard.html";
+    }
+
+    else if (role === "it") {
+        window.location.href = "it-dashboard.html";
+    }
+
+    else if (role === "finance_officer") {
+    window.location.href = "finance-dashboard.html";
+    }
+
+    else {
+        message.style.color = "red";
+        message.textContent = "Your account has an unrecognized role.";
+
+        loginButton.disabled = false;
+        loginButton.textContent = "Login";
+    }
+
+}, 700);
         } else {
 
             message.style.color = "red";

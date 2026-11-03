@@ -22,7 +22,7 @@ h1{font-size:26px}
 .details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
 .detail{padding:14px;background:#fafafa;border:1px solid #eee;border-radius:8px;min-width:0}
 .detail label{display:block;color:#777;font-size:12px;margin-bottom:7px}
-.detail p{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.detail p{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
 .status{display:inline-block;padding:7px 12px;border-radius:20px;font-size:12px;font-weight:bold}
 .Draft{background:#fff3cd;color:#856404}
 .Active{background:#d4edda;color:#155724}
@@ -36,6 +36,9 @@ h1{font-size:26px}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
 .message{color:#a51d1d;margin-bottom:15px}
 .company-heading{display:none}
+.signature-box{min-height:175px}
+.signature-box p{margin-top:10px}
+.signature-line{border-bottom:1px solid #555;display:inline-block;width:65%;height:18px}
 
 @media(max-width:700px){
 .sidebar{width:65px;padding:20px 6px}
@@ -47,10 +50,7 @@ h1{font-size:26px}
 h1{font-size:20px}
 }
 
-@page{
-size:A4;
-margin:18mm;
-}
+@page{size:A4;margin:18mm}
 
 @media print{
 body{background:white;color:#000}
@@ -71,6 +71,7 @@ margin-bottom:25px;
 .details{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .detail{background:white;border:1px solid #ddd;break-inside:avoid}
 .detail p{color:#111}
+.signature-box{min-height:175px}
 .status{border:1px solid #aaa;background:white!important;color:#111!important}
 .message{display:none}
 }
@@ -142,6 +143,40 @@ Complete customer service agreement details
 <div class="detail"><label>Terms and conditions</label><p id="termsConditions"></p></div>
 </div>
 
+<h3 class="section">Contract Acceptance and Signatures</h3>
+
+<div class="details">
+
+<div class="detail signature-box">
+<label>For KATUBA CRM – Company Representative</label>
+<p>Full name: <span class="signature-line"></span></p>
+<p>Signature: <span class="signature-line"></span></p>
+<p>Date: <span class="signature-line"></span></p>
+</div>
+
+<div class="detail signature-box">
+<label>Customer Acceptance</label>
+<p>Full name: <span class="signature-line"></span></p>
+<p>Signature: <span class="signature-line"></span></p>
+<p>Date: <span class="signature-line"></span></p>
+</div>
+
+<div class="detail signature-box">
+<label>Company Witness (Optional)</label>
+<p>Full name: <span class="signature-line"></span></p>
+<p>Signature: <span class="signature-line"></span></p>
+<p>Date: <span class="signature-line"></span></p>
+</div>
+
+<div class="detail signature-box">
+<label>Customer Witness (Optional)</label>
+<p>Full name: <span class="signature-line"></span></p>
+<p>Signature: <span class="signature-line"></span></p>
+<p>Date: <span class="signature-line"></span></p>
+</div>
+
+</div>
+
 <div class="actions">
 <button class="btn print" type="button" onclick="printContract()">Print Contract</button>
 <button class="btn pdf" type="button" onclick="downloadPDF()">Download PDF</button>
@@ -170,27 +205,53 @@ return parts.length===3
 }
 
 function printContract(){
+
 if(document.getElementById("card").style.display==="none"){
 alert("Please wait for the contract to load.");
 return;
 }
+
 window.print();
 }
 
-function downloadPDF(){
-if(document.getElementById("card").style.display==="none"){
+async function downloadPDF(){
+
+const element=document.getElementById("card");
+
+if(element.style.display==="none"){
 alert("Please wait for the contract to load.");
 return;
 }
-const element=document.getElementById("card");
-const opt={
+
+if(typeof html2pdf==="undefined"){
+alert("PDF library could not load. Please check your internet connection.");
+return;
+}
+
+const actions=element.querySelector(".actions");
+const contractNumber=document.getElementById("contractNumber")
+.textContent.replace("Contract: ","")
+.replace(/[^a-zA-Z0-9_-]/g,"_");
+
+actions.style.display="none";
+
+const options={
 margin:10,
-filename:"contract.pdf",
+filename:"KATUBA_Contract_"+contractNumber+".pdf",
 image:{type:"jpeg",quality:0.98},
-html2canvas:{scale:2},
+html2canvas:{scale:2,useCORS:true},
 jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
 };
-html2pdf().set(opt).from(element).save();
+
+try{
+await html2pdf().set(options).from(element).save();
+}catch(error){
+console.error(error);
+alert("Unable to generate PDF. Please try again.");
+}finally{
+actions.style.display="flex";
+}
+
 }
 
 async function loadContract(){

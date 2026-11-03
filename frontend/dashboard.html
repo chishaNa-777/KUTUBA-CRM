@@ -734,6 +734,10 @@ body {
             </a>
         </li>
         <li>
+             <a href="contracts/index.html">
+    <span class="nav-icon">📄</span>
+    <span class="nav-text">Contracts</span>
+</a>
             <a href="payments/invoices.html">
                 <span class="nav-icon">▤</span>
                 <span class="nav-text">Invoices</span>
@@ -776,7 +780,7 @@ body {
 <header class="topbar">
     <div>
         <h1>Dashboard Overview</h1>
-        <p>Monitor your business from one place.</p>
+        <p>Monitor your entire business from one place.</p>
     </div>
 
     <div class="user-area">
@@ -915,6 +919,15 @@ body {
             <div class="stat-number" id="invoiceBalance">—</div>
             <div class="stat-footer">Amount customers still owe</div>
         </article>
+
+        <article class="stat-card">
+    <div class="stat-header">
+        <span class="stat-label">Total Contracts</span>
+        <span class="stat-icon">📄</span>
+    </div>
+    <div class="stat-number" id="contractsCount">—</div>
+    <div class="stat-footer">Registered contracts</div>
+</article>
     </div>
 
     <!-- RECENT INVOICES -->
@@ -1103,7 +1116,13 @@ body {
                 <span>Manage products and stock</span>
             </div>
         </a>
-
+<a href="contracts/index.html" class="quick-link">
+    <span class="quick-icon icon-green">📄</span>
+    <div>
+        <strong>Contracts</strong>
+        <span>Create and manage customer contracts</span>
+    </div>
+</a>
         <a href="payments/invoices.html" class="quick-link">
             <span class="quick-icon icon-red">▤</span>
             <div>
@@ -1384,6 +1403,7 @@ async function loadDashboard() {
         const workers = getNumber(data, "workers");
         const jobs = getNumber(data, "jobs");
         const users = getNumber(data, "users");
+        const contracts = getNumber(data, "contracts");
 
         const pending = getNumber(data, "pending");
         const inProgress = getNumber(data, "in_progress");
@@ -1394,10 +1414,11 @@ async function loadDashboard() {
         setText("workersCount", workers);
         setText("jobsCount", jobs);
         setText("usersCount", users);
+        setText("contractsCount", contracts);
 
         const total = data.total !== undefined
             ? getNumber(data, "total")
-            : clients + workers + jobs + users;
+            : clients + workers + jobs + users+contracts;
 
         setText("totalCount", total);
 

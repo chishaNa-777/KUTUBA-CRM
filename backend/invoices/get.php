@@ -19,6 +19,21 @@ if (empty($_SESSION["user_id"])) {
     exit;
 }
 
+// Allow only Administrator and Finance users
+$role = strtolower(trim($_SESSION["role"] ?? ""));
+
+if (!in_array($role, ["admin", "finance_officer"], true)) {
+
+    http_response_code(403);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Access denied. Finance privileges required."
+    ]);
+
+    exit;
+}
+
 // Allow GET requests only
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 

@@ -1,0 +1,457 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Payments</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f5f8;
+            color: #252a34;
+        }
+
+        .sidebar {
+            width: 245px;
+            height: 100vh;
+            background: #171c26;
+            color: white;
+            position: fixed;
+            padding: 25px 18px;
+        }
+
+        .brand {
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .brand span {
+            color: #e04444;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #cbd0da;
+            text-decoration: none;
+            padding: 13px 15px;
+            margin-bottom: 7px;
+            border-radius: 7px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #961a1a;
+            color: white;
+        }
+
+        .main {
+            margin-left: 245px;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            color: #666;
+            text-align: right;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card,
+        .table-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        .card p {
+            color: #777;
+            margin-bottom: 12px;
+        }
+
+        .card h2 {
+            color: #961a1a;
+            font-size: 27px;
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search {
+            width: 300px;
+            max-width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8f8f8;
+            color: #555;
+        }
+
+        .method {
+            background: #f3e8e8;
+            color: #961a1a;
+            padding: 6px 9px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            color: #961a1a;
+        }
+
+        @media (max-width: 850px) {
+            .sidebar {
+                width: 190px;
+            }
+
+            .main {
+                margin-left: 190px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .topbar,
+            .table-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .search {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">KATUBA <span>CRM</span></div>
+
+    <a href="../finance-dashboard.html">Dashboard</a>
+    <a href="../invoices/index.html">Invoices</a>
+    <a href="index.html" class="active">Payments</a>
+    <a href="../reports/index.html">Financial Reports</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="#" onclick="logout()">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div>
+            <h1>Payments Management</h1>
+            <p style="color:#777; margin-top:7px;">
+                View and monitor customer payments.
+            </p>
+        </div>
+
+        <div class="user-info">
+            <strong id="userName">Loading...</strong>
+            <p id="userRole">Finance</p>
+        </div>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <p>Total Payments Received</p>
+            <h2 id="totalAmount">ZMW 0.00</h2>
+        </div>
+
+        <div class="card">
+            <p>Number of Payments</p>
+            <h2 id="paymentCount">0</h2>
+        </div>
+    </div>
+
+    <section class="table-card">
+        <div class="table-heading">
+            <h2>Payment Records</h2>
+
+            <input
+                type="text"
+                id="searchInput"
+                class="search"
+                placeholder="Search customer, method or reference..."
+            >
+        </div>
+
+        <p id="message" class="message"></p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Payment Date</th>
+                        <th>Method</th>
+                        <th>Type</th>
+                        <th>Reference</th>
+                        <th>Invoice ID</th>
+                    </tr>
+                </thead>
+
+                <tbody id="paymentsTable">
+                    <tr>
+                        <td colspan="8" class="empty">Loading payments...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    const paymentsUrl = "../../backend/payments/get.php";
+    const sessionUrl = "../../backend/auth/check_session.php";
+    const logoutUrl = "../../backend/auth/logout.php";
+
+    let allPayments = [];
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[char]);
+    }
+
+    function formatMoney(amount) {
+        return "ZMW " + Number(amount || 0).toLocaleString(
+            "en-ZM",
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        );
+    }
+
+    async function checkSession() {
+        try {
+            const response = await fetch(sessionUrl, {
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success || !result.user) {
+                window.location.href = "../login.html";
+                return false;
+            }
+
+            const user = result.user;
+            const role = String(user.role || "").trim().toLowerCase();
+
+            if (!["admin", "finance_officer"].includes(role)) {
+                if (role === "hr_officer") {
+                    window.location.href = "../staff-dashboard.html";
+                } else if (role === "it") {
+                    window.location.href = "../it-dashboard.html";
+                } else {
+                    window.location.href = "../login.html";
+                }
+                return false;
+            }
+
+            document.getElementById("userName").textContent =
+                user.full_name || "User";
+
+            document.getElementById("userRole").textContent =
+                role === "admin" ? "Administrator" : "Finance Officer";
+
+            return true;
+
+        } catch (error) {
+            window.location.href = "../login.html";
+            return false;
+        }
+    }
+
+    async function loadPayments() {
+        const table = document.getElementById("paymentsTable");
+        const message = document.getElementById("message");
+
+        try {
+            const response = await fetch(paymentsUrl, {
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Unable to load payments.");
+            }
+
+            allPayments = result.payments || [];
+
+            const total = allPayments.reduce(
+                (sum, payment) => sum + Number(payment.amount || 0),
+                0
+            );
+
+            document.getElementById("totalAmount").textContent =
+                formatMoney(total);
+
+            document.getElementById("paymentCount").textContent =
+                allPayments.length;
+
+            displayPayments(allPayments);
+
+        } catch (error) {
+            message.textContent = error.message;
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty">
+                        Unable to load payment records.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function displayPayments(payments) {
+        const table = document.getElementById("paymentsTable");
+
+        if (!payments.length) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty">
+                        No payment records found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        table.innerHTML = payments.map(payment => `
+            <tr>
+                <td>#${escapeHTML(payment.payment_id)}</td>
+                <td>${escapeHTML(payment.customer_name || "Unknown customer")}</td>
+                <td><strong>${formatMoney(payment.amount)}</strong></td>
+                <td>${escapeHTML(payment.payment_date || "—")}</td>
+                <td><span class="method">${escapeHTML(payment.method || "—")}</span></td>
+                <td>${escapeHTML(payment.type || "—")}</td>
+                <td>${escapeHTML(payment.reference || "—")}</td>
+                <td>${payment.invoice_id ? "#" + escapeHTML(payment.invoice_id) : "—"}</td>
+            </tr>
+        `).join("");
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+        const search = this.value.toLowerCase().trim();
+
+        const filtered = allPayments.filter(payment => {
+            return [
+                payment.payment_id,
+                payment.customer_name,
+                payment.method,
+                payment.type,
+                payment.reference,
+                payment.payment_date,
+                payment.invoice_id
+            ].some(value =>
+                String(value ?? "").toLowerCase().includes(search)
+            );
+        });
+
+        displayPayments(filtered);
+    });
+
+    async function logout() {
+        try {
+            await fetch(logoutUrl, {
+                method: "POST",
+                credentials: "same-origin"
+            });
+        } finally {
+            window.location.href = "../login.html";
+        }
+    }
+
+    async function initializePaymentsPage() {
+        const authorized = await checkSession();
+
+        if (!authorized) return;
+
+        await loadPayments();
+    }
+
+    initializePaymentsPage();
+</script>
+
+</body>
+</html>
