@@ -1,0 +1,547 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Edit Staff Assignment</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+    color: #252b36;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 245px;
+    height: 100vh;
+    background: #171c26;
+    color: white;
+    padding: 25px 16px;
+}
+
+.brand {
+    font-size: 21px;
+    font-weight: bold;
+    margin-bottom: 35px;
+}
+
+.brand span {
+    color: #e34b4b;
+}
+
+.sidebar a {
+    display: block;
+    color: #d5d9e0;
+    text-decoration: none;
+    padding: 13px 14px;
+    margin-bottom: 7px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #961a1a;
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.topbar h1 {
+    font-size: 25px;
+}
+
+.back-link {
+    color: #961a1a;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    max-width: 850px;
+}
+
+.card h2 {
+    font-size: 19px;
+    margin-bottom: 8px;
+}
+
+.description {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d9dde5;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #961a1a;
+}
+
+.buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+button {
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.save-btn {
+    background: #961a1a;
+    color: white;
+}
+
+.cancel-btn {
+    background: #e9edf2;
+    color: #333;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.message {
+    display: none;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.message.error {
+    display: block;
+    background: #fdeaea;
+    color: #a21b1b;
+}
+
+.message.success {
+    display: block;
+    background: #e8f7ed;
+    color: #176b35;
+}
+
+.loading {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+@media(max-width: 850px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .main {
+        margin-left: 200px;
+        padding: 20px;
+    }
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .card {
+        padding: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">KATUBA <span>CRM</span></div>
+
+    <a href="../staff-dashboard.html">HR Dashboard</a>
+    <a href="../workers/index.html">Workers</a>
+    <a href="../attendance/index.html">Attendance</a>
+    <a href="index.html" class="active">Staff Assignments</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Edit Staff Assignment</h1>
+        <a href="index.html" class="back-link">← Back to Assignments</a>
+    </div>
+
+    <div class="card">
+
+        <h2>Assignment Information</h2>
+        <p class="description">
+            Update the customer, assigned worker and employment details.
+        </p>
+
+        <div id="message" class="message"></div>
+        <p id="loading" class="loading">Loading assignment information...</p>
+
+        <form id="assignmentForm" style="display:none;">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="client_id">Customer *</label>
+                    <select id="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="worker_id">Assigned Worker *</label>
+                    <select id="worker_id" required>
+                        <option value="">Loading workers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date *</label>
+                    <input type="date" id="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="monthly_rate">Monthly Rate (ZMW) *</label>
+                    <input type="number" id="monthly_rate"
+                           min="0" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Assignment Status *</label>
+                    <select id="status" required>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label for="schedule">Working Schedule *</label>
+                    <input type="text" id="schedule"
+                           maxlength="120" required>
+                </div>
+
+                <div class="form-group full">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes"
+                              placeholder="Additional assignment information..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="save-btn" id="saveButton">
+                    Save Changes
+                </button>
+
+                <a href="index.html" class="cancel-btn">Cancel</a>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<script>
+const API = {
+    jobs: "../../backend/jobs/get.php",
+    clients: "../../backend/clients/get.php",
+    workers: "../../backend/workers/get.php",
+    update: "../../backend/jobs/update.php"
+};
+
+const params = new URLSearchParams(window.location.search);
+const jobId = params.get("id");
+
+const form = document.getElementById("assignmentForm");
+const messageBox = document.getElementById("message");
+const loading = document.getElementById("loading");
+const saveButton = document.getElementById("saveButton");
+
+let assignmentLoaded = false;
+
+function showMessage(message, type = "error") {
+    messageBox.textContent = message;
+    messageBox.className = "message " + type;
+}
+
+function hideMessage() {
+    messageBox.textContent = "";
+    messageBox.className = "message";
+}
+
+async function fetchJSON(url) {
+    const response = await fetch(url, {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.success !== true) {
+        throw new Error(data.message || "Unable to load information.");
+    }
+
+    return data;
+}
+
+function addOption(select, value, label) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+}
+
+async function loadPage() {
+    try {
+        if (!jobId || !/^\d+$/.test(jobId) || Number(jobId) < 1) {
+            throw new Error("Invalid assignment ID. Please return to the assignments list.");
+        }
+
+        const [jobsData, clientsData, workersData] = await Promise.all([
+            fetchJSON(API.jobs),
+            fetchJSON(API.clients),
+            fetchJSON(API.workers)
+        ]);
+
+        const assignment = (jobsData.jobs || []).find(
+            job => String(job.job_id) === String(jobId)
+        );
+
+        if (!assignment) {
+            throw new Error("The requested assignment could not be found.");
+        }
+
+        const clientSelect = document.getElementById("client_id");
+        const workerSelect = document.getElementById("worker_id");
+
+        clientSelect.innerHTML = '<option value="">Select customer</option>';
+
+        (clientsData.clients || []).forEach(client => {
+            addOption(
+                clientSelect,
+                client.client_id,
+                client.full_name
+            );
+        });
+
+        workerSelect.innerHTML = '<option value="">Select worker</option>';
+
+        const workers = workersData.workers || [];
+
+        workers.forEach(worker => {
+            addOption(
+                workerSelect,
+                worker.worker_id,
+                worker.full_name
+            );
+        });
+
+        // If the currently assigned worker is not in the returned list,
+        // preserve that worker as an option rather than losing the selection.
+        const currentWorkerExists = workers.some(
+            worker => String(worker.worker_id) === String(assignment.worker_id)
+        );
+
+        if (!currentWorkerExists && assignment.worker_id) {
+            addOption(
+                workerSelect,
+                assignment.worker_id,
+                assignment.worker_name || "Currently assigned worker"
+            );
+        }
+
+        // Fill the existing assignment details.
+        clientSelect.value = String(assignment.client_id);
+        workerSelect.value = String(assignment.worker_id);
+
+        document.getElementById("start_date").value =
+            assignment.start_date || "";
+
+        document.getElementById("end_date").value =
+            assignment.end_date || "";
+
+        document.getElementById("monthly_rate").value =
+            assignment.monthly_rate ?? "";
+
+        document.getElementById("status").value =
+            assignment.status || "active";
+
+        document.getElementById("schedule").value =
+            assignment.schedule || "";
+
+        document.getElementById("notes").value =
+            assignment.notes || "";
+
+        loading.style.display = "none";
+        form.style.display = "block";
+        assignmentLoaded = true;
+
+    } catch (error) {
+        loading.style.display = "none";
+        showMessage(error.message);
+    }
+}
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    hideMessage();
+
+    if (!assignmentLoaded) {
+        showMessage("Assignment information has not finished loading.");
+        return;
+    }
+
+    const startDate = document.getElementById("start_date").value;
+    const endDate = document.getElementById("end_date").value;
+
+    if (endDate && endDate < startDate) {
+        showMessage("End date cannot be before the start date.");
+        return;
+    }
+
+    const payload = {
+        job_id: Number(jobId),
+        client_id: Number(document.getElementById("client_id").value),
+        worker_id: Number(document.getElementById("worker_id").value),
+        start_date: startDate,
+        end_date: endDate,
+        monthly_rate: document.getElementById("monthly_rate").value,
+        status: document.getElementById("status").value,
+        schedule: document.getElementById("schedule").value.trim(),
+        notes: document.getElementById("notes").value.trim()
+    };
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+
+    try {
+        const response = await fetch(API.update, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success !== true) {
+            throw new Error(data.message || "Unable to update assignment.");
+        }
+
+        showMessage("Assignment updated successfully. Returning to the list...", "success");
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1200);
+
+    } catch (error) {
+        showMessage(error.message);
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Changes";
+    }
+});
+
+loadPage();
+</script>
+
+</body>
+</html>

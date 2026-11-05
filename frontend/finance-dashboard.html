@@ -139,6 +139,7 @@ body {
 
 .card h2 {
     font-size: 27px;
+    overflow-wrap: anywhere;
 }
 
 .card small {
@@ -186,7 +187,66 @@ body {
     color: #961a1a;
 }
 
-@media(max-width: 1000px) {
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th, td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+th {
+    background: #f8f8fa;
+    color: #555;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    background: #e8f5e9;
+    color: #24733a;
+}
+
+.empty-message {
+    color: #777;
+    padding: 18px 0;
+}
+
+.refresh-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.refresh-btn {
+    border: none;
+    background: #961a1a;
+    color: white;
+    padding: 9px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.refresh-btn:hover {
+    background: #751313;
+}
+
+@media(max-width: 1100px) {
     .cards {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -210,11 +270,30 @@ body {
     .quick-links {
         grid-template-columns: 1fr;
     }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media(max-width: 480px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 </style>
 </head>
 
 <body>
+
 <div class="layout">
 
 <aside class="sidebar">
@@ -236,6 +315,7 @@ body {
             <h1>Finance Dashboard</h1>
             <p>Financial management and monitoring</p>
         </div>
+
         <div>
             <strong id="userName">Loading...</strong>
             <p id="userRole">Finance Officer</p>
@@ -250,6 +330,7 @@ body {
     </section>
 
     <section class="cards">
+
         <div class="card">
             <p>Total Invoices</p>
             <h2 id="invoiceTotal">—</h2>
@@ -265,7 +346,7 @@ body {
         <div class="card">
             <p>Unpaid Invoices</p>
             <h2 id="invoiceOpen">—</h2>
-            <small>Awaiting payment</small>
+            <small>Invoices with outstanding balances</small>
         </div>
 
         <div class="card">
@@ -273,6 +354,7 @@ body {
             <h2 id="invoiceBalance">—</h2>
             <small>Remaining customer balances</small>
         </div>
+
     </section>
 
     <section class="panel">
@@ -286,8 +368,35 @@ body {
     </section>
 
     <section class="panel">
-        <h3>Recent Financial Activity</h3>
-        <p>Invoice and payment activity will appear here once connected.</p>
+
+        <div class="refresh-row">
+            <h3>Recent Financial Activity</h3>
+            <button class="refresh-btn" id="refreshButton">
+                Refresh
+            </button>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Invoice ID</th>
+                    </tr>
+                </thead>
+
+                <tbody id="recentPayments">
+                    <tr>
+                        <td colspan="6">Loading payments...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </section>
 
 </main>
@@ -298,9 +407,27 @@ body {
 
 const sessionUrl = "../backend/auth/check_session.php";
 const logoutUrl = "../backend/auth/logout.php";
+const invoicesUrl = "../backend/invoices/get.php";
+const paymentsUrl = "../backend/payments/get.php";
+
+function formatMoney(amount) {
+    return "ZMW " + Number(amount || 0).toLocaleString(
+        "en-ZM",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+function showMessage(message) {
+    document.getElementById("dashboardMessage").textContent = message;
+}
 
 async function checkFinanceSession() {
+
     try {
+
         const response = await fetch(sessionUrl, {
             credentials: "same-origin",
             cache: "no-store"
@@ -317,6 +444,7 @@ async function checkFinanceSession() {
         const role = String(user.role || "").trim().toLowerCase();
 
         if (role !== "finance_officer" && role !== "admin") {
+
             if (role === "hr_officer") {
                 window.location.href = "staff-dashboard.html";
             } else if (role === "it") {
@@ -324,6 +452,7 @@ async function checkFinanceSession() {
             } else {
                 window.location.href = "login.html";
             }
+
             return false;
         }
 
@@ -336,21 +465,194 @@ async function checkFinanceSession() {
         return true;
 
     } catch (error) {
+
         console.error(error);
-        document.getElementById("dashboardMessage").textContent =
-            "Unable to verify your login session.";
+        showMessage("Unable to verify your login session.");
+
         return false;
     }
 }
 
+async function loadFinanceData() {
+
+    const invoiceResponse = await fetch(invoicesUrl, {
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    const invoiceResult = await invoiceResponse.json();
+
+    if (!invoiceResponse.ok || !invoiceResult.success) {
+        throw new Error(
+            invoiceResult.message || "Unable to load invoices."
+        );
+    }
+
+    const invoices = invoiceResult.invoices || [];
+
+    let paidCount = 0;
+    let openCount = 0;
+    let outstandingTotal = 0;
+
+    invoices.forEach(invoice => {
+
+        const balance = Math.max(
+            0,
+            Number(invoice.balance ?? (
+                Number(invoice.amount || 0) -
+                Number(invoice.amount_paid || 0)
+            ))
+        );
+
+        if (String(invoice.status || "").toLowerCase() === "paid" ||
+            balance === 0) {
+
+            paidCount++;
+
+        } else {
+
+            openCount++;
+        }
+
+        outstandingTotal += balance;
+    });
+
+    document.getElementById("invoiceTotal").textContent =
+        invoices.length;
+
+    document.getElementById("invoicePaid").textContent =
+        paidCount;
+
+    document.getElementById("invoiceOpen").textContent =
+        openCount;
+
+    document.getElementById("invoiceBalance").textContent =
+        formatMoney(outstandingTotal);
+
+    await loadRecentPayments();
+}
+
+async function loadRecentPayments() {
+
+    const tableBody = document.getElementById("recentPayments");
+
+    tableBody.innerHTML = "";
+
+    const response = await fetch(paymentsUrl, {
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+        throw new Error(
+            result.message || "Unable to load recent payments."
+        );
+    }
+
+    const payments = result.payments || [];
+
+    payments.sort((a, b) => {
+
+        const dateDifference =
+            new Date(b.payment_date) - new Date(a.payment_date);
+
+        if (dateDifference !== 0) {
+            return dateDifference;
+        }
+
+        return Number(b.payment_id) - Number(a.payment_id);
+    });
+
+    const recent = payments.slice(0, 5);
+
+    if (recent.length === 0) {
+
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 6;
+        cell.textContent = "No payments recorded yet.";
+        cell.className = "empty-message";
+
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+
+        return;
+    }
+
+    recent.forEach(payment => {
+
+        const row = document.createElement("tr");
+
+        const values = [
+            "#" + payment.payment_id,
+            payment.customer_name || "Unknown customer",
+            formatMoney(payment.amount),
+            payment.payment_date || "—",
+            payment.method || "—",
+            payment.invoice_id ? "#" + payment.invoice_id : "No invoice"
+        ];
+
+        values.forEach((value, index) => {
+
+            const cell = document.createElement("td");
+
+            cell.textContent = value;
+
+            if (index === 2) {
+                const status = document.createElement("span");
+                status.className = "status";
+                status.textContent = value;
+                cell.textContent = "";
+                cell.appendChild(status);
+            }
+
+            row.appendChild(cell);
+        });
+
+        tableBody.appendChild(row);
+    });
+}
+
+document.getElementById("refreshButton").addEventListener(
+    "click",
+    async function() {
+
+        this.disabled = true;
+        this.textContent = "Refreshing...";
+
+        try {
+
+            showMessage("");
+            await loadFinanceData();
+            showMessage("Financial information refreshed successfully.");
+
+        } catch (error) {
+
+            showMessage(error.message);
+
+        } finally {
+
+            this.disabled = false;
+            this.textContent = "Refresh";
+        }
+    }
+);
+
 document.getElementById("logoutButton").addEventListener(
     "click",
     async function(event) {
+
         event.preventDefault();
 
-        if (!confirm("Are you sure you want to log out?")) return;
+        if (!confirm("Are you sure you want to log out?")) {
+            return;
+        }
 
         try {
+
             const response = await fetch(logoutUrl, {
                 method: "POST",
                 credentials: "same-origin"
@@ -365,18 +667,29 @@ document.getElementById("logoutButton").addEventListener(
             window.location.href = "login.html";
 
         } catch (error) {
-            document.getElementById("dashboardMessage").textContent =
-                "Unable to log out. Please try again.";
+
+            showMessage("Unable to log out. Please try again.");
         }
     }
 );
 
 async function initializeFinanceDashboard() {
+
     const allowed = await checkFinanceSession();
 
-    if (!allowed) return;
+    if (!allowed) {
+        return;
+    }
 
-    // Financial information will be connected in the next step.
+    try {
+
+        await loadFinanceData();
+
+    } catch (error) {
+
+        console.error(error);
+        showMessage(error.message);
+    }
 }
 
 initializeFinanceDashboard();

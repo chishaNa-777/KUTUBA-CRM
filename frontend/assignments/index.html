@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Staff Assignments</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #252a34;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .topbar h2 {
+            font-size: 21px;
+        }
+
+        .topbar a {
+            color: white;
+            text-decoration: none;
+            background: #171c26;
+            padding: 10px 16px;
+            border-radius: 5px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .page-heading h1 {
+            font-size: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #961a1a;
+            color: white;
+            padding: 11px 17px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #741313;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-card p {
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h2 {
+            font-size: 27px;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 9px;
+            overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8f8f8;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: capitalize;
+        }
+
+        .active {
+            background: #e0f5e8;
+            color: #16743b;
+        }
+
+        .completed {
+            background: #e5e7eb;
+            color: #555;
+        }
+
+        .cancelled {
+            background: #fde5e5;
+            color: #a32121;
+        }
+
+        .action-link {
+            color: #961a1a;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .message {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .error {
+            background: #fde5e5;
+            color: #a32121;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+        @media(max-width: 700px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+
+            .page-heading h1 {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h2>KATUBA CRM | Staff Assignments</h2>
+    <a href="../staff-dashboard.html">Back to HR Dashboard</a>
+</header>
+
+<main class="container">
+
+    <div class="page-heading">
+        <div>
+            <h1>Staff Assignments</h1>
+            <p>Manage workers assigned to customers.</p>
+        </div>
+
+        <a href="add.html" class="btn">+ New Assignment</a>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <p>Total Assignments</p>
+            <h2 id="totalAssignments">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Active Assignments</p>
+            <h2 id="activeAssignments">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Completed Assignments</p>
+            <h2 id="completedAssignments">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Cancelled Assignments</p>
+            <h2 id="cancelledAssignments">0</h2>
+        </div>
+    </div>
+
+    <div id="message" class="message error"></div>
+
+    <div class="filters">
+        <input
+            type="text"
+            id="search"
+            placeholder="Search customer or worker..."
+        >
+
+        <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+
+        <button class="btn" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <div class="table-container">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Customer</th>
+                    <th>Worker</th>
+                    <th>Schedule</th>
+                    <th>Monthly Rate</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="assignmentTable">
+                <tr>
+                    <td colspan="7" class="loading">
+                        Loading assignments...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</main>
+
+<script>
+    let assignments = [];
+
+    const table = document.getElementById("assignmentTable");
+    const message = document.getElementById("message");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function(char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char];
+        });
+    }
+
+    function formatMoney(value) {
+        const amount = Number(value || 0);
+
+        return "ZMW " + amount.toLocaleString("en-ZM", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    async function loadAssignments() {
+        message.style.display = "none";
+
+        try {
+            const response = await fetch(
+                "../../backend/jobs/get.php",
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    cache: "no-store"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not load assignments.");
+            }
+
+            assignments = data.jobs || data.assignments || [];
+
+            renderAssignments(assignments);
+
+        } catch (error) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="7" class="loading">
+                        Unable to load assignments.
+                    </td>
+                </tr>
+            `;
+
+            message.textContent = error.message;
+            message.style.display = "block";
+        }
+    }
+
+    function renderAssignments(records) {
+
+        document.getElementById("totalAssignments").textContent =
+            records.length;
+
+        document.getElementById("activeAssignments").textContent =
+            records.filter(item =>
+                String(item.status).toLowerCase() === "active"
+            ).length;
+
+        document.getElementById("completedAssignments").textContent =
+            records.filter(item =>
+                String(item.status).toLowerCase() === "completed"
+            ).length;
+
+        document.getElementById("cancelledAssignments").textContent =
+            records.filter(item =>
+                String(item.status).toLowerCase() === "cancelled"
+            ).length;
+
+        if (records.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="7" class="loading">
+                        No assignments found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        table.innerHTML = records.map(item => {
+
+            const status = String(item.status || "").toLowerCase();
+
+            return `
+                <tr>
+                    <td>${escapeHTML(item.job_id)}</td>
+                    <td>${escapeHTML(item.customer_name)}</td>
+                    <td>${escapeHTML(item.worker_name)}</td>
+                    <td>${escapeHTML(item.schedule)}</td>
+                    <td>${formatMoney(item.monthly_rate)}</td>
+                    <td>
+                        <span class="status ${escapeHTML(status)}">
+                            ${escapeHTML(status)}
+                        </span>
+                    </td>
+                    <td>
+                        <a class="action-link"
+                           href="edit.html?id=${encodeURIComponent(item.job_id)}">
+                           Edit
+                        </a>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    function applyFilters() {
+
+        const search = document.getElementById("search")
+            .value.toLowerCase().trim();
+
+        const status = document.getElementById("statusFilter")
+            .value.toLowerCase();
+
+        const filtered = assignments.filter(item => {
+
+            const customer = String(item.customer_name || "").toLowerCase();
+            const worker = String(item.worker_name || "").toLowerCase();
+            const currentStatus = String(item.status || "").toLowerCase();
+
+            const matchesSearch =
+                customer.includes(search) || worker.includes(search);
+
+            const matchesStatus =
+                !status || currentStatus === status;
+
+            return matchesSearch && matchesStatus;
+        });
+
+        renderAssignments(filtered);
+    }
+
+    function clearFilters() {
+        document.getElementById("search").value = "";
+        document.getElementById("statusFilter").value = "";
+
+        renderAssignments(assignments);
+    }
+
+    document.getElementById("search")
+        .addEventListener("input", applyFilters);
+
+    document.getElementById("statusFilter")
+        .addEventListener("change", applyFilters);
+
+    loadAssignments();
+</script>
+
+</body>
+</html>

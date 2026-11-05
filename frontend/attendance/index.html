@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Attendance Management</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .topbar h1 {
+            font-size: 23px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .top-btn {
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            background: #1f2937;
+        }
+
+        .add-btn {
+            background: #15803d;
+        }
+
+        .export-btn {
+            background: #2563eb;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .page-heading h2 {
+            font-size: 25px;
+        }
+
+        .page-heading p {
+            color: #6b7280;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            border-left: 4px solid #961a1a;
+        }
+
+        .stat-card h3 {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card p {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-card.present {
+            border-left-color: #15803d;
+        }
+
+        .stat-card.absent {
+            border-left-color: #dc2626;
+        }
+
+        .stat-card.late {
+            border-left-color: #d97706;
+        }
+
+        .filters,
+        .table-card {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            margin-bottom: 22px;
+        }
+
+        .filters h3,
+        .table-card h3 {
+            margin-bottom: 17px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 7px;
+            color: #4b5563;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .clear-btn {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 11px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #4b5563;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .status.present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.late {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.on_leave {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .action-btn {
+            padding: 7px 10px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .edit-btn {
+            background: #d97706;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .message {
+            background: white;
+            padding: 16px;
+            border-radius: 7px;
+            margin-bottom: 18px;
+            color: #374151;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 17px;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin: 20px auto;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-card p {
+                font-size: 23px;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters,
+            .table-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>KATUBA CRM | Attendance</h1>
+
+    <div class="top-actions">
+        <a href="../dashboard.html" class="top-btn back-btn">
+            Back to Dashboard
+        </a>
+
+        <button type="button" class="top-btn export-btn" onclick="exportCSV()">
+            Export CSV
+        </button>
+
+        <a href="add.html" class="top-btn add-btn">
+            + Record Attendance
+        </a>
+    </div>
+</header>
+
+<main class="container">
+
+    <div class="page-heading">
+        <div>
+            <h2>Attendance Management</h2>
+            <p>Monitor worker attendance and daily working records.</p>
+        </div>
+    </div>
+
+    <div id="message" class="message">
+        Loading attendance records...
+    </div>
+
+    <section class="stats">
+        <div class="stat-card">
+            <h3>Total Records</h3>
+            <p id="totalCount">0</p>
+        </div>
+
+        <div class="stat-card present">
+            <h3>Present</h3>
+            <p id="presentCount">0</p>
+        </div>
+
+        <div class="stat-card absent">
+            <h3>Absent</h3>
+            <p id="absentCount">0</p>
+        </div>
+
+        <div class="stat-card late">
+            <h3>Late</h3>
+            <p id="lateCount">0</p>
+        </div>
+    </section>
+
+    <section class="filters">
+        <h3>Search and Filter Attendance</h3>
+
+        <div class="filter-grid">
+
+            <div class="form-group">
+                <label for="search">Search Worker</label>
+                <input
+                    type="search"
+                    id="search"
+                    placeholder="Search by name or phone..."
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="statusFilter">Attendance Status</label>
+                <select id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="late">Late</option>
+                    <option value="on_leave">On Leave</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dateFilter">Attendance Date</label>
+                <input type="date" id="dateFilter">
+            </div>
+
+            <button type="button" class="clear-btn" onclick="clearFilters()">
+                Clear Filters
+            </button>
+
+        </div>
+    </section>
+
+    <section class="table-card">
+
+        <h3>Attendance Records</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Worker Name</th>
+                        <th>Phone</th>
+                        <th>Date</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="attendanceTable">
+                    <tr>
+                        <td colspan="8" class="empty">
+                            Loading records...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+    const message = document.getElementById("message");
+    const attendanceTable = document.getElementById("attendanceTable");
+
+    let allAttendance = [];
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function(char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char];
+        });
+    }
+
+    function formatStatus(status) {
+        const labels = {
+            present: "Present",
+            absent: "Absent",
+            late: "Late",
+            on_leave: "On Leave"
+        };
+
+        return labels[status] || status || "Unknown";
+    }
+
+    function formatTime(time) {
+        if (!time) return "—";
+        return String(time).substring(0, 5);
+    }
+
+    function updateStatistics(records) {
+        document.getElementById("totalCount").textContent = records.length;
+
+        document.getElementById("presentCount").textContent =
+            records.filter(item => item.status === "present").length;
+
+        document.getElementById("absentCount").textContent =
+            records.filter(item => item.status === "absent").length;
+
+        document.getElementById("lateCount").textContent =
+            records.filter(item => item.status === "late").length;
+    }
+
+    function renderAttendance(records) {
+        updateStatistics(records);
+
+        if (records.length === 0) {
+            attendanceTable.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty">
+                        No attendance records found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        attendanceTable.innerHTML = records.map(item => `
+            <tr>
+                <td>${escapeHTML(item.attendance_id)}</td>
+                <td>${escapeHTML(item.full_name)}</td>
+                <td>${escapeHTML(item.phone || "—")}</td>
+                <td>${escapeHTML(item.attendance_date)}</td>
+                <td>${escapeHTML(formatTime(item.check_in))}</td>
+                <td>${escapeHTML(formatTime(item.check_out))}</td>
+                <td>
+                    <span class="status ${escapeHTML(item.status)}">
+                        ${escapeHTML(formatStatus(item.status))}
+                    </span>
+                </td>
+                <td>
+                    <a
+                        href="edit.html?id=${encodeURIComponent(item.attendance_id)}"
+                        class="action-btn edit-btn">
+                        Edit
+                    </a>
+
+                    <button
+                        type="button"
+                        class="action-btn delete-btn"
+                        onclick="deleteAttendance(${Number(item.attendance_id)})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    function applyFilters() {
+        const search = document.getElementById("search").value
+            .trim()
+            .toLowerCase();
+
+        const status = document.getElementById("statusFilter").value;
+        const date = document.getElementById("dateFilter").value;
+
+        const filtered = allAttendance.filter(item => {
+
+            const workerName = String(item.full_name || "").toLowerCase();
+            const phone = String(item.phone || "").toLowerCase();
+
+            const matchesSearch =
+                workerName.includes(search) ||
+                phone.includes(search);
+
+            const matchesStatus =
+                !status || item.status === status;
+
+            const matchesDate =
+                !date || String(item.attendance_date).substring(0, 10) === date;
+
+            return matchesSearch && matchesStatus && matchesDate;
+        });
+
+        renderAttendance(filtered);
+    }
+
+    async function loadAttendance() {
+        try {
+            const response = await fetch("../../backend/attendance/get.php", {
+                method: "GET",
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success || !Array.isArray(data.attendance)) {
+                throw new Error(data.message || "Unable to load attendance.");
+            }
+
+            allAttendance = data.attendance;
+
+            message.hidden = true;
+            applyFilters();
+
+        } catch (error) {
+            console.error("Attendance loading error:", error);
+
+            message.hidden = false;
+            message.classList.add("error");
+            message.textContent =
+                "Unable to load attendance records. Please check your connection and try again.";
+
+            attendanceTable.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty">
+                        Attendance records could not be loaded.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function deleteAttendance(id) {
+        const confirmed = confirm(
+            "Are you sure you want to permanently delete this attendance record?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const formData = new FormData();
+            formData.append("attendance_id", id);
+
+            const response = await fetch("../../backend/attendance/delete.php", {
+                method: "POST",
+                body: formData,
+                credentials: "same-origin"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Unable to delete record.");
+            }
+
+            alert(data.message);
+            await loadAttendance();
+
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    function clearFilters() {
+        document.getElementById("search").value = "";
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("dateFilter").value = "";
+
+        applyFilters();
+    }
+
+    function exportCSV() {
+        const search = document.getElementById("search").value
+            .trim()
+            .toLowerCase();
+
+        const status = document.getElementById("statusFilter").value;
+        const date = document.getElementById("dateFilter").value;
+
+        const records = allAttendance.filter(item => {
+            const name = String(item.full_name || "").toLowerCase();
+            const phone = String(item.phone || "").toLowerCase();
+
+            return (
+                (name.includes(search) || phone.includes(search)) &&
+                (!status || item.status === status) &&
+                (!date || String(item.attendance_date).substring(0, 10) === date)
+            );
+        });
+
+        if (records.length === 0) {
+            alert("There are no records to export.");
+            return;
+        }
+
+        const headers = [
+            "Attendance ID",
+            "Worker Name",
+            "Phone",
+            "Date",
+            "Check In",
+            "Check Out",
+            "Status",
+            "Notes"
+        ];
+
+        const rows = records.map(item => [
+            item.attendance_id,
+            item.full_name,
+            item.phone,
+            item.attendance_date,
+            formatTime(item.check_in),
+            formatTime(item.check_out),
+            formatStatus(item.status),
+            item.notes
+        ]);
+
+        const csv = [headers, ...rows]
+            .map(row => row.map(value =>
+                '"' + String(value ?? "").replace(/"/g, '""') + '"'
+            ).join(","))
+            .join("\r\n");
+
+        const blob = new Blob(["\uFEFF" + csv], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "katuba-attendance.csv";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("search").addEventListener("input", applyFilters);
+    document.getElementById("statusFilter").addEventListener("change", applyFilters);
+    document.getElementById("dateFilter").addEventListener("change", applyFilters);
+
+    loadAttendance();
+</script>
+
+</body>
+</html>

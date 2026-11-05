@@ -1,102 +1,173 @@
 
 <?php
 
-require_once __DIR__ . "/../config/database.php";
+session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate");
 
-function respond($success, $message, $extra = [])
+function respond(int $status, array $data): void
 {
-    echo json_encode(array_merge([
-        "success" => $success,
-        "message" => $message
-    ], $extra));
+    http_response_code($status);
+    echo json_encode($data);
     exit;
 }
 
+if (empty($_SESSION["user_id"])) {
+    respond(401, [
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+}
+
+$role = strtolower(trim($_SESSION["role"] ?? ""));
+
+if (!in_array($role, ["admin", "hr_officer"], true)) {
+    respond(403, [
+        "success" => false,
+        "message" => "Access denied. HR privileges required."
+    ]);
+}
+
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    respond(false, "Invalid request method.");
+    respond(405, [
+        "success" => false,
+        "message" => "POST method required."
+    ]);
 }
 
-$client_id = filter_var(
-    $_POST["client_id"] ?? "",
-    FILTER_VALIDATE_INT
-);
-
-$workerInput = trim($_POST["worker_id"] ?? "");
-$worker_id = null;
-
-if ($workerInput !== "") {
-    $worker_id = filter_var($workerInput, FILTER_VALIDATE_INT);
-
-    if ($worker_id === false || $worker_id < 1) {
-        respond(false, "Invalid worker selected.");
-    }
-}
-
-$start_date = trim($_POST["start_date"] ?? "");
-$end_date = trim($_POST["end_date"] ?? "");
-$schedule = trim($_POST["schedule"] ?? "");
-$monthly_rate = trim($_POST["monthly_rate"] ?? "0");
-$status = strtolower(trim($_POST["status"] ?? "active"));
-$notes = trim($_POST["notes"] ?? "");
-
-if ($client_id === false || $client_id === null || $client_id < 1) {
-    respond(false, "Please select a valid customer.");
-}
-
-if ($start_date === "") {
-    respond(false, "Start date is required.");
-}
-
-foreach ([
-    "start date" => $start_date,
-    "end date" => $end_date
-] as $field => $date) {
-    if ($date !== "") {
-        $parsed = DateTime::createFromFormat("!Y-m-d", $date);
-
-        if (!$parsed || $parsed->format("Y-m-d") !== $date) {
-            respond(false, "Invalid " . $field . ".");
-        }
-    }
-}
-
-if ($end_date !== "" && $end_date < $start_date) {
-    respond(false, "End date cannot be before the start date.");
-}
-
-if (!is_numeric($monthly_rate) || (float)$monthly_rate < 0) {
-    respond(false, "Enter a valid monthly rate.");
-}
-
-$monthly_rate = (float)$monthly_rate;
-
-$allowedStatuses = [
-    "active",
-    "paused",
-    "completed",
-    "cancelled"
-];
-
-if (!in_array($status, $allowedStatuses, true)) {
-    respond(false, "Invalid job status.");
-}
+require_once __DIR__ . "/../config/database.php";
 
 try {
-    $conn->beginTransaction();
 
-    // Confirm that the selected client exists.
-    $stmt = $conn->prepare(
-        "SELECT client_id FROM clients WHERE client_id = ?"
-    );
-    $stmt->execute([$client_id]);
+    $data = json_decode(file_get_contents("php://input"), true);
 
-    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-        throw new Exception("The selected customer does not exist.");
+    if (!is_array($data)) {
+        respond(400, [
+            "success" => false,
+            "message" => "Invalid request data."
+        ]);
     }
 
-    // Save the job using the actual database columns.
+    $clientId = filter_var($data["client_id"] ?? null, FILTER_VALIDATE_INT);
+    $workerId = filter_var($data["worker_id"] ?? null, FILTER_VALIDATE_INT);
+
+    $startDate = trim($data["start_date"] ?? "");
+    $endDate = trim($data["end_date"] ?? "");
+    $schedule = trim($data["schedule"] ?? "");
+    $monthlyRate = $data["monthly_rate"] ?? null;
+    $status = strtolower(trim($data["status"] ?? "active"));
+    $notes = trim($data["notes"] ?? "");
+
+    if (!$clientId || !$workerId) {
+        respond(422, [
+            "success" => false,
+            "message" => "Please select a customer and worker."
+        ]);
+    }
+
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
+        respond(422, [
+            "success" => false,
+            "message" => "A valid start date is required."
+        ]);
+    }
+
+    $start = DateTime::createFromFormat("!Y-m-d", $startDate);
+
+    if (!$start || $start->format("Y-m-d") !== $startDate) {
+        respond(422, [
+            "success" => false,
+            "message" => "Invalid start date."
+        ]);
+    }
+
+    if ($endDate !== "") {
+        $end = DateTime::createFromFormat("!Y-m-d", $endDate);
+
+        if (
+            !$end ||
+            $end->format("Y-m-d") !== $endDate ||
+            $endDate < $startDate
+        ) {
+            respond(422, [
+                "success" => false,
+                "message" => "End date must be valid and cannot be before the start date."
+            ]);
+        }
+    } else {
+        $endDate = null;
+    }
+
+    if ($schedule === "" || strlen($schedule) > 120) {
+        respond(422, [
+            "success" => false,
+            "message" => "Enter a schedule of no more than 120 characters."
+        ]);
+    }
+
+    if (!is_numeric($monthlyRate) || (float)$monthlyRate < 0) {
+        respond(422, [
+            "success" => false,
+            "message" => "Enter a valid monthly rate."
+        ]);
+    }
+
+    if ((float)$monthlyRate > 99999999.99) {
+        respond(422, [
+            "success" => false,
+            "message" => "Monthly rate is too large."
+        ]);
+    }
+
+    if (!in_array($status, ["active", "completed", "cancelled"], true)) {
+        respond(422, [
+            "success" => false,
+            "message" => "Invalid assignment status."
+        ]);
+    }
+
+    if (strlen($notes) > 10000) {
+        respond(422, [
+            "success" => false,
+            "message" => "Notes are too long."
+        ]);
+    }
+
+    $clientCheck = $conn->prepare("
+        SELECT client_id
+        FROM clients
+        WHERE client_id = :client_id
+    ");
+
+    $clientCheck->execute([
+        ":client_id" => $clientId
+    ]);
+
+    if (!$clientCheck->fetch()) {
+        respond(404, [
+            "success" => false,
+            "message" => "Selected customer was not found."
+        ]);
+    }
+
+    $workerCheck = $conn->prepare("
+        SELECT worker_id
+        FROM workers
+        WHERE worker_id = :worker_id
+    ");
+
+    $workerCheck->execute([
+        ":worker_id" => $workerId
+    ]);
+
+    if (!$workerCheck->fetch()) {
+        respond(404, [
+            "success" => false,
+            "message" => "Selected worker was not found."
+        ]);
+    }
+
     $stmt = $conn->prepare("
         INSERT INTO jobs (
             client_id,
@@ -106,39 +177,59 @@ try {
             schedule,
             monthly_rate,
             status,
-            notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            notes,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            :client_id,
+            :worker_id,
+            :start_date,
+            :end_date,
+            :schedule,
+            :monthly_rate,
+            :status,
+            :notes,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+        RETURNING job_id
     ");
 
     $stmt->execute([
-        $client_id,
-        $worker_id,
-        $start_date,
-        $end_date !== "" ? $end_date : null,
-        $schedule !== "" ? $schedule : null,
-        $monthly_rate,
-        $status,
-        $notes !== "" ? $notes : null
+        ":client_id" => $clientId,
+        ":worker_id" => $workerId,
+        ":start_date" => $startDate,
+        ":end_date" => $endDate,
+        ":schedule" => $schedule,
+        ":monthly_rate" => $monthlyRate,
+        ":status" => $status,
+        ":notes" => $notes !== "" ? $notes : null
     ]);
 
-    $job_id = (int)$conn->lastInsertId();
+    $jobId = $stmt->fetchColumn();
 
-    $conn->commit();
+    respond(201, [
+        "success" => true,
+        "message" => "Staff assignment created successfully.",
+        "job_id" => $jobId
+    ]);
 
-    respond(true, "Job added successfully.", [
-        "job_id" => $job_id
+} catch (PDOException $e) {
+
+    error_log("Job creation error: " . $e->getMessage());
+
+    respond(500, [
+        "success" => false,
+        "message" => "Unable to create staff assignment."
     ]);
 
 } catch (Throwable $e) {
-    if ($conn->inTransaction()) {
-        $conn->rollBack();
-    }
 
-    error_log("Add job error: " . $e->getMessage());
+    error_log("Job creation error: " . $e->getMessage());
 
-    respond(
-        false,
-        "Unable to add job. Check the server error log for details."
-    );
+    respond(500, [
+        "success" => false,
+        "message" => "An unexpected error occurred."
+    ]);
 }
-?>

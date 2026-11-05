@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Upload Document</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #252a34;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #171c26;
+            color: white;
+            position: fixed;
+            padding: 25px 15px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 8px;
+            color: #d5d8df;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #961a1a;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            margin-bottom: 25px;
+        }
+
+        .topbar h1 {
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            color: #961a1a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 850px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input[type="file"] {
+            background: #f8f9fb;
+        }
+
+        .hint {
+            color: #777;
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        button, .cancel-btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .submit-btn {
+            background: #961a1a;
+            color: white;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #e8eaf0;
+            color: #333;
+        }
+
+        #message {
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .success {
+            color: #16803c;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        @media(max-width: 800px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <h2>KATUBA CRM</h2>
+
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="../staff-dashboard.html">Staff Dashboard</a>
+    <a href="../finance-dashboard.html">Finance Dashboard</a>
+    <a href="index.html" class="active">Documents</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Upload Document</h1>
+        <a href="index.html" class="back-link">← Back to Documents</a>
+    </div>
+
+    <div class="form-card">
+
+        <div id="message"></div>
+
+        <form id="documentForm" enctype="multipart/form-data">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="owner_type">Document Category *</label>
+
+                    <select id="owner_type" name="owner_type" required>
+                        <option value="">Select category</option>
+                        <option value="client">Customer</option>
+                        <option value="worker">Worker</option>
+                        <option value="job">Job</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="owner_id">Select Customer / Worker / Job *</label>
+
+                    <select id="owner_id" name="owner_id" required disabled>
+                        <option value="">Select category first</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_type">Document Type *</label>
+
+                    <select id="doc_type" name="doc_type" required>
+                        <option value="">Select document type</option>
+                        <option value="contract">Contract</option>
+                        <option value="agreement">Agreement</option>
+                        <option value="nrc">NRC</option>
+                        <option value="certificate">Certificate</option>
+                        <option value="invoice">Invoice</option>
+                        <option value="receipt">Receipt</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Document Title *</label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        maxlength="150"
+                        placeholder="Enter document title"
+                        required
+                    >
+                </div>
+
+                <div class="form-group full">
+                    <label for="document_file">Choose Document File *</label>
+
+                    <input
+                        type="file"
+                        id="document_file"
+                        name="document_file"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                        required
+                    >
+
+                    <p class="hint">
+                        Allowed formats: PDF, JPG, PNG, DOC, DOCX, XLS and XLSX.
+                        Maximum size: 10 MB.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="buttons">
+
+                <button
+                    type="submit"
+                    class="submit-btn"
+                    id="submitBtn"
+                >
+                    Upload Document
+                </button>
+
+                <a href="index.html" class="cancel-btn">
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<script>
+
+const CLIENTS_API = "../../backend/clients/get.php";
+const WORKERS_API = "../../backend/workers/get.php";
+const JOBS_API = "../../backend/jobs/get.php";
+const ADD_API = "../../backend/documents/add.php";
+
+const ownerType = document.getElementById("owner_type");
+const ownerSelect = document.getElementById("owner_id");
+const form = document.getElementById("documentForm");
+const message = document.getElementById("message");
+const submitBtn = document.getElementById("submitBtn");
+
+ownerType.addEventListener("change", loadOwners);
+
+async function loadOwners() {
+
+    const category = ownerType.value;
+
+    ownerSelect.innerHTML =
+        '<option value="">Loading records...</option>';
+
+    ownerSelect.disabled = true;
+
+    message.textContent = "";
+    message.className = "";
+
+    if (!category) {
+        ownerSelect.innerHTML =
+            '<option value="">Select category first</option>';
+        return;
+    }
+
+    const endpoints = {
+        client: CLIENTS_API,
+        worker: WORKERS_API,
+        job: JOBS_API
+    };
+
+    try {
+
+        const response = await fetch(endpoints[category], {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load records.");
+        }
+
+        let records = [];
+
+        if (category === "client") {
+            records = data.clients || [];
+        }
+
+        if (category === "worker") {
+            records = data.workers || [];
+        }
+
+        if (category === "job") {
+            records = data.jobs || [];
+        }
+
+        ownerSelect.innerHTML =
+            '<option value="">Select a record</option>';
+
+        records.forEach(record => {
+
+            let id;
+            let name;
+
+            if (category === "client") {
+                id = record.client_id;
+                name = record.full_name;
+            }
+
+            if (category === "worker") {
+                id = record.worker_id;
+                name = record.full_name;
+            }
+
+            if (category === "job") {
+                id = record.job_id;
+                name = "Job #" + record.job_id;
+            }
+
+            if (id === undefined || id === null) return;
+
+            const option = document.createElement("option");
+
+            option.value = id;
+            option.textContent = name;
+
+            ownerSelect.appendChild(option);
+
+        });
+
+        if (records.length === 0) {
+            ownerSelect.innerHTML =
+                '<option value="">No records found</option>';
+        }
+
+        ownerSelect.disabled = records.length === 0;
+
+    } catch (error) {
+
+        ownerSelect.innerHTML =
+            '<option value="">Unable to load records</option>';
+
+        message.className = "error";
+        message.textContent = error.message;
+
+    }
+
+}
+
+form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    message.textContent = "";
+    message.className = "";
+
+    const file = document.getElementById("document_file").files[0];
+
+    if (!file) {
+        message.className = "error";
+        message.textContent = "Please select a document.";
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        message.className = "error";
+        message.textContent = "The file must not exceed 10 MB.";
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Uploading...";
+
+    try {
+
+        const formData = new FormData(form);
+
+        const response = await fetch(ADD_API, {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.debug_error ||
+                data.message ||
+                "Upload failed."
+            );
+        }
+
+        message.className = "success";
+        message.textContent = data.message;
+
+        form.reset();
+
+        ownerSelect.disabled = true;
+        ownerSelect.innerHTML =
+            '<option value="">Select category first</option>';
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1500);
+
+    } catch (error) {
+
+        message.className = "error";
+        message.textContent = error.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Upload Document";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,150 +1,218 @@
 
 <?php
 
-require_once __DIR__ . "/../config/database.php";
+session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate");
 
+function respond(int $status, array $data): void
+{
+    http_response_code($status);
+    echo json_encode($data);
+    exit;
+}
+
+// Check authentication
+if (empty($_SESSION["user_id"])) {
+    respond(401, [
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+}
+
+// Check permissions
+$role = strtolower(trim($_SESSION["role"] ?? ""));
+
+if (!in_array($role, ["admin", "hr_officer"], true)) {
+    respond(403, [
+        "success" => false,
+        "message" => "Access denied. HR privileges required."
+    ]);
+}
+
+// Accept POST requests only
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode([
+    respond(405, [
         "success" => false,
-        "message" => "Invalid request method."
+        "message" => "POST method required."
     ]);
-    exit;
 }
 
-// Accept either job_id or id from the edit form.
-$job_id = filter_var(
-    $_POST["job_id"] ?? $_POST["id"] ?? "",
-    FILTER_VALIDATE_INT
-);
-
-$client_id = filter_var(
-    $_POST["client_id"] ?? "",
-    FILTER_VALIDATE_INT
-);
-
-$workerValue = trim($_POST["worker_id"] ?? "");
-$worker_id = null;
-
-if ($workerValue !== "") {
-    $worker_id = filter_var($workerValue, FILTER_VALIDATE_INT);
-
-    if ($worker_id === false || $worker_id < 1) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Please select a valid worker."
-        ]);
-        exit;
-    }
-}
-
-$start_date = trim($_POST["start_date"] ?? "");
-$end_date = trim($_POST["end_date"] ?? "");
-$schedule = trim($_POST["schedule"] ?? "");
-$monthly_rate = $_POST["monthly_rate"] ?? "";
-$status = strtolower(trim($_POST["status"] ?? "active"));
-$notes = trim($_POST["notes"] ?? "");
-
-$allowedStatuses = [
-    "active",
-    "paused",
-    "completed",
-    "cancelled"
-];
-
-if (!$job_id || $job_id < 1 || !$client_id || $client_id < 1) {
-    echo json_encode([
-        "success" => false,
-        "message" => "A valid job ID and customer are required."
-    ]);
-    exit;
-}
-
-$dateCheck = DateTime::createFromFormat("!Y-m-d", $start_date);
-
-if (
-    !$dateCheck ||
-    $dateCheck->format("Y-m-d") !== $start_date
-) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Please enter a valid start date."
-    ]);
-    exit;
-}
-
-if ($end_date !== "") {
-    $endDateCheck = DateTime::createFromFormat("!Y-m-d", $end_date);
-
-    if (
-        !$endDateCheck ||
-        $endDateCheck->format("Y-m-d") !== $end_date
-    ) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Please enter a valid end date."
-        ]);
-        exit;
-    }
-
-    if ($end_date < $start_date) {
-        echo json_encode([
-            "success" => false,
-            "message" => "End date cannot be before start date."
-        ]);
-        exit;
-    }
-}
-
-if (
-    !is_numeric($monthly_rate) ||
-    (float)$monthly_rate < 0
-) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Please enter a valid monthly rate."
-    ]);
-    exit;
-}
-
-if (!in_array($status, $allowedStatuses, true)) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Please select a valid job status."
-    ]);
-    exit;
-}
+require_once __DIR__ . "/../config/database.php";
 
 try {
-    // Confirm that the customer exists.
-    $clientCheck = $conn->prepare(
-        "SELECT client_id FROM clients WHERE client_id = ? LIMIT 1"
-    );
-    $clientCheck->execute([$client_id]);
 
-    if (!$clientCheck->fetch(PDO::FETCH_ASSOC)) {
-        echo json_encode([
+    // Read JSON data
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!is_array($data)) {
+        respond(400, [
             "success" => false,
-            "message" => "The selected customer was not found."
+            "message" => "Invalid request data."
         ]);
-        exit;
     }
 
-    // Confirm that the job exists.
-    $jobCheck = $conn->prepare(
-        "SELECT job_id FROM jobs WHERE job_id = ? LIMIT 1"
+    $jobId = filter_var(
+        $data["job_id"] ?? null,
+        FILTER_VALIDATE_INT
     );
-    $jobCheck->execute([$job_id]);
+
+    $clientId = filter_var(
+        $data["client_id"] ?? null,
+        FILTER_VALIDATE_INT
+    );
+
+    $workerId = filter_var(
+        $data["worker_id"] ?? null,
+        FILTER_VALIDATE_INT
+    );
+
+    $startDate = trim($data["start_date"] ?? "");
+    $endDate = trim($data["end_date"] ?? "");
+    $schedule = trim($data["schedule"] ?? "");
+    $monthlyRate = $data["monthly_rate"] ?? null;
+    $status = strtolower(trim($data["status"] ?? ""));
+    $notes = trim($data["notes"] ?? "");
+
+    // Validate IDs
+    if (!$jobId || $jobId < 1 || !$clientId || $clientId < 1 ||
+        !$workerId || $workerId < 1) {
+        respond(422, [
+            "success" => false,
+            "message" => "Valid assignment, customer and worker are required."
+        ]);
+    }
+
+    // Validate start date
+    $start = DateTime::createFromFormat("!Y-m-d", $startDate);
+
+    if (
+        !$start ||
+        $start->format("Y-m-d") !== $startDate
+    ) {
+        respond(422, [
+            "success" => false,
+            "message" => "Please enter a valid start date."
+        ]);
+    }
+
+    // Validate end date
+    if ($endDate !== "") {
+
+        $end = DateTime::createFromFormat("!Y-m-d", $endDate);
+
+        if (
+            !$end ||
+            $end->format("Y-m-d") !== $endDate ||
+            $endDate < $startDate
+        ) {
+            respond(422, [
+                "success" => false,
+                "message" => "End date must be valid and cannot be before the start date."
+            ]);
+        }
+
+    } else {
+        $endDate = null;
+    }
+
+    // Validate schedule
+    if ($schedule === "" || strlen($schedule) > 120) {
+        respond(422, [
+            "success" => false,
+            "message" => "Enter a valid working schedule."
+        ]);
+    }
+
+    // Validate monthly rate
+    if (
+        !is_numeric($monthlyRate) ||
+        (float)$monthlyRate < 0 ||
+        (float)$monthlyRate > 99999999.99
+    ) {
+        respond(422, [
+            "success" => false,
+            "message" => "Enter a valid monthly rate."
+        ]);
+    }
+
+    // Validate status
+    $allowedStatuses = [
+        "active",
+        "completed",
+        "cancelled"
+    ];
+
+    if (!in_array($status, $allowedStatuses, true)) {
+        respond(422, [
+            "success" => false,
+            "message" => "Invalid assignment status."
+        ]);
+    }
+
+    if (strlen($notes) > 10000) {
+        respond(422, [
+            "success" => false,
+            "message" => "Notes are too long."
+        ]);
+    }
+
+    // Check that assignment exists
+    $jobCheck = $conn->prepare("
+        SELECT job_id
+        FROM jobs
+        WHERE job_id = :job_id
+    ");
+
+    $jobCheck->execute([
+        ":job_id" => $jobId
+    ]);
 
     if (!$jobCheck->fetch(PDO::FETCH_ASSOC)) {
-        echo json_encode([
+        respond(404, [
             "success" => false,
-            "message" => "Job not found."
+            "message" => "Assignment not found."
         ]);
-        exit;
     }
 
+    // Check customer
+    $clientCheck = $conn->prepare("
+        SELECT client_id
+        FROM clients
+        WHERE client_id = :client_id
+    ");
+
+    $clientCheck->execute([
+        ":client_id" => $clientId
+    ]);
+
+    if (!$clientCheck->fetch(PDO::FETCH_ASSOC)) {
+        respond(404, [
+            "success" => false,
+            "message" => "Selected customer was not found."
+        ]);
+    }
+
+    // Check worker
+    $workerCheck = $conn->prepare("
+        SELECT worker_id
+        FROM workers
+        WHERE worker_id = :worker_id
+    ");
+
+    $workerCheck->execute([
+        ":worker_id" => $workerId
+    ]);
+
+    if (!$workerCheck->fetch(PDO::FETCH_ASSOC)) {
+        respond(404, [
+            "success" => false,
+            "message" => "Selected worker was not found."
+        ]);
+    }
+
+    // Update assignment
     $stmt = $conn->prepare("
         UPDATE jobs
         SET
@@ -155,34 +223,43 @@ try {
             schedule = :schedule,
             monthly_rate = :monthly_rate,
             status = :status,
-            notes = :notes
+            notes = :notes,
+            updated_at = CURRENT_TIMESTAMP
         WHERE job_id = :job_id
     ");
 
     $stmt->execute([
-        ":client_id" => $client_id,
-        ":worker_id" => $worker_id,
-        ":start_date" => $start_date,
-        ":end_date" => $end_date !== "" ? $end_date : null,
-        ":schedule" => $schedule !== "" ? $schedule : null,
-        ":monthly_rate" => (float)$monthly_rate,
+        ":client_id" => $clientId,
+        ":worker_id" => $workerId,
+        ":start_date" => $startDate,
+        ":end_date" => $endDate,
+        ":schedule" => $schedule,
+        ":monthly_rate" => (float)$monthlyRate,
         ":status" => $status,
         ":notes" => $notes !== "" ? $notes : null,
-        ":job_id" => $job_id
+        ":job_id" => $jobId
     ]);
 
-    echo json_encode([
+    respond(200, [
         "success" => true,
-        "message" => "Job updated successfully."
+        "message" => "Staff assignment updated successfully."
     ]);
 
 } catch (PDOException $e) {
+
     error_log("Job update error: " . $e->getMessage());
 
-    http_response_code(500);
-
-    echo json_encode([
+    respond(500, [
         "success" => false,
-        "message" => "Unable to update job. Please check the submitted details."
+        "message" => "Unable to update staff assignment."
+    ]);
+
+} catch (Throwable $e) {
+
+    error_log("Job update error: " . $e->getMessage());
+
+    respond(500, [
+        "success" => false,
+        "message" => "An unexpected error occurred."
     ]);
 }

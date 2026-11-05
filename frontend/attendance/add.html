@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KATUBA CRM - Record Attendance</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1f2937;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            background: #1f2937;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        }
+
+        .card h2 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #961a1a;
+            box-shadow: 0 0 0 2px rgba(150,26,26,.1);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .save-btn {
+            background: #15803d;
+        }
+
+        .cancel-btn {
+            background: #374151;
+        }
+
+        .save-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+            padding: 13px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 19px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>KATUBA CRM</h1>
+
+    <a href="index.html" class="back-btn">
+        Back to Attendance
+    </a>
+</header>
+
+<main class="container">
+
+    <section class="card">
+
+        <h2>Record Worker Attendance</h2>
+
+        <p class="subtitle">
+            Enter the worker's daily attendance information.
+        </p>
+
+        <div id="message" class="message"></div>
+
+        <form id="attendanceForm">
+
+            <div class="form-grid">
+
+                <div class="form-group full-width">
+                    <label for="worker_id">Select Worker *</label>
+
+                    <select id="worker_id" name="worker_id" required>
+                        <option value="">Loading workers...</option>
+                    </select>
+
+                    <p class="hint">
+                        Select the worker whose attendance you want to record.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label for="attendance_date">Attendance Date *</label>
+
+                    <input
+                        type="date"
+                        id="attendance_date"
+                        name="attendance_date"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Attendance Status *</label>
+
+                    <select id="status" name="status" required>
+                        <option value="present">Present</option>
+                        <option value="late">Late</option>
+                        <option value="absent">Absent</option>
+                        <option value="on_leave">On Leave</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="checkInGroup">
+                    <label for="check_in">Check-in Time</label>
+
+                    <input
+                        type="time"
+                        id="check_in"
+                        name="check_in"
+                    >
+                </div>
+
+                <div class="form-group" id="checkOutGroup">
+                    <label for="check_out">Check-out Time</label>
+
+                    <input
+                        type="time"
+                        id="check_out"
+                        name="check_out"
+                    >
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        placeholder="Enter any additional attendance information..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    id="saveBtn"
+                    class="btn save-btn">
+                    Save Attendance
+                </button>
+
+                <a href="index.html" class="btn cancel-btn">
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<script>
+    const attendanceForm = document.getElementById("attendanceForm");
+    const workerSelect = document.getElementById("worker_id");
+    const statusSelect = document.getElementById("status");
+    const checkIn = document.getElementById("check_in");
+    const checkOut = document.getElementById("check_out");
+    const checkInGroup = document.getElementById("checkInGroup");
+    const checkOutGroup = document.getElementById("checkOutGroup");
+    const message = document.getElementById("message");
+    const saveBtn = document.getElementById("saveBtn");
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = "message " + type;
+    }
+
+    function hideMessage() {
+        message.textContent = "";
+        message.className = "message";
+    }
+
+    function updateTimeFields() {
+        const status = statusSelect.value;
+
+        const noTimes = ["absent", "on_leave"].includes(status);
+
+        checkIn.disabled = noTimes;
+        checkOut.disabled = noTimes;
+
+        if (noTimes) {
+            checkIn.value = "";
+            checkOut.value = "";
+        }
+    }
+
+    function setToday() {
+        const now = new Date();
+        const localDate = new Date(
+            now.getTime() - now.getTimezoneOffset() * 60000
+        ).toISOString().slice(0, 10);
+
+        document.getElementById("attendance_date").value = localDate;
+    }
+
+    async function loadWorkers() {
+        try {
+            const response = await fetch("../../backend/workers/get.php", {
+                method: "GET",
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success || !Array.isArray(data.workers)) {
+                throw new Error(data.message || "Unable to load workers.");
+            }
+
+            const activeWorkers = data.workers.filter(
+                worker => String(worker.status).toLowerCase() === "active"
+            );
+
+            workerSelect.innerHTML =
+                '<option value="">Select a worker</option>';
+
+            activeWorkers.forEach(worker => {
+                const option = document.createElement("option");
+
+                option.value = worker.worker_id;
+                option.textContent =
+                    worker.full_name + " (ID: " + worker.worker_id + ")";
+
+                workerSelect.appendChild(option);
+            });
+
+            if (activeWorkers.length === 0) {
+                workerSelect.innerHTML =
+                    '<option value="">No active workers available</option>';
+            }
+
+        } catch (error) {
+            console.error("Worker loading error:", error);
+
+            workerSelect.innerHTML =
+                '<option value="">Unable to load workers</option>';
+
+            showMessage(
+                "Unable to load workers. Please refresh the page and try again.",
+                "error"
+            );
+        }
+    }
+
+    attendanceForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        hideMessage();
+
+        if (!attendanceForm.reportValidity()) {
+            return;
+        }
+
+        const start = checkIn.value;
+        const end = checkOut.value;
+
+        if (
+            !["absent", "on_leave"].includes(statusSelect.value) &&
+            start && end && end < start
+        ) {
+            showMessage(
+                "Check-out time cannot be earlier than check-in time.",
+                "error"
+            );
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        try {
+            const formData = new FormData(attendanceForm);
+
+            const response = await fetch("../../backend/attendance/add.php", {
+                method: "POST",
+                body: formData,
+                credentials: "same-origin"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Unable to save attendance.");
+            }
+
+            showMessage(data.message, "success");
+
+            attendanceForm.reset();
+            setToday();
+            updateTimeFields();
+
+            setTimeout(function() {
+                window.location.href = "index.html";
+            }, 1200);
+
+        } catch (error) {
+            console.error("Attendance save error:", error);
+            showMessage(error.message, "error");
+
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Attendance";
+        }
+    });
+
+    statusSelect.addEventListener("change", updateTimeFields);
+
+    setToday();
+    updateTimeFields();
+    loadWorkers();
+</script>
+
+</body>
+</html>

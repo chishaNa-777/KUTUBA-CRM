@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KATUBA CRM - View Performance Review</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #171c26;
+            color: white;
+            position: fixed;
+            padding: 25px 15px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 35px;
+            font-size: 21px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #ddd;
+            text-decoration: none;
+            padding: 13px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #961a1a;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .topbar h1 {
+            font-size: 25px;
+        }
+
+        .back-btn {
+            background: #171c26;
+            color: white;
+            padding: 11px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 10px;
+            max-width: 900px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        .detail {
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail.full {
+            grid-column: 1 / -1;
+        }
+
+        .detail label {
+            display: block;
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .detail p {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .rating {
+            color: #e6a400;
+            font-size: 23px;
+            letter-spacing: 3px;
+        }
+
+        .review-box {
+            background: #f8f9fb;
+            padding: 20px;
+            border-radius: 7px;
+            font-weight: normal !important;
+            white-space: pre-wrap;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8d7da;
+            color: #721c24;
+            display: none;
+        }
+
+        .loading {
+            color: #777;
+            padding: 20px 0;
+        }
+
+        @media(max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 18px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail.full {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <h2>KATUBA CRM</h2>
+
+    <a href="../staff-dashboard.html">▦ HR Dashboard</a>
+    <a href="../workers/index.html">▣ Workers</a>
+    <a href="../attendance/index.html">▤ Attendance</a>
+    <a href="../assignments/index.html">▤ Staff Assignments</a>
+    <a href="index.html" class="active">▥ Performance Management</a>
+    <a href="../dashboard.html">⌂ Main Dashboard</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Performance Review Details</h1>
+        <a href="index.html" class="back-btn">← Back to Reviews</a>
+    </div>
+
+    <div class="card">
+
+        <h2>Worker Assessment Information</h2>
+
+        <div id="loading" class="loading">
+            Loading performance review...
+        </div>
+
+        <div id="errorMessage" class="message"></div>
+
+        <div id="reviewDetails" style="display:none;">
+
+            <div class="details-grid">
+
+                <div class="detail">
+                    <label>Review ID</label>
+                    <p id="ratingId">-</p>
+                </div>
+
+                <div class="detail">
+                    <label>Review Date</label>
+                    <p id="ratingDate">-</p>
+                </div>
+
+                <div class="detail">
+                    <label>Worker Name</label>
+                    <p id="workerName">-</p>
+                </div>
+
+                <div class="detail">
+                    <label>Customer Name</label>
+                    <p id="customerName">-</p>
+                </div>
+
+                <div class="detail full">
+                    <label>Performance Rating</label>
+                    <p id="ratingStars" class="rating">-</p>
+                    <p id="ratingText"></p>
+                </div>
+
+                <div class="detail full">
+                    <label>Written Performance Review</label>
+                    <p id="reviewText" class="review-box">-</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+async function loadPerformanceReview() {
+
+    const loading = document.getElementById("loading");
+    const errorMessage = document.getElementById("errorMessage");
+    const reviewDetails = document.getElementById("reviewDetails");
+
+    const params = new URLSearchParams(window.location.search);
+    const reviewId = params.get("id");
+
+    if (!reviewId || !/^\d+$/.test(reviewId)) {
+        loading.style.display = "none";
+        errorMessage.textContent = "Invalid performance review ID.";
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "../../backend/performance/view.php?id=" +
+            encodeURIComponent(reviewId)
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success || !data.rating) {
+            throw new Error(
+                data.message || "Performance review could not be found."
+            );
+        }
+
+        const review = data.rating;
+
+        document.getElementById("ratingId").textContent =
+            review.rating_id ?? "-";
+
+        document.getElementById("ratingDate").textContent =
+            review.rating_date
+                ? new Date(review.rating_date + "T00:00:00").toLocaleDateString()
+                : "-";
+
+        document.getElementById("workerName").textContent =
+            review.worker_name || "-";
+
+        document.getElementById("customerName").textContent =
+            review.customer_name || "-";
+
+        const rating = Number(review.rating);
+
+        document.getElementById("ratingStars").textContent =
+            "★".repeat(rating) + "☆".repeat(5 - rating);
+
+        const ratingLabels = {
+            1: "Poor",
+            2: "Fair",
+            3: "Good",
+            4: "Very Good",
+            5: "Excellent"
+        };
+
+        document.getElementById("ratingText").textContent =
+            ratingLabels[rating] || "Not rated";
+
+        document.getElementById("reviewText").textContent =
+            review.review || "No written review available.";
+
+        loading.style.display = "none";
+        reviewDetails.style.display = "block";
+
+    } catch (error) {
+
+        loading.style.display = "none";
+        errorMessage.textContent = error.message;
+        errorMessage.style.display = "block";
+
+    }
+}
+
+loadPerformanceReview();
+</script>
+
+</body>
+</html>

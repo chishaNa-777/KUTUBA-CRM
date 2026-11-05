@@ -1,0 +1,772 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Invoices</title>
+
+<style>
+    
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f5f8;
+    color: #252936;
+}
+
+.sidebar {
+    width: 245px;
+    height: 100vh;
+    background: #171c26;
+    color: white;
+    position: fixed;
+    padding: 25px 18px;
+}
+
+.brand {
+    font-size: 23px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.brand span {
+    color: #e04444;
+}
+
+.department {
+    color: #e04444;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 0 10px 30px;
+}
+
+.sidebar a {
+    display: block;
+    color: #cbd0da;
+    text-decoration: none;
+    padding: 13px 15px;
+    margin-bottom: 7px;
+    border-radius: 7px;
+    transition: .2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #961a1a;
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.topbar p {
+    color: #777;
+    margin-top: 7px;
+    font-size: 13px;
+}
+
+.user-info {
+    text-align: right;
+    color: #555;
+}
+
+.page-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    border-radius: 7px;
+    padding: 12px 17px;
+    font-weight: bold;
+}
+
+.add-btn {
+    background: #961a1a;
+    color: white;
+}
+
+.add-btn:hover {
+    background: #751313;
+}
+
+.refresh-btn {
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 17px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 11px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.card p {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.card h2 {
+    font-size: 25px;
+}
+
+.card small {
+    color: #999;
+    display: block;
+    margin-top: 8px;
+}
+
+.content-card {
+    background: white;
+    padding: 23px;
+    border-radius: 11px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.filters input,
+.filters select {
+    padding: 11px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    outline: none;
+    font-size: 13px;
+}
+
+.filters input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filters select {
+    min-width: 150px;
+    background: white;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+}
+
+th, td {
+    text-align: left;
+    padding: 15px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+th {
+    color: #777;
+    background: #f8f8fa;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.status.paid {
+    background: #e5f5e9;
+    color: #24733a;
+}
+
+.status.partial {
+    background: #fff3d9;
+    color: #956000;
+}
+
+.status.unpaid {
+    background: #fdeaea;
+    color: #a11b1b;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    padding: 7px 10px;
+    font-size: 11px;
+    background: #f1f1f1;
+    color: #333;
+}
+
+.action-btn:hover {
+    background: #961a1a;
+    color: white;
+}
+
+.message {
+    margin-bottom: 15px;
+    color: #961a1a;
+    font-size: 13px;
+}
+
+.empty {
+    text-align: center;
+    padding: 30px;
+    color: #777;
+}
+
+@media(max-width: 1100px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 700px) {
+    .sidebar {
+        width: 190px;
+    }
+
+    .main {
+        margin-left: 190px;
+        padding: 15px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media(max-width: 480px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+}
+.back-dashboard-btn {
+    display: inline-block;
+    background: #171c26;
+    color: white;
+    padding: 11px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.back-dashboard-btn:hover {
+    background: #961a1a;
+    transform: translateY(-2px);
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="brand">KATUBA <span>CRM</span></div>
+    <div class="department">FINANCE DEPARTMENT</div>
+
+    <a href="../finance-dashboard.html">▦ Dashboard</a>
+    <a href="index.html" class="active">▤ Invoices</a>
+    <a href="../payments/index.html">💳 Payments</a>
+    <a href="../reports/index.html">▥ Financial Reports</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="#" onclick="logout(event)">↪ Logout</a>
+
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <a href="../finance-dashboard.html" class="back-dashboard-btn">
+    ← Back to Dashboard
+</a>
+
+        <div>
+            <h1>Invoice Management</h1>
+            <p>Manage and monitor customer invoices.</p>
+        </div>
+
+        <div class="user-info">
+            <strong id="userName">Loading...</strong>
+            <p id="userRole">Finance Officer</p>
+        </div>
+
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="page-actions">
+        <button class="add-btn" onclick="window.location.href='add.html'">
+            + Create Invoice
+        </button>
+
+        <button class="refresh-btn" onclick="loadInvoices()">
+            ↻ Refresh
+        </button>
+    </div>
+
+    <section class="cards">
+
+        <div class="card">
+            <p>Total Invoices</p>
+            <h2 id="totalInvoices">0</h2>
+            <small>All recorded invoices</small>
+        </div>
+
+        <div class="card">
+            <p>Paid Invoices</p>
+            <h2 id="paidInvoices">0</h2>
+            <small>Fully settled</small>
+        </div>
+
+        <div class="card">
+            <p>Partial Invoices</p>
+            <h2 id="partialInvoices">0</h2>
+            <small>Partially paid</small>
+        </div>
+
+        <div class="card">
+            <p>Unpaid Invoices</p>
+            <h2 id="unpaidInvoices">0</h2>
+            <small>Awaiting payment</small>
+        </div>
+
+    </section>
+
+    <section class="content-card">
+
+        <div class="content-header">
+            <h3>All Invoices</h3>
+        </div>
+
+        <div class="filters">
+
+            <input
+                type="search"
+                id="searchInput"
+                placeholder="Search invoice number or customer..."
+            >
+
+            <select id="statusFilter">
+                <option value="">All statuses</option>
+                <option value="paid">Paid</option>
+                <option value="partial">Partial</option>
+                <option value="unpaid">Unpaid</option>
+            </select>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Customer</th>
+                        <th>Period</th>
+                        <th>Amount</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="invoiceTable">
+
+                    <tr>
+                        <td colspan="9" class="empty">
+                            Loading invoices...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+"use strict";
+
+const sessionUrl = "../../backend/auth/check_session.php";
+const invoicesUrl = "../../backend/invoices/get.php";
+const logoutUrl = "../../backend/auth/logout.php";
+
+let invoices = [];
+
+function formatMoney(amount) {
+    return "ZMW " + Number(amount || 0).toLocaleString(
+        "en-ZM",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+function showMessage(message) {
+    document.getElementById("message").textContent = message;
+}
+
+async function checkSession() {
+
+    try {
+
+        const response = await fetch(sessionUrl, {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            window.location.href = "../login.html";
+            return false;
+        }
+
+        const user = result.user || {};
+        const role = String(user.role || "").trim().toLowerCase();
+
+        if (!["admin", "finance_officer"].includes(role)) {
+
+            if (role === "hr_officer") {
+                window.location.href = "../staff-dashboard.html";
+            } else if (role === "it") {
+                window.location.href = "../it-dashboard.html";
+            } else {
+                window.location.href = "../login.html";
+            }
+
+            return false;
+        }
+
+        document.getElementById("userName").textContent =
+            user.full_name || "User";
+
+        document.getElementById("userRole").textContent =
+            role === "admin" ? "Administrator" : "Finance Officer";
+
+        return true;
+
+    } catch (error) {
+
+        showMessage("Unable to verify your login session.");
+        return false;
+    }
+}
+
+async function loadInvoices() {
+
+    const table = document.getElementById("invoiceTable");
+
+    table.innerHTML =
+        '<tr><td colspan="9" class="empty">Loading invoices...</td></tr>';
+
+    try {
+
+        const response = await fetch(invoicesUrl, {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to load invoices.");
+        }
+
+        invoices = result.invoices || [];
+
+        updateSummary();
+        renderInvoices();
+
+        showMessage("");
+
+    } catch (error) {
+
+        table.innerHTML =
+            '<tr><td colspan="9" class="empty">Unable to load invoices.</td></tr>';
+
+        showMessage(error.message);
+    }
+}
+
+function getInvoiceBalance(invoice) {
+
+    return Math.max(
+        0,
+        Number(invoice.balance ?? (
+            Number(invoice.amount || 0) -
+            Number(invoice.amount_paid || 0)
+        ))
+    );
+}
+
+function getInvoiceStatus(invoice) {
+
+    const balance = getInvoiceBalance(invoice);
+
+    if (balance <= 0) {
+        return "paid";
+    }
+
+    if (Number(invoice.amount_paid || 0) > 0) {
+        return "partial";
+    }
+
+    return "unpaid";
+}
+
+function updateSummary() {
+
+    let paid = 0;
+    let partial = 0;
+    let unpaid = 0;
+
+    invoices.forEach(invoice => {
+
+        const status = getInvoiceStatus(invoice);
+
+        if (status === "paid") paid++;
+        if (status === "partial") partial++;
+        if (status === "unpaid") unpaid++;
+    });
+
+    document.getElementById("totalInvoices").textContent =
+        invoices.length;
+
+    document.getElementById("paidInvoices").textContent = paid;
+
+    document.getElementById("partialInvoices").textContent = partial;
+
+    document.getElementById("unpaidInvoices").textContent = unpaid;
+}
+
+function renderInvoices() {
+
+    const table = document.getElementById("invoiceTable");
+
+    const search = document.getElementById("searchInput")
+        .value.trim().toLowerCase();
+
+    const selectedStatus = document.getElementById("statusFilter")
+        .value;
+
+    const filtered = invoices.filter(invoice => {
+
+        const invoiceNumber = String(invoice.invoice_number || "")
+            .toLowerCase();
+
+        const customer = String(invoice.customer_name || "")
+            .toLowerCase();
+
+        const matchesSearch =
+            invoiceNumber.includes(search) ||
+            customer.includes(search);
+
+        const matchesStatus =
+            !selectedStatus ||
+            getInvoiceStatus(invoice) === selectedStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    table.innerHTML = "";
+
+    if (filtered.length === 0) {
+
+        table.innerHTML =
+            '<tr><td colspan="9" class="empty">No invoices found.</td></tr>';
+
+        return;
+    }
+
+    filtered.forEach(invoice => {
+
+        const row = document.createElement("tr");
+
+        const status = getInvoiceStatus(invoice);
+        const balance = getInvoiceBalance(invoice);
+
+        const period =
+            (invoice.period_start || "—") +
+            " to " +
+            (invoice.period_end || "—");
+
+        const values = [
+            invoice.invoice_number || "—",
+            invoice.customer_name || "Unknown",
+            period,
+            formatMoney(invoice.amount),
+            formatMoney(invoice.amount_paid),
+            formatMoney(balance),
+            invoice.due_date || "—"
+        ];
+
+        values.forEach(value => {
+
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+
+        const statusCell = document.createElement("td");
+
+        const badge = document.createElement("span");
+        badge.className = "status " + status;
+        badge.textContent = status;
+
+        statusCell.appendChild(badge);
+        row.appendChild(statusCell);
+
+        const actionsCell = document.createElement("td");
+        const actions = document.createElement("div");
+
+        actions.className = "actions";
+
+        const viewButton = document.createElement("button");
+        viewButton.className = "action-btn";
+        viewButton.textContent = "View";
+
+        viewButton.addEventListener("click", () => {
+            window.location.href =
+                "view.html?id=" + encodeURIComponent(invoice.invoice_id);
+        });
+
+        const editButton = document.createElement("button");
+        editButton.className = "action-btn";
+        editButton.textContent = "Edit";
+
+        editButton.addEventListener("click", () => {
+            window.location.href =
+                "edit.html?id=" + encodeURIComponent(invoice.invoice_id);
+        });
+
+        actions.appendChild(viewButton);
+        actions.appendChild(editButton);
+
+        actionsCell.appendChild(actions);
+        row.appendChild(actionsCell);
+
+        table.appendChild(row);
+    });
+}
+
+document.getElementById("searchInput").addEventListener(
+    "input",
+    renderInvoices
+);
+
+document.getElementById("statusFilter").addEventListener(
+    "change",
+    renderInvoices
+);
+
+async function logout(event) {
+
+    if (event) {
+        event.preventDefault();
+    }
+
+    try {
+
+        const response = await fetch(logoutUrl, {
+            method: "POST",
+            credentials: "same-origin"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || result.success === false) {
+            throw new Error("Logout failed.");
+        }
+
+        window.location.href = "../login.html";
+
+    } catch (error) {
+
+        showMessage("Unable to log out. Please try again.");
+    }
+}
+
+async function initializePage() {
+
+    const authorized = await checkSession();
+
+    if (!authorized) return;
+
+    await loadInvoices();
+}
+
+initializePage();
+</script>
+
+</body>
+</html>

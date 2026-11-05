@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Create Invoice</title>
+
+<style>
+:root {
+    --red: #961a1a;
+    --dark: #171c26;
+    --light: #f4f6f9;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--light);
+    color: #333;
+}
+
+.sidebar {
+    width: 245px;
+    height: 100vh;
+    background: var(--dark);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 25px 15px;
+}
+
+.brand {
+    font-size: 23px;
+    font-weight: bold;
+    color: white;
+    padding: 10px;
+    margin-bottom: 35px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 13px 15px;
+    color: #ddd;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: .3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: var(--red);
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.topbar h1 {
+    font-size: 25px;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+    max-width: 850px;
+}
+
+.card h2 {
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    background: white;
+}
+
+input:focus, select:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px rgba(150,26,26,.08);
+}
+
+.buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+button, .back-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.save-btn {
+    background: var(--red);
+    color: white;
+}
+
+.save-btn:hover {
+    background: #741313;
+}
+
+.back-btn {
+    background: #e8e8e8;
+    color: #333;
+}
+
+.message {
+    display: none;
+    padding: 13px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.message.success {
+    display: block;
+    background: #e5f5e9;
+    color: #176b2c;
+}
+
+.message.error {
+    display: block;
+    background: #fdeaea;
+    color: #a00000;
+}
+
+@media(max-width: 800px) {
+    .sidebar {
+        width: 190px;
+    }
+
+    .main {
+        margin-left: 190px;
+        padding: 20px;
+    }
+}
+
+@media(max-width: 600px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">KATUBA CRM</div>
+
+    <a href="../finance-dashboard.html">Dashboard</a>
+    <a href="index.html" class="active">Invoices</a>
+    <a href="../payments/index.html">Payments</a>
+    <a href="../reports/index.html">Reports</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="#" id="logoutBtn">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Create New Invoice</h1>
+    </div>
+
+    <div class="card">
+
+        <h2>Invoice Information</h2>
+
+        <div id="message" class="message"></div>
+
+        <form id="invoiceForm">
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+                    <label for="client_id">Select Customer *</label>
+                    <select id="client_id" name="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+    <label for="invoice_number">Invoice Number</label>
+    <input
+        type="text"
+        id="invoice_number"
+        value="Automatically generated"
+        readonly
+        style="background:#f1f1f1; color:#961a1a; font-weight:bold;"
+    >
+    <small style="color:#777;">
+        Invoice number will be generated automatically when saved.
+    </small>
+</div>
+
+                <div class="form-group">
+                    <label for="amount">Invoice Amount (ZMW) *</label>
+                    <input
+                        type="number"
+                        id="amount"
+                        name="amount"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="Enter amount"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="period_start">Billing Period Start *</label>
+                    <input type="date" id="period_start" name="period_start" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="period_end">Billing Period End *</label>
+                    <input type="date" id="period_end" name="period_end" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="due_date">Payment Due Date *</label>
+                    <input type="date" id="due_date" name="due_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Initial Payment Status</label>
+                    <input type="text" value="Unpaid" readonly>
+                </div>
+
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    Create Invoice
+                </button>
+
+                <a href="index.html" class="back-btn">Cancel</a>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<script>
+const messageBox = document.getElementById("message");
+const customerSelect = document.getElementById("client_id");
+const form = document.getElementById("invoiceForm");
+const saveBtn = document.getElementById("saveBtn");
+
+// Show messages
+function showMessage(message, type) {
+    messageBox.textContent = message;
+    messageBox.className = "message " + type;
+}
+
+// Check login and user role
+async function checkSession() {
+    try {
+        const response = await fetch(
+            "../../backend/auth/check_session.php",
+            { credentials: "same-origin", cache: "no-store" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            window.location.href = "../login.html";
+            return false;
+        }
+
+        const role = String(data.user?.role || data.role || "").toLowerCase();
+
+        if (!["admin", "finance_officer"].includes(role)) {
+            if (role === "hr_officer") {
+                window.location.href = "../staff-dashboard.html";
+            } else if (role === "it") {
+                window.location.href = "../it-dashboard.html";
+            } else {
+                window.location.href = "../login.html";
+            }
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+        showMessage("Unable to verify your session.", "error");
+        return false;
+    }
+}
+
+// Load customers
+async function loadCustomers() {
+    customerSelect.innerHTML = '<option value="">Loading customers...</option>';
+
+    try {
+        const response = await fetch(
+            "../../backend/clients/get.php",
+            { credentials: "same-origin", cache: "no-store" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load customers.");
+        }
+
+        const customers = data.clients || [];
+
+        customerSelect.innerHTML =
+            '<option value="">Select a customer</option>';
+
+        customers.forEach(customer => {
+            const option = document.createElement("option");
+            option.value = customer.client_id;
+            option.textContent = customer.full_name;
+            customerSelect.appendChild(option);
+        });
+
+        if (customers.length === 0) {
+            customerSelect.innerHTML =
+                '<option value="">No customers found</option>';
+        }
+
+    } catch (error) {
+        customerSelect.innerHTML =
+            '<option value="">Unable to load customers</option>';
+
+        showMessage(error.message, "error");
+    }
+}
+
+// Create invoice
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Creating Invoice...";
+
+    const invoiceData = {
+    client_id: customerSelect.value,
+    period_start: document.getElementById("period_start").value,
+    period_end: document.getElementById("period_end").value,
+    amount: document.getElementById("amount").value,
+    due_date: document.getElementById("due_date").value
+};
+    try {
+        const response = await fetch(
+            "../../backend/invoices/add.php",
+            {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(invoiceData)
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to create invoice.");
+        }
+showMessage(
+    result.message + " Invoice Number: " + result.invoice_number,
+    "success"
+);
+
+saveBtn.textContent = "Invoice Created Successfully!";
+
+setTimeout(() => {
+    window.location.href = "index.html";
+}, 2000);
+
+        form.reset();
+
+    } catch (error) {
+        showMessage(error.message, "error");
+
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Create Invoice";
+    }
+});
+
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", async function(event) {
+    event.preventDefault();
+
+    try {
+        await fetch("../../backend/auth/logout.php", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
+    window.location.href = "../login.html";
+});
+
+// Initialize
+(async function initialize() {
+    const authenticated = await checkSession();
+
+    if (authenticated) {
+        await loadCustomers();
+    }
+})();
+</script>
+
+</body>
+</html>

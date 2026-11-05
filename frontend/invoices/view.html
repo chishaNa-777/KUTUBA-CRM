@@ -1,0 +1,505 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - View Invoice</title>
+
+<style>
+:root {
+    --red: #961a1a;
+    --dark: #171c26;
+    --light: #f4f6f9;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--light);
+    color: #333;
+}
+
+.sidebar {
+    width: 245px;
+    height: 100vh;
+    background: var(--dark);
+    color: white;
+    position: fixed;
+    padding: 25px 15px;
+}
+
+.brand {
+    font-size: 23px;
+    font-weight: bold;
+    margin: 10px;
+    margin-bottom: 35px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 13px 15px;
+    color: #ddd;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: var(--red);
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.topbar h1 {
+    font-size: 25px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 11px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.back-btn {
+    background: var(--dark);
+    color: white;
+}
+
+.print-btn {
+    background: var(--red);
+    color: white;
+}
+
+.invoice-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 950px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+}
+
+.invoice-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding-bottom: 25px;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 25px;
+}
+
+.company-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--red);
+}
+
+.invoice-number {
+    color: #666;
+    margin-top: 8px;
+}
+
+.status {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.status.paid {
+    background: #e5f5e9;
+    color: #176b2c;
+}
+
+.status.unpaid {
+    background: #fdeaea;
+    color: #a00000;
+}
+
+.status.partial {
+    background: #fff2d9;
+    color: #9a6200;
+}
+
+.section-title {
+    font-size: 17px;
+    margin: 25px 0 15px;
+    color: var(--dark);
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.detail {
+    padding: 15px;
+    background: #f8f9fb;
+    border-radius: 7px;
+}
+
+.detail label {
+    display: block;
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 8px;
+}
+
+.detail strong {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.amounts {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.amount-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.amount-row.total {
+    font-size: 19px;
+    font-weight: bold;
+    color: var(--red);
+}
+
+.message {
+    padding: 15px;
+    background: #fdeaea;
+    color: #a00000;
+    border-radius: 6px;
+    display: none;
+    margin-bottom: 20px;
+}
+
+.loading {
+    color: #777;
+    padding: 30px;
+}
+
+@media(max-width: 800px) {
+    .sidebar {
+        width: 190px;
+    }
+
+    .main {
+        margin-left: 190px;
+        padding: 20px;
+    }
+}
+
+@media(max-width: 600px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .invoice-card {
+        padding: 18px;
+    }
+}
+
+@media print {
+    .sidebar, .topbar, .actions {
+        display: none !important;
+    }
+
+    .main {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: white;
+    }
+
+    .invoice-card {
+        box-shadow: none;
+        max-width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">KATUBA CRM</div>
+    <a href="../finance-dashboard.html">Dashboard</a>
+    <a href="index.html" class="active">Invoices</a>
+    <a href="../payments/index.html">Payments</a>
+    <a href="../reports/index.html">Reports</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="#" id="logoutBtn">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Invoice Details</h1>
+
+        <div class="actions">
+            <a href="index.html" class="btn back-btn">← Back to Invoices</a>
+            <button class="btn print-btn" onclick="window.print()">
+                Print Invoice
+            </button>
+        </div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="invoice-card" id="invoiceCard">
+        <p class="loading">Loading invoice details...</p>
+    </div>
+
+</main>
+
+<script>
+const invoiceCard = document.getElementById("invoiceCard");
+const messageBox = document.getElementById("message");
+
+function showError(message) {
+    messageBox.textContent = message;
+    messageBox.style.display = "block";
+    invoiceCard.innerHTML = "";
+}
+
+function money(value) {
+    return "ZMW " + Number(value || 0).toLocaleString("en-ZM", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function safe(value) {
+    const div = document.createElement("div");
+    div.textContent = value ?? "—";
+    return div.innerHTML;
+}
+
+async function checkSession() {
+    try {
+        const response = await fetch(
+            "../../backend/auth/check_session.php",
+            { credentials: "same-origin", cache: "no-store" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            window.location.href = "../login.html";
+            return false;
+        }
+
+        const role = String(data.user?.role || data.role || "").toLowerCase();
+
+        if (!["admin", "finance_officer"].includes(role)) {
+            if (role === "hr_officer") {
+                window.location.href = "../staff-dashboard.html";
+            } else if (role === "it") {
+                window.location.href = "../it-dashboard.html";
+            } else {
+                window.location.href = "../login.html";
+            }
+
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+        showError("Unable to verify your session.");
+        return false;
+    }
+}
+
+async function loadInvoice() {
+    const params = new URLSearchParams(window.location.search);
+    const invoiceId = params.get("id");
+
+    if (!invoiceId || !/^\d+$/.test(invoiceId)) {
+        showError("A valid invoice ID is required.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "../../backend/invoices/get.php",
+            { credentials: "same-origin", cache: "no-store" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to retrieve invoices.");
+        }
+
+        const invoice = (data.invoices || []).find(
+            item => String(item.invoice_id) === invoiceId
+        );
+
+        if (!invoice) {
+            throw new Error("Invoice not found.");
+        }
+
+        const amount = Number(invoice.amount || 0);
+        const paid = Number(invoice.amount_paid || 0);
+        const balance = invoice.balance !== undefined
+            ? Number(invoice.balance)
+            : amount - paid;
+
+        let status = balance <= 0
+            ? "paid"
+            : paid > 0
+                ? "partial"
+                : "unpaid";
+
+        invoiceCard.innerHTML = `
+            <div class="invoice-heading">
+                <div>
+                    <div class="company-name">KATUBA CRM</div>
+                    <div class="invoice-number">
+                        Invoice: <strong>${safe(invoice.invoice_number)}</strong>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="status ${status}">${status}</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Customer & Invoice Information</h2>
+
+            <div class="details-grid">
+                <div class="detail">
+                    <label>Customer Name</label>
+                    <strong>${safe(invoice.customer_name)}</strong>
+                </div>
+
+                <div class="detail">
+                    <label>Invoice Number</label>
+                    <strong>${safe(invoice.invoice_number)}</strong>
+                </div>
+
+                <div class="detail">
+                    <label>Billing Period Start</label>
+                    <strong>${safe(invoice.period_start)}</strong>
+                </div>
+
+                <div class="detail">
+                    <label>Billing Period End</label>
+                    <strong>${safe(invoice.period_end)}</strong>
+                </div>
+
+                <div class="detail">
+                    <label>Due Date</label>
+                    <strong>${safe(invoice.due_date)}</strong>
+                </div>
+
+                <div class="detail">
+                    <label>Date Created</label>
+                    <strong>${safe(invoice.created_at)}</strong>
+                </div>
+            </div>
+
+            <h2 class="section-title">Payment Summary</h2>
+
+            <div class="amounts">
+                <div class="amount-row">
+                    <span>Invoice Amount</span>
+                    <strong>${money(amount)}</strong>
+                </div>
+
+                <div class="amount-row">
+                    <span>Amount Paid</span>
+                    <strong>${money(paid)}</strong>
+                </div>
+
+                <div class="amount-row total">
+                    <span>Outstanding Balance</span>
+                    <strong>${money(balance)}</strong>
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async function(event) {
+    event.preventDefault();
+
+    try {
+        await fetch("../../backend/auth/logout.php", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
+    window.location.href = "../login.html";
+});
+
+(async function initialize() {
+    const authenticated = await checkSession();
+
+    if (authenticated) {
+        await loadInvoice();
+    }
+})();
+</script>
+
+</body>
+</html>

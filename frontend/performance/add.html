@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - Add Performance Review</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #171c26;
+            color: white;
+            position: fixed;
+            padding: 25px 15px;
+        }
+
+        .sidebar h2 {
+            color: white;
+            margin-bottom: 35px;
+            font-size: 21px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #ddd;
+            text-decoration: none;
+            padding: 13px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #961a1a;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar h1 {
+            font-size: 25px;
+        }
+
+        .back-btn {
+            background: #171c26;
+            color: white;
+            padding: 11px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 850px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .rating-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .rating-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .rating-options input {
+            width: auto;
+        }
+
+        .submit-btn {
+            background: #961a1a;
+            color: white;
+            border: none;
+            padding: 13px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .submit-btn:hover {
+            background: #741414;
+        }
+
+        .message {
+            margin-bottom: 18px;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media(max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <h2>KATUBA CRM</h2>
+
+    <a href="../staff-dashboard.html">▦ HR Dashboard</a>
+    <a href="../workers/index.html">▣ Workers</a>
+    <a href="../attendance/index.html">▤ Attendance</a>
+    <a href="../assignments/index.html">▤ Staff Assignments</a>
+    <a href="index.html" class="active">▥ Performance Management</a>
+    <a href="../dashboard.html">⌂ Main Dashboard</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Add Performance Review</h1>
+        <a href="index.html" class="back-btn">← Back to Reviews</a>
+    </div>
+
+    <div class="card">
+        <h2>Worker Performance Assessment</h2>
+
+        <div id="message" class="message"></div>
+
+        <form id="reviewForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="worker_id">Select Worker *</label>
+                    <select id="worker_id" required>
+                        <option value="">Loading workers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="client_id">Select Customer *</label>
+                    <select id="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label>Performance Rating *</label>
+
+                    <div class="rating-options">
+                        <label><input type="radio" name="rating" value="1" required> 1 - Poor</label>
+                        <label><input type="radio" name="rating" value="2"> 2 - Fair</label>
+                        <label><input type="radio" name="rating" value="3"> 3 - Good</label>
+                        <label><input type="radio" name="rating" value="4"> 4 - Very Good</label>
+                        <label><input type="radio" name="rating" value="5"> 5 - Excellent</label>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label for="review">Performance Review *</label>
+                    <textarea
+                        id="review"
+                        maxlength="5000"
+                        placeholder="Write comments about the worker's performance..."
+                        required
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Save Performance Review
+            </button>
+
+        </form>
+    </div>
+
+</main>
+
+<script>
+const workerSelect = document.getElementById("worker_id");
+const clientSelect = document.getElementById("client_id");
+const messageBox = document.getElementById("message");
+const reviewForm = document.getElementById("reviewForm");
+const submitBtn = document.getElementById("submitBtn");
+
+function showMessage(message, type) {
+    messageBox.textContent = message;
+    messageBox.className = "message " + type;
+    messageBox.style.display = "block";
+}
+
+async function loadWorkers() {
+    try {
+        const response = await fetch("../../backend/workers/get.php");
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || "Could not load workers.");
+        }
+
+        workerSelect.innerHTML = '<option value="">Choose a worker</option>';
+
+        data.workers.forEach(worker => {
+            if (worker.status === "active") {
+                const option = document.createElement("option");
+                option.value = worker.worker_id;
+                option.textContent = worker.full_name;
+                workerSelect.appendChild(option);
+            }
+        });
+
+    } catch (error) {
+        workerSelect.innerHTML = '<option value="">Unable to load workers</option>';
+        showMessage(error.message, "error");
+    }
+}
+
+async function loadClients() {
+    try {
+        const response = await fetch("../../backend/clients/get.php");
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || "Could not load customers.");
+        }
+
+        clientSelect.innerHTML = '<option value="">Choose a customer</option>';
+
+        data.clients.forEach(client => {
+            const option = document.createElement("option");
+            option.value = client.client_id;
+            option.textContent = client.full_name;
+            clientSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        clientSelect.innerHTML = '<option value="">Unable to load customers</option>';
+        showMessage(error.message, "error");
+    }
+}
+
+reviewForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const selectedRating = document.querySelector(
+        'input[name="rating"]:checked'
+    );
+
+    if (!selectedRating) {
+        showMessage("Please select a performance rating.", "error");
+        return;
+    }
+
+    const formData = {
+        worker_id: workerSelect.value,
+        client_id: clientSelect.value,
+        rating: Number(selectedRating.value),
+        review: document.getElementById("review").value.trim()
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
+    try {
+        const response = await fetch("../../backend/performance/add.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not save performance review.");
+        }
+
+        showMessage(data.message || "Performance review saved successfully.", "success");
+
+        reviewForm.reset();
+
+    } catch (error) {
+        showMessage(error.message, "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Performance Review";
+    }
+});
+
+loadWorkers();
+loadClients();
+</script>
+
+</body>
+</html>

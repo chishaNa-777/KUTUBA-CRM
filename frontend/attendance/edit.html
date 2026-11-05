@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Edit Attendance</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f6f9;color:#252525}
+header{background:#961a1a;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+header h2{font-size:21px}
+header a{color:white;text-decoration:none;background:#171c26;padding:10px 15px;border-radius:6px}
+.container{max-width:750px;margin:35px auto;padding:0 18px}
+.card{background:white;padding:28px;border-radius:10px;box-shadow:0 3px 15px rgba(0,0,0,.07)}
+.card h2{margin-bottom:8px;color:#171c26}
+.description{color:#777;margin-bottom:25px;font-size:14px}
+.form-group{margin-bottom:19px}
+label{display:block;font-weight:bold;margin-bottom:8px;font-size:14px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:6px;font-size:15px;background:white}
+textarea{resize:vertical;min-height:90px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#961a1a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.actions{display:flex;gap:12px;margin-top:25px;flex-wrap:wrap}
+button,.cancel{border:0;padding:12px 20px;border-radius:6px;font-size:15px;cursor:pointer;text-decoration:none}
+button{background:#961a1a;color:white}
+button:disabled{opacity:.6;cursor:not-allowed}
+.cancel{background:#e5e7eb;color:#222}
+#message{display:none;padding:12px;border-radius:6px;margin-bottom:18px;font-size:14px}
+.success{background:#e7f7ed;color:#176b36}
+.error{background:#fdeaea;color:#a11}
+.hint{font-size:12px;color:#777;margin-top:6px}
+@media(max-width:600px){.row{grid-template-columns:1fr}.card{padding:20px}}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>KATUBA CRM | Edit Attendance</h2>
+    <a href="index.html">Back to Attendance</a>
+</header>
+
+<div class="container">
+<div class="card">
+
+    <h2>Update Attendance Record</h2>
+    <p class="description">Edit the worker's attendance information below.</p>
+
+    <div id="message"></div>
+
+    <form id="attendanceForm">
+
+        <input type="hidden" id="attendance_id" name="attendance_id">
+
+        <div class="form-group">
+            <label for="worker_id">Select Worker *</label>
+            <select id="worker_id" name="worker_id" required>
+                <option value="">Loading workers...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="attendance_date">Attendance Date *</label>
+            <input type="date" id="attendance_date" name="attendance_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Attendance Status *</label>
+            <select id="status" name="status" required>
+                <option value="present">Present</option>
+                <option value="late">Late</option>
+                <option value="absent">Absent</option>
+                <option value="on_leave">On Leave</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="check_in">Check In</label>
+                <input type="time" id="check_in" name="check_in">
+            </div>
+
+            <div class="form-group">
+                <label for="check_out">Check Out</label>
+                <input type="time" id="check_out" name="check_out">
+            </div>
+        </div>
+
+        <p class="hint" style="margin-top:-12px;margin-bottom:18px">
+            Check-in and check-out times are not required for absent or on-leave records.
+        </p>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="Optional attendance notes..."></textarea>
+        </div>
+
+        <div class="actions">
+            <button type="submit" id="saveButton">Save Changes</button>
+            <a href="index.html" class="cancel">Cancel</a>
+        </div>
+
+    </form>
+</div>
+</div>
+
+<script>
+const form = document.getElementById("attendanceForm");
+const messageBox = document.getElementById("message");
+const saveButton = document.getElementById("saveButton");
+
+const workerSelect = document.getElementById("worker_id");
+const statusSelect = document.getElementById("status");
+const checkIn = document.getElementById("check_in");
+const checkOut = document.getElementById("check_out");
+
+const params = new URLSearchParams(window.location.search);
+const attendanceId = params.get("id");
+
+function showMessage(message, type) {
+    messageBox.textContent = message;
+    messageBox.className = type;
+    messageBox.style.display = "block";
+}
+
+function updateTimeFields() {
+    const noTimes = ["absent", "on_leave"].includes(statusSelect.value);
+
+    checkIn.disabled = noTimes;
+    checkOut.disabled = noTimes;
+
+    if (noTimes) {
+        checkIn.value = "";
+        checkOut.value = "";
+    }
+}
+
+statusSelect.addEventListener("change", updateTimeFields);
+
+async function loadWorkers(selectedWorkerId) {
+    const response = await fetch("../../backend/workers/get.php", {
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Unable to load workers.");
+    }
+
+    workerSelect.innerHTML = '<option value="">Select a worker</option>';
+
+    const workers = data.workers || [];
+
+    workers.forEach(worker => {
+        const option = document.createElement("option");
+        option.value = worker.worker_id;
+        option.textContent = worker.full_name + " (ID: " + worker.worker_id + ")";
+
+        if (String(worker.worker_id) === String(selectedWorkerId)) {
+            option.selected = true;
+        }
+
+        workerSelect.appendChild(option);
+    });
+
+    if (!workers.some(worker => String(worker.worker_id) === String(selectedWorkerId))) {
+        const option = document.createElement("option");
+        option.value = selectedWorkerId;
+        option.textContent = "Previously selected worker (inactive)";
+        option.selected = true;
+        workerSelect.appendChild(option);
+    }
+}
+
+async function loadAttendance() {
+    if (!attendanceId || !/^\d+$/.test(attendanceId)) {
+        throw new Error("Invalid attendance record ID.");
+    }
+
+    const response = await fetch("../../backend/attendance/get.php", {
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Unable to load attendance records.");
+    }
+
+    const record = (data.attendance || []).find(
+        item => String(item.attendance_id) === String(attendanceId)
+    );
+
+    if (!record) {
+        throw new Error("Attendance record was not found.");
+    }
+
+    await loadWorkers(record.worker_id);
+
+    document.getElementById("attendance_id").value = record.attendance_id;
+    document.getElementById("attendance_date").value = record.attendance_date;
+    statusSelect.value = record.status;
+    checkIn.value = record.check_in ? String(record.check_in).substring(0, 5) : "";
+    checkOut.value = record.check_out ? String(record.check_out).substring(0, 5) : "";
+    document.getElementById("notes").value = record.notes || "";
+
+    updateTimeFields();
+}
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    messageBox.style.display = "none";
+
+    if (!workerSelect.value) {
+        showMessage("Please select a worker.", "error");
+        return;
+    }
+
+    if (checkIn.value && checkOut.value && checkOut.value < checkIn.value) {
+        showMessage("Check-out time cannot be earlier than check-in time.", "error");
+        return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+
+    try {
+        const formData = new FormData(form);
+
+        const response = await fetch("../../backend/attendance/update.php", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to update attendance.");
+        }
+
+        showMessage("Attendance updated successfully!", "success");
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1200);
+
+    } catch (error) {
+        showMessage(error.message, "error");
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Changes";
+    }
+});
+
+loadAttendance().catch(error => {
+    showMessage(error.message, "error");
+    saveButton.disabled = true;
+});
+</script>
+
+</body>
+</html>

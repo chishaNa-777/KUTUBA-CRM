@@ -6,20 +6,31 @@ session_start();
 header("Content-Type: application/json; charset=UTF-8");
 header("Cache-Control: no-store, no-cache, must-revalidate");
 
-// Require an authenticated session
-if (empty($_SESSION["user_id"])) {
-
-    http_response_code(401);
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Not authenticated."
-    ]);
-
+function respond(int $status, array $data): void
+{
+    http_response_code($status);
+    echo json_encode($data);
     exit;
 }
 
-// Connect to the database
+// Check authentication
+if (empty($_SESSION["user_id"])) {
+    respond(401, [
+        "success" => false,
+        "message" => "Not authenticated."
+    ]);
+}
+
+// Check permissions
+$role = strtolower(trim($_SESSION["role"] ?? ""));
+
+if (!in_array($role, ["admin", "hr_officer"], true)) {
+    respond(403, [
+        "success" => false,
+        "message" => "Access denied. HR privileges required."
+    ]);
+}
+
 require_once __DIR__ . "/../config/database.php";
 
 try {
@@ -37,10 +48,16 @@ try {
             jobs.notes,
             jobs.created_at,
             jobs.updated_at,
-            clients.full_name
+            clients.full_name AS customer_name,
+            workers.full_name AS worker_name
         FROM jobs
+
         LEFT JOIN clients
             ON jobs.client_id = clients.client_id
+
+        LEFT JOIN workers
+            ON jobs.worker_id = workers.worker_id
+
         ORDER BY jobs.job_id DESC
     ");
 
@@ -48,7 +65,7 @@ try {
 
     $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode([
+    respond(200, [
         "success" => true,
         "jobs" => $jobs
     ]);
@@ -57,11 +74,8 @@ try {
 
     error_log("Jobs fetch error: " . $e->getMessage());
 
-    http_response_code(500);
-
-    echo json_encode([
+    respond(500, [
         "success" => false,
-        "message" => "Unable to retrieve jobs."
+        "message" => "Unable to retrieve staff assignments."
     ]);
-
 }

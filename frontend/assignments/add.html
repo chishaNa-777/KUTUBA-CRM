@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATUBA CRM - New Staff Assignment</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #252a34;
+        }
+
+        .topbar {
+            background: #961a1a;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .topbar h2 {
+            font-size: 21px;
+        }
+
+        .topbar a {
+            color: white;
+            text-decoration: none;
+            background: #171c26;
+            padding: 10px 16px;
+            border-radius: 5px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .form-card h1 {
+            margin-bottom: 8px;
+            font-size: 25px;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #961a1a;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button, .cancel-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .save-btn {
+            background: #961a1a;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #741313;
+        }
+
+        .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .message {
+            padding: 13px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
+            background: #e0f5e8;
+            color: #16743b;
+        }
+
+        .error {
+            background: #fde5e5;
+            color: #a32121;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #777;
+        }
+
+        @media(max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h2>KATUBA CRM | New Assignment</h2>
+    <a href="index.html">Back to Assignments</a>
+</header>
+
+<main class="container">
+
+    <div class="form-card">
+
+        <h1>Create Staff Assignment</h1>
+        <p class="subtitle">
+            Assign a worker to a customer and enter the service details.
+        </p>
+
+        <div id="message" class="message"></div>
+
+        <form id="assignmentForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="client_id">Select Customer *</label>
+                    <select id="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="worker_id">Select Worker *</label>
+                    <select id="worker_id" required>
+                        <option value="">Loading workers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date *</label>
+                    <input type="date" id="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date">
+                    <span class="hint">Leave empty for an ongoing assignment.</span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="schedule">Working Schedule *</label>
+                    <input
+                        type="text"
+                        id="schedule"
+                        maxlength="120"
+                        placeholder="e.g. Monday to Friday, 08:00-17:00"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="monthly_rate">Monthly Rate (ZMW) *</label>
+                    <input
+                        type="number"
+                        id="monthly_rate"
+                        min="0"
+                        max="99999999.99"
+                        step="0.01"
+                        placeholder="e.g. 4500"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Assignment Status *</label>
+                    <select id="status" required>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="notes">Additional Notes</label>
+                    <textarea
+                        id="notes"
+                        placeholder="Enter any additional assignment details..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    Create Assignment
+                </button>
+
+                <a href="index.html" class="cancel-btn">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<script>
+    const form = document.getElementById("assignmentForm");
+    const message = document.getElementById("message");
+    const saveBtn = document.getElementById("saveBtn");
+
+    const clientSelect = document.getElementById("client_id");
+    const workerSelect = document.getElementById("worker_id");
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = "message " + type;
+        message.style.display = "block";
+    }
+
+    async function fetchData(url) {
+        const response = await fetch(url, {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load data.");
+        }
+
+        return data;
+    }
+
+    async function loadCustomers() {
+        try {
+            const data = await fetchData("../../backend/clients/get.php");
+
+            const customers = data.clients || [];
+
+            clientSelect.innerHTML =
+                '<option value="">Select Customer</option>';
+
+            customers.forEach(customer => {
+
+                const option = document.createElement("option");
+
+                option.value = customer.client_id;
+                option.textContent = customer.full_name;
+
+                clientSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            clientSelect.innerHTML =
+                '<option value="">Unable to load customers</option>';
+
+            showMessage(error.message, "error");
+        }
+    }
+
+    async function loadWorkers() {
+        try {
+            const data = await fetchData("../../backend/workers/get.php");
+
+            const workers = data.workers || [];
+
+            workerSelect.innerHTML =
+                '<option value="">Select Worker</option>';
+
+            workers
+                .filter(worker =>
+                    String(worker.status || "").toLowerCase() === "active"
+                )
+                .forEach(worker => {
+
+                    const option = document.createElement("option");
+
+                    option.value = worker.worker_id;
+                    option.textContent = worker.full_name;
+
+                    workerSelect.appendChild(option);
+                });
+
+        } catch (error) {
+            workerSelect.innerHTML =
+                '<option value="">Unable to load workers</option>';
+
+            showMessage(error.message, "error");
+        }
+    }
+
+    function setToday() {
+        const today = new Date();
+
+        const localDate = new Date(
+            today.getTime() - today.getTimezoneOffset() * 60000
+        ).toISOString().split("T")[0];
+
+        document.getElementById("start_date").value = localDate;
+    }
+
+    form.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        message.style.display = "none";
+
+        const startDate = document.getElementById("start_date").value;
+        const endDate = document.getElementById("end_date").value;
+
+        if (endDate && endDate < startDate) {
+            showMessage(
+                "End date cannot be earlier than the start date.",
+                "error"
+            );
+            return;
+        }
+
+        const payload = {
+            client_id: clientSelect.value,
+            worker_id: workerSelect.value,
+            start_date: startDate,
+            end_date: endDate,
+            schedule: document.getElementById("schedule").value.trim(),
+            monthly_rate: document.getElementById("monthly_rate").value,
+            status: document.getElementById("status").value,
+            notes: document.getElementById("notes").value.trim()
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        try {
+
+            const response = await fetch("../../backend/jobs/add.php", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Unable to create assignment.");
+            }
+
+            showMessage(data.message, "success");
+
+            form.reset();
+
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1200);
+
+        } catch (error) {
+
+            showMessage(error.message, "error");
+
+        } finally {
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Create Assignment";
+        }
+    });
+
+    setToday();
+
+    loadCustomers();
+    loadWorkers();
+</script>
+
+</body>
+</html>

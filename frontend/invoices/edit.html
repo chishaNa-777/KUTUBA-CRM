@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Edit Invoice</title>
+
+<style>
+:root {
+    --red: #961a1a;
+    --dark: #171c26;
+    --light: #f4f5f8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--light);
+    color: #333;
+}
+
+.sidebar {
+    width: 245px;
+    height: 100vh;
+    background: var(--dark);
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 25px 18px;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 35px;
+}
+
+.sidebar a {
+    display: block;
+    color: #ddd;
+    text-decoration: none;
+    padding: 13px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: var(--red);
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 27px;
+}
+
+.back-btn {
+    background: var(--dark);
+    color: white;
+    padding: 11px 17px;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 850px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.06);
+}
+
+.card h2 {
+    margin-bottom: 22px;
+    font-size: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+input, select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    font-size: 14px;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--red);
+}
+
+input[readonly] {
+    background: #eee;
+    cursor: not-allowed;
+}
+
+.info-box {
+    background: #f8f1f1;
+    border-left: 4px solid var(--red);
+    padding: 14px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+button {
+    border: none;
+    padding: 13px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.save-btn {
+    background: var(--red);
+    color: white;
+}
+
+.cancel-btn {
+    background: #e5e5e5;
+    color: #333;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.message {
+    margin-top: 18px;
+    padding: 12px;
+    border-radius: 6px;
+    display: none;
+    line-height: 1.5;
+}
+
+.message.error {
+    display: block;
+    background: #ffe8e8;
+    color: #a00000;
+}
+
+.message.success {
+    display: block;
+    background: #e5f6e9;
+    color: #17652b;
+}
+
+@media(max-width: 800px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+}
+
+@media(max-width: 550px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="logo">KATUBA CRM</div>
+
+    <a href="../finance-dashboard.html">Dashboard</a>
+    <a href="index.html" class="active">Invoices</a>
+    <a href="../payments/index.html">Payments</a>
+    <a href="../reports/index.html">Reports</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+    <a href="#" id="logoutBtn">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="header">
+    <h1>Edit Invoice</h1>
+    <a href="../finance-dashboard.html" class="back-btn">
+        ← Back to Dashboard
+    </a>
+</div>
+
+    <div class="card">
+        <h2>Invoice Information</h2>
+
+        <div class="info-box">
+            <strong>Important:</strong> Editing an invoice will not change
+            its invoice number or existing payment records. The amount paid
+            will remain unchanged.
+            <div id="paymentInfo">Loading payment information...</div>
+        </div>
+
+        <form id="editInvoiceForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Invoice Number</label>
+                    <input type="text" id="invoice_number" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Customer *</label>
+                    <select id="client_id" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Period Start *</label>
+                    <input type="date" id="period_start" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Period End *</label>
+                    <input type="date" id="period_end" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Invoice Amount (ZMW) *</label>
+                    <input type="number" id="amount" min="0.01"
+                           step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date *</label>
+                    <input type="date" id="due_date" required>
+                </div>
+
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="save-btn" id="saveBtn">
+                    Save Changes
+                </button>
+
+                <button type="button" class="cancel-btn"
+                        onclick="window.location.href='index.html'">
+                    Cancel
+                </button>
+            </div>
+
+            <div id="message" class="message"></div>
+
+        </form>
+    </div>
+
+</main>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const invoiceId = params.get("id");
+
+const form = document.getElementById("editInvoiceForm");
+const message = document.getElementById("message");
+const saveBtn = document.getElementById("saveBtn");
+
+let currentInvoice = null;
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = "message " + type;
+}
+
+
+async function checkSession() {
+    const response = await fetch(
+        "../../backend/auth/check_session.php",
+        {
+            credentials: "same-origin",
+            cache: "no-store"
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !data.user) {
+        window.location.href = "../login.html";
+        return false;
+    }
+
+    const role = String(data.user.role || "").toLowerCase();
+
+    if (!["admin", "finance_officer"].includes(role)) {
+        if (role === "hr_officer") {
+            window.location.href = "../staff-dashboard.html";
+        } else if (role === "it") {
+            window.location.href = "../it-dashboard.html";
+        } else {
+            window.location.href = "../login.html";
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+
+async function loadCustomers() {
+    const response = await fetch(
+        "../../backend/clients/get.php",
+        { credentials: "same-origin" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !Array.isArray(data.clients)) {
+        throw new Error(data.message || "Could not load customers.");
+    }
+
+    const select = document.getElementById("client_id");
+    select.innerHTML = '<option value="">Select Customer</option>';
+
+    data.clients.forEach(client => {
+        const option = document.createElement("option");
+        option.value = client.client_id;
+        option.textContent = client.full_name;
+        select.appendChild(option);
+    });
+}
+
+async function loadInvoice() {
+    if (!invoiceId || !/^\d+$/.test(invoiceId)) {
+        throw new Error("A valid invoice ID is required.");
+    }
+
+    const response = await fetch(
+        "../../backend/invoices/get.php",
+        { credentials: "same-origin" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !Array.isArray(data.invoices)) {
+        throw new Error(data.message || "Could not load invoices.");
+    }
+
+    currentInvoice = data.invoices.find(
+        invoice => String(invoice.invoice_id) === String(invoiceId)
+    );
+
+    if (!currentInvoice) {
+        throw new Error("Invoice not found.");
+    }
+
+    document.getElementById("invoice_number").value =
+        currentInvoice.invoice_number || "";
+
+    document.getElementById("client_id").value =
+        currentInvoice.client_id;
+
+    document.getElementById("period_start").value =
+        currentInvoice.period_start || "";
+
+    document.getElementById("period_end").value =
+        currentInvoice.period_end || "";
+
+    document.getElementById("amount").value =
+        currentInvoice.amount;
+
+    document.getElementById("due_date").value =
+        currentInvoice.due_date || "";
+
+    const paid = Number(currentInvoice.amount_paid || 0);
+    const balance = Number(
+        currentInvoice.balance ??
+        (Number(currentInvoice.amount) - paid)
+    );
+
+    document.getElementById("paymentInfo").textContent =
+        "Amount paid: ZMW " + paid.toFixed(2) +
+        " | Outstanding balance: ZMW " + balance.toFixed(2);
+}
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    if (!currentInvoice) {
+        showMessage("Invoice information has not loaded.", "error");
+        return;
+    }
+
+    const amount = Number(document.getElementById("amount").value);
+    const amountPaid = Number(currentInvoice.amount_paid || 0);
+
+    if (amount < amountPaid) {
+        showMessage(
+            "The invoice amount cannot be less than the amount already paid (ZMW " +
+            amountPaid.toFixed(2) + ").",
+            "error"
+        );
+        return;
+    }
+
+    const periodStart = document.getElementById("period_start").value;
+    const periodEnd = document.getElementById("period_end").value;
+
+    if (periodEnd < periodStart) {
+        showMessage(
+            "Period end cannot be earlier than period start.",
+            "error"
+        );
+        return;
+    }
+
+    const payload = {
+        invoice_id: Number(invoiceId),
+        client_id: Number(document.getElementById("client_id").value),
+        period_start: periodStart,
+        period_end: periodEnd,
+        amount: amount,
+        due_date: document.getElementById("due_date").value
+    };
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    try {
+        const response = await fetch(
+            "../../backend/invoices/edit.php",
+            {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Could not update invoice.");
+        }
+
+        showMessage(
+            "Invoice updated successfully. Returning to invoices...",
+            "success"
+        );
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1800);
+
+    } catch (error) {
+        showMessage(error.message, "error");
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
+    }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async function(event) {
+    event.preventDefault();
+
+    try {
+        await fetch("../../backend/auth/logout.php", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+    } finally {
+        window.location.href = "../login.html";
+    }
+});
+
+async function initializePage() {
+    try {
+        const allowed = await checkSession();
+        if (!allowed) return;
+
+        await loadCustomers();
+        await loadInvoice();
+
+    } catch (error) {
+        showMessage(error.message, "error");
+        saveBtn.disabled = true;
+    }
+}
+
+initializePage();
+</script>
+
+</body>
+</html>

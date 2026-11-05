@@ -1,0 +1,630 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - Performance Management</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f5f8;
+    color: #252936;
+}
+
+.sidebar {
+    position: fixed;
+    width: 245px;
+    height: 100vh;
+    background: #171c26;
+    color: white;
+    padding: 25px 17px;
+    overflow-y: auto;
+}
+
+.brand {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 5px 10px 35px;
+}
+
+.brand span {
+    color: #e04444;
+}
+
+.sidebar a {
+    display: block;
+    color: #cbd0da;
+    text-decoration: none;
+    padding: 13px 12px;
+    border-radius: 7px;
+    margin-bottom: 7px;
+    font-size: 14px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #961a1a;
+    color: white;
+}
+
+.main {
+    margin-left: 245px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.topbar h1 {
+    font-size: 25px;
+}
+
+.topbar p {
+    color: #777;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.add-btn {
+    background: #961a1a;
+    color: white;
+    padding: 12px 18px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.card p {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.card h2 {
+    font-size: 27px;
+}
+
+.panel {
+    background: white;
+    padding: 23px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.panel h3 {
+    margin-bottom: 18px;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 11px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.filters input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filters select {
+    min-width: 140px;
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 850px;
+}
+
+th, td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+th {
+    color: #777;
+    background: #fafafa;
+}
+
+.stars {
+    color: #e4a000;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.review {
+    max-width: 260px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.action-links {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.view-btn,
+.edit-btn {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.view-btn {
+    color: #961a1a;
+}
+
+.edit-btn {
+    color: #1769aa;
+}
+
+.delete-btn {
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 7px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-btn:hover {
+    background: #941b1b;
+}
+
+.delete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.message {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    display: none;
+}
+
+.message.error {
+    display: block;
+    background: #fdeaea;
+    color: #a21b1b;
+}
+
+.message.success {
+    display: block;
+    background: #e0f3e5;
+    color: #176b32;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 25px;
+}
+
+@media(max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="brand">KATUBA <span>CRM</span></div>
+
+    <a href="../staff-dashboard.html">← Back to Staff Dashboard</a>
+    <a href="../staff-dashboard.html">HR Dashboard</a>
+    <a href="../workers/index.html">Worker Management</a>
+    <a href="../attendance/index.html">Attendance</a>
+    <a href="../assignments/index.html">Staff Assignments</a>
+    <a href="index.html" class="active">Performance Management</a>
+    <a href="../dashboard.html">Main Dashboard</a>
+
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div>
+            <h1>Performance Management</h1>
+            <p>Monitor worker performance and customer feedback.</p>
+        </div>
+
+        <a href="add.html" class="add-btn">+ Add Review</a>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <section class="cards">
+
+        <div class="card">
+            <p>Total Reviews</p>
+            <h2 id="totalReviews">—</h2>
+        </div>
+
+        <div class="card">
+            <p>Average Rating</p>
+            <h2 id="averageRating">—</h2>
+        </div>
+
+        <div class="card">
+            <p>Excellent Reviews (5 Stars)</p>
+            <h2 id="excellentReviews">—</h2>
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <h3>Worker Performance Reviews</h3>
+
+        <div class="filters">
+
+            <input
+                type="search"
+                id="searchInput"
+                placeholder="Search worker or customer..."
+            >
+
+            <select id="ratingFilter">
+                <option value="">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+            </select>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Review ID</th>
+                        <th>Worker</th>
+                        <th>Customer</th>
+                        <th>Rating</th>
+                        <th>Review</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ratingsTable">
+                    <tr>
+                        <td colspan="7" class="empty">
+                            Loading performance reviews...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+"use strict";
+
+const API_URL = "../../backend/performance/get.php";
+const DELETE_URL = "../../backend/performance/delete.php";
+
+let allRatings = [];
+
+function showMessage(message, type) {
+    const box = document.getElementById("message");
+    box.textContent = message;
+    box.className = "message " + type;
+    box.style.display = "block";
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
+}
+
+function formatDate(dateValue) {
+    if (!dateValue) return "—";
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+        return escapeHTML(dateValue);
+    }
+
+    return date.toLocaleDateString();
+}
+
+function renderRatings(ratings) {
+
+    const tbody = document.getElementById("ratingsTable");
+
+    if (ratings.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty">
+                    No performance reviews found.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = ratings.map(item => {
+
+        const rating = Number(item.rating) || 0;
+        const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+        const id = encodeURIComponent(item.rating_id);
+
+        return `
+            <tr>
+                <td>#${escapeHTML(item.rating_id)}</td>
+
+                <td>${escapeHTML(item.worker_name || "Unknown worker")}</td>
+
+                <td>${escapeHTML(item.customer_name || "Unknown customer")}</td>
+
+                <td class="stars">${stars}</td>
+
+                <td class="review">
+                    ${escapeHTML(item.review || "No written review")}
+                </td>
+
+                <td>${formatDate(item.rating_date)}</td>
+
+                <td>
+                    <div class="action-links">
+
+                        <a class="view-btn"
+                           href="view.html?id=${id}">
+                           View
+                        </a>
+
+                        <a class="edit-btn"
+                           href="edit.html?id=${id}">
+                           Edit
+                        </a>
+
+                        <button
+                            type="button"
+                            class="delete-btn"
+                            data-id="${escapeHTML(item.rating_id)}">
+                            Delete
+                        </button>
+
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function updateStatistics(ratings) {
+
+    const total = ratings.length;
+
+    const sum = ratings.reduce(
+        (result, item) => result + Number(item.rating || 0),
+        0
+    );
+
+    const average = total ? (sum / total).toFixed(1) : "0.0";
+
+    const excellent = ratings.filter(
+        item => Number(item.rating) === 5
+    ).length;
+
+    document.getElementById("totalReviews").textContent = total;
+    document.getElementById("averageRating").textContent = average + " / 5";
+    document.getElementById("excellentReviews").textContent = excellent;
+}
+
+function applyFilters() {
+
+    const search = document.getElementById("searchInput")
+        .value.trim().toLowerCase();
+
+    const rating = document.getElementById("ratingFilter").value;
+
+    const filtered = allRatings.filter(item => {
+
+        const matchesSearch =
+            String(item.worker_name || "").toLowerCase().includes(search) ||
+            String(item.customer_name || "").toLowerCase().includes(search) ||
+            String(item.review || "").toLowerCase().includes(search);
+
+        const matchesRating =
+            !rating || String(item.rating) === rating;
+
+        return matchesSearch && matchesRating;
+    });
+
+    renderRatings(filtered);
+}
+
+async function loadRatings() {
+
+    try {
+
+        const response = await fetch(API_URL, {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to load performance reviews.");
+        }
+
+        allRatings = result.ratings || [];
+
+        updateStatistics(allRatings);
+        applyFilters();
+
+    } catch (error) {
+
+        console.error(error);
+        showMessage(error.message, "error");
+
+        document.getElementById("ratingsTable").innerHTML = `
+            <tr>
+                <td colspan="7" class="empty">
+                    Unable to load performance reviews.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Handle Delete button clicks
+document.getElementById("ratingsTable")
+    .addEventListener("click", async function(event) {
+
+        const button = event.target.closest(".delete-btn");
+
+        if (!button) return;
+
+        const ratingId = button.dataset.id;
+
+        const confirmed = confirm(
+            "Are you sure you want to permanently delete performance review #" +
+            ratingId +
+            "?\n\nThis action cannot be undone."
+        );
+
+        if (!confirmed) return;
+
+        button.disabled = true;
+        button.textContent = "Deleting...";
+
+        try {
+
+            const response = await fetch(DELETE_URL, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    rating_id: Number(ratingId)
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || "Unable to delete performance review."
+                );
+            }
+
+            showMessage(
+                "Performance review #" + ratingId + " deleted successfully.",
+                "success"
+            );
+
+            await loadRatings();
+
+        } catch (error) {
+
+            showMessage(error.message, "error");
+            button.disabled = false;
+            button.textContent = "Delete";
+        }
+    });
+
+document.getElementById("searchInput")
+    .addEventListener("input", applyFilters);
+
+document.getElementById("ratingFilter")
+    .addEventListener("change", applyFilters);
+
+loadRatings();
+</script>
+
+</body>
+</html>
