@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATUBA CRM - System Activity Logs</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f5f8;
+    color: #252525;
+}
+
+.sidebar {
+    width: 235px;
+    height: 100vh;
+    background: #171c26;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 25px 15px;
+}
+
+.brand {
+    font-size: 21px;
+    font-weight: bold;
+    padding: 0 12px 30px;
+}
+
+.sidebar a {
+    display: block;
+    color: #cbd0d9;
+    text-decoration: none;
+    padding: 13px 14px;
+    margin-bottom: 5px;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #961a1a;
+    color: white;
+}
+
+.main {
+    margin-left: 235px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.topbar h1 {
+    font-size: 26px;
+}
+
+.topbar p {
+    color: #777;
+    font-size: 13px;
+    margin-top: 7px;
+}
+
+.back-btn {
+    background: #961a1a;
+    color: white;
+    text-decoration: none;
+    padding: 11px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    padding: 22px;
+    border-radius: 9px;
+    border: 1px solid #eee;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.stat-card span {
+    color: #777;
+    font-size: 13px;
+}
+
+.stat-card h2 {
+    font-size: 27px;
+    margin-top: 10px;
+    color: #961a1a;
+}
+
+.panel {
+    background: white;
+    border-radius: 10px;
+    padding: 22px;
+    border: 1px solid #eee;
+    box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.panel-header h2 {
+    font-size: 18px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.controls input,
+.controls select {
+    padding: 11px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+}
+
+.controls input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.controls select {
+    min-width: 150px;
+}
+
+.refresh-btn {
+    background: #171c26;
+    color: white;
+    border: none;
+    padding: 11px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 750px;
+}
+
+th, td {
+    text-align: left;
+    padding: 14px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+th {
+    background: #f8f8f8;
+    color: #555;
+}
+
+td {
+    color: #555;
+}
+
+.status {
+    display: inline-block;
+    background: #f8e5e5;
+    color: #961a1a;
+    padding: 6px 9px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.message {
+    padding: 15px;
+    text-align: center;
+    color: #777;
+    font-size: 13px;
+}
+
+.footer {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    margin-top: 25px;
+}
+
+@media(max-width: 950px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        width: 65px;
+        padding: 20px 6px;
+    }
+
+    .brand {
+        font-size: 11px;
+        padding: 0 2px 20px;
+    }
+
+    .sidebar a {
+        font-size: 0;
+        text-align: center;
+        padding: 13px 4px;
+    }
+
+    .sidebar a::first-letter {
+        font-size: 16px;
+    }
+
+    .main {
+        margin-left: 65px;
+        padding: 18px 12px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar h1 {
+        font-size: 20px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">KATUBA CRM</div>
+
+    <a href="../dashboard.html">⌂ Main Dashboard</a>
+    <a href="../it-dashboard.html">▣ IT Dashboard</a>
+    <a href="../users/index.html">♙ User Management</a>
+    <a href="../documents/index.html">▤ Documents</a>
+    <a href="index.html" class="active">▥ Activity Logs</a>
+</aside>
+
+<main class="main">
+
+    <header class="topbar">
+        <div>
+            <h1>System Activity Logs</h1>
+            <p>Monitor important activities performed in KATUBA CRM.</p>
+        </div>
+
+        <a href="../it-dashboard.html" class="back-btn">Back to IT Dashboard</a>
+    </header>
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <span>Total Activities</span>
+            <h2 id="totalActivities">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <span>Today's Activities</span>
+            <h2 id="todayActivities">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <span>Active Users Recorded</span>
+            <h2 id="activeUsers">0</h2>
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <div class="panel-header">
+            <h2>Activity History</h2>
+        </div>
+
+        <div class="controls">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search user, action or description..."
+            >
+
+            <select id="actionFilter">
+                <option value="">All Activities</option>
+                <option value="login">Login</option>
+                <option value="logout">Logout</option>
+                <option value="create">Create</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+                <option value="upload">Upload</option>
+            </select>
+
+            <button class="refresh-btn" onclick="loadActivities()">
+                Refresh
+            </button>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Log ID</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>IP Address</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="activityTable">
+                    <tr>
+                        <td colspan="6" class="message">
+                            Loading activities...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div id="message" class="message"></div>
+
+    </section>
+
+    <div class="footer">
+        KATUBA CRM &copy; 2026 | System Administration
+    </div>
+
+</main>
+
+<script>
+let allActivities = [];
+
+async function checkAccess() {
+    try {
+        const response = await fetch(
+            "../../backend/auth/check_session.php",
+            {
+                credentials: "same-origin",
+                cache: "no-store"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success || !result.user) {
+            window.location.replace("../login.html");
+            return false;
+        }
+
+        const role = String(result.user.role || "").toLowerCase();
+
+        if (!["admin", "it"].includes(role)) {
+            if (role === "finance_officer") {
+                window.location.replace("../finance-dashboard.html");
+            } else if (role === "hr_officer") {
+                window.location.replace("../staff-dashboard.html");
+            } else {
+                window.location.replace("../dashboard.html");
+            }
+
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+        window.location.replace("../login.html");
+        return false;
+    }
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function(char) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        }[char];
+    });
+}
+
+async function loadActivities() {
+    const table = document.getElementById("activityTable");
+    const message = document.getElementById("message");
+
+    table.innerHTML = `
+        <tr>
+            <td colspan="6" class="message">Loading activities...</td>
+        </tr>
+    `;
+
+    message.textContent = "";
+
+    try {
+        const response = await fetch(
+            "../../backend/activity_logs/get.php",
+            {
+                credentials: "same-origin",
+                cache: "no-store"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Unable to load activities.");
+        }
+
+        allActivities = Array.isArray(result.activities)
+            ? result.activities
+            : [];
+
+        updateStatistics();
+        filterActivities();
+
+    } catch (error) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="6" class="message">
+                    ${escapeHTML(error.message)}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateStatistics() {
+    const today = new Date().toLocaleDateString();
+
+    const todayCount = allActivities.filter(item => {
+        return item.created_at &&
+            new Date(item.created_at).toLocaleDateString() === today;
+    }).length;
+
+    const users = new Set(
+        allActivities
+            .filter(item => item.user_id !== null)
+            .map(item => item.user_id)
+    );
+
+    document.getElementById("totalActivities").textContent =
+        allActivities.length;
+
+    document.getElementById("todayActivities").textContent =
+        todayCount;
+
+    document.getElementById("activeUsers").textContent =
+        users.size;
+}
+
+function filterActivities() {
+    const search = document.getElementById("searchInput")
+        .value.toLowerCase();
+
+    const action = document.getElementById("actionFilter")
+        .value.toLowerCase();
+
+    const filtered = allActivities.filter(item => {
+        const searchable = [
+            item.full_name,
+            item.action,
+            item.description,
+            item.ip_address
+        ].join(" ").toLowerCase();
+
+        const matchesSearch = searchable.includes(search);
+        const matchesAction = !action ||
+            String(item.action || "").toLowerCase().includes(action);
+
+        return matchesSearch && matchesAction;
+    });
+
+    displayActivities(filtered);
+}
+
+function displayActivities(activities) {
+    const table = document.getElementById("activityTable");
+
+    if (activities.length === 0) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="6" class="message">
+                    No activity records found.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    table.innerHTML = activities.map(item => `
+        <tr>
+            <td>#${escapeHTML(item.log_id)}</td>
+            <td>${escapeHTML(item.full_name || "Deleted/Unknown User")}</td>
+            <td>
+                <span class="status">
+                    ${escapeHTML(item.action)}
+                </span>
+            </td>
+            <td>${escapeHTML(item.description || "-")}</td>
+            <td>${escapeHTML(item.ip_address || "-")}</td>
+            <td>${escapeHTML(item.created_at || "-")}</td>
+        </tr>
+    `).join("");
+}
+
+document.getElementById("searchInput")
+    .addEventListener("input", filterActivities);
+
+document.getElementById("actionFilter")
+    .addEventListener("change", filterActivities);
+
+async function initializePage() {
+    const allowed = await checkAccess();
+
+    if (!allowed) return;
+
+    document.body.style.visibility = "visible";
+    await loadActivities();
+}
+
+initializePage();
+</script>
+
+</body>
+</html>

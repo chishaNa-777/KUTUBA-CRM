@@ -74,7 +74,9 @@ if (strlen($password) < 8) {
 
 $allowedRoles = [
     "admin",
+    "finance_officer",
     "hr_officer",
+    "it",
     "operations_manager"
 ];
 
@@ -92,6 +94,13 @@ if (!in_array($status, ["active", "inactive"], true)) {
     ]);
 }
 
+// Argon2id configuration.
+$hashOptions = [
+    "memory_cost" => 19456,
+    "time_cost" => 2,
+    "threads" => 1
+];
+
 $profilePicturePath = null;
 $uploadedFilePath = null;
 
@@ -105,6 +114,7 @@ $allowedMimeTypes = [
 
 try {
 
+    // Check for duplicate email.
     $check = $conn->prepare("
         SELECT user_id
         FROM users
@@ -121,6 +131,7 @@ try {
         ]);
     }
 
+    // Process profile picture.
     if (isset($_FILES["profile_picture"])) {
 
         $file = $_FILES["profile_picture"];
@@ -185,15 +196,20 @@ try {
         }
     }
 
+    // Hash password using Argon2id.
     $hashedPassword = password_hash(
         $password,
-        PASSWORD_DEFAULT
+        PASSWORD_ARGON2ID,
+        $hashOptions
     );
 
     if ($hashedPassword === false) {
-        throw new RuntimeException("Unable to secure the password.");
+        throw new RuntimeException(
+            "Unable to secure the password using Argon2id."
+        );
     }
 
+    // Create the user account and retrieve its ID.
     $stmt = $conn->prepare("
         INSERT INTO users (
             full_name,
@@ -205,6 +221,7 @@ try {
             profile_picture
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING user_id
     ");
 
     $stmt->execute([
@@ -217,10 +234,44 @@ try {
         $profilePicturePath
     ]);
 
+    $newUserId = (int) $stmt->fetchColumn();
+
+    // Record account creation in activity logs.
+    try {
+
+        $logStmt = $conn->prepare("
+            INSERT INTO activity_logs (
+                user_id,
+                action,
+                description,
+                ip_address,
+                user_agent
+            )
+            VALUES (?, ?, ?, ?, ?)
+        ");
+
+        $logStmt->execute([
+            (int) $_SESSION["user_id"],
+            "USER_CREATED",
+            "Created user account: " . $full_name .
+            " (" . $email . "), Role: " . $role .
+            ", Status: " . $status,
+            $_SERVER["REMOTE_ADDR"] ?? null,
+            $_SERVER["HTTP_USER_AGENT"] ?? null
+        ]);
+
+    } catch (Throwable $logError) {
+
+        error_log(
+            "KATUBA CRM user creation log error: " .
+            $logError->getMessage()
+        );
+    }
+
     respond(201, [
         "success" => true,
         "message" => "User added successfully.",
-        "user_id" => (int) $conn->lastInsertId(),
+        "user_id" => $newUserId,
         "profile_picture" => $profilePicturePath
     ]);
 

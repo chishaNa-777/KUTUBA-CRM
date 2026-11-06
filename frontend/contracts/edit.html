@@ -90,6 +90,7 @@
             display: flex;
             gap: 12px;
             margin-top: 25px;
+            flex-wrap: wrap;
         }
 
         button, .back-link {
@@ -122,6 +123,8 @@
             padding: 12px;
             border-radius: 7px;
             display: none;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         #message.success {
@@ -134,6 +137,12 @@
             display: block;
             background: #fdeaea;
             color: #a51d1d;
+        }
+
+        #loading {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
         }
 
         @media(max-width:650px) {
@@ -165,7 +174,10 @@
         <h2>Edit Contract</h2>
         <p class="subtitle">Update the service agreement details.</p>
 
-        <form id="editContractForm">
+        <p id="loading">Loading contract information...</p>
+
+        <form id="editContractForm" style="display:none;">
+
             <div class="form-grid">
 
                 <div class="form-group">
@@ -205,7 +217,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="monthly_fee">Monthly Fee *</label>
+                    <label for="monthly_fee">Monthly Fee (ZMW) *</label>
                     <input type="number" id="monthly_fee"
                            name="monthly_fee" min="0" step="0.01" required>
                 </div>
@@ -242,8 +254,9 @@
                 <a href="index.html" class="back-link">Cancel</a>
             </div>
 
-            <div id="message" role="alert"></div>
         </form>
+
+        <div id="message" role="alert"></div>
 
     </section>
 </main>
@@ -256,8 +269,9 @@ const form = document.getElementById("editContractForm");
 const customerSelect = document.getElementById("client_id");
 const message = document.getElementById("message");
 const saveBtn = document.getElementById("saveBtn");
+const loading = document.getElementById("loading");
 
-function showMessage(text, type) {
+function showMessage(text, type = "error") {
     message.textContent = text;
     message.className = type;
 }
@@ -266,19 +280,38 @@ function setField(name, value) {
     document.getElementById(name).value = value ?? "";
 }
 
-async function loadCustomers() {
-    const response = await fetch("../../backend/clients/get.php", {
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, {
         credentials: "same-origin",
-        cache: "no-store"
+        cache: "no-store",
+        ...options
     });
 
-    const result = await response.json();
+    const text = await response.text();
 
-    if (!response.ok || !result.success) {
-        throw new Error(result.message || "Unable to load customers.");
+    let result;
+
+    try {
+        result = JSON.parse(text);
+    } catch (error) {
+        throw new Error(
+            "The server returned an invalid response. Please check the PHP endpoint."
+        );
     }
 
-    const customers = Array.isArray(result.clients) ? result.clients : [];
+    if (!response.ok || result.success !== true) {
+        throw new Error(result.message || "The request failed.");
+    }
+
+    return result;
+}
+
+async function loadCustomers() {
+    const result = await fetchJSON("../../backend/clients/get.php");
+
+    const customers = Array.isArray(result.clients)
+        ? result.clients
+        : [];
 
     customerSelect.innerHTML =
         '<option value="">Select a customer</option>';
@@ -292,28 +325,20 @@ async function loadCustomers() {
 }
 
 async function loadContract() {
-    if (!contractId || !/^\d+$/.test(contractId)) {
+    if (!contractId || !/^\d+$/.test(contractId) || Number(contractId) < 1) {
         throw new Error("A valid contract ID is required.");
     }
 
-    const response = await fetch(
-        "../../backend/contracts/get.php",
-        {
-            credentials: "same-origin",
-            cache: "no-store"
-        }
-    );
+    const result = await fetchJSON("../../backend/contracts/get.php");
 
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-        throw new Error(result.message || "Unable to load contract.");
-    }
-
-    const contracts = Array.isArray(result.data) ? result.data : [];
+    const contracts = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result.contracts)
+            ? result.contracts
+            : [];
 
     const contract = contracts.find(
-        item => String(item.contract_id) === contractId
+        item => String(item.contract_id) === String(contractId)
     );
 
     if (!contract) {
@@ -324,9 +349,10 @@ async function loadContract() {
     setField("client_id", contract.client_id);
     setField("service_type", contract.service_type);
     setField("package", contract.package);
-    setField("start_date", String(contract.start_date).slice(0, 10));
+    setField("start_date", String(contract.start_date || "").slice(0, 10));
     setField("end_date", contract.end_date
-        ? String(contract.end_date).slice(0, 10) : "");
+        ? String(contract.end_date).slice(0, 10)
+        : "");
     setField("monthly_fee", contract.monthly_fee);
     setField("payment_terms", contract.payment_terms);
     setField("terms_conditions", contract.terms_conditions);
@@ -342,36 +368,35 @@ form.addEventListener("submit", async function(event) {
     const endDate = document.getElementById("end_date").value;
 
     if (endDate && endDate < startDate) {
-        showMessage("End date cannot be earlier than start date.", "error");
+        showMessage(
+            "End date cannot be earlier than start date.",
+            "error"
+        );
         return;
     }
 
     saveBtn.disabled = true;
     saveBtn.textContent = "Updating...";
+    message.className = "";
 
     try {
         const formData = new FormData(form);
         formData.append("contract_id", contractId);
 
-        const response = await fetch(
+        const result = await fetchJSON(
             "../../backend/contracts/edit.php",
             {
                 method: "POST",
-                body: formData,
-                credentials: "same-origin"
+                body: formData
             }
         );
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || "Unable to update contract.");
-        }
-
         showMessage(
-            "Contract updated successfully! Returning to contracts...",
+            result.message || "Contract updated successfully!",
             "success"
         );
+
+        saveBtn.textContent = "Updated";
 
         setTimeout(() => {
             window.location.href = "index.html";
@@ -379,7 +404,6 @@ form.addEventListener("submit", async function(event) {
 
     } catch (error) {
         showMessage(error.message, "error");
-    } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = "Update Contract";
     }
@@ -387,9 +411,18 @@ form.addEventListener("submit", async function(event) {
 
 async function initializePage() {
     try {
+        if (!contractId) {
+            throw new Error("Contract ID is missing from the page URL.");
+        }
+
         await loadCustomers();
         await loadContract();
+
+        loading.style.display = "none";
+        form.style.display = "block";
+
     } catch (error) {
+        loading.style.display = "none";
         showMessage(error.message, "error");
         saveBtn.disabled = true;
     }

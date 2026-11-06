@@ -6,26 +6,32 @@ session_start();
 header("Content-Type: application/json; charset=UTF-8");
 header("Cache-Control: no-store, no-cache, must-revalidate");
 
+function respond(int $status, array $data): void
+{
+    http_response_code($status);
+    echo json_encode($data);
+    exit;
+}
+
+// Authentication
 if (empty($_SESSION["user_id"])) {
-    http_response_code(401);
-    echo json_encode([
+    respond(401, [
         "success" => false,
         "message" => "Not authenticated."
     ]);
-    exit;
 }
 
 require_once __DIR__ . "/../config/database.php";
 
+// Request method
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode([
+    respond(405, [
         "success" => false,
         "message" => "Invalid request method."
     ]);
-    exit;
 }
 
+// Read form fields
 $contract_id = filter_var(
     $_POST["contract_id"] ?? "",
     FILTER_VALIDATE_INT
@@ -42,6 +48,7 @@ $payment_terms = trim($_POST["payment_terms"] ?? "");
 $terms_conditions = trim($_POST["terms_conditions"] ?? "");
 $status = trim($_POST["status"] ?? "");
 
+// Validate required fields
 if (
     !$contract_id ||
     !$client_id ||
@@ -54,24 +61,81 @@ if (
     !is_finite((float)$monthly_fee) ||
     (float)$monthly_fee < 0
 ) {
-    http_response_code(400);
-    echo json_encode([
+    respond(400, [
         "success" => false,
         "message" => "Please provide all required fields correctly."
     ]);
-    exit;
 }
 
-if (!in_array($status, ["Draft", "Active", "Expired", "Terminated"], true)) {
-    http_response_code(400);
-    echo json_encode([
+// Validate date format
+function validDate(string $date): bool
+{
+    $parsed = DateTime::createFromFormat("!Y-m-d", $date);
+
+    return $parsed !== false &&
+        $parsed->format("Y-m-d") === $date;
+}
+
+if (!validDate($start_date)) {
+    respond(400, [
+        "success" => false,
+        "message" => "Please provide a valid contract start date."
+    ]);
+}
+
+if ($end_date !== "") {
+
+    if (!validDate($end_date)) {
+        respond(400, [
+            "success" => false,
+            "message" => "Please provide a valid contract end date."
+        ]);
+    }
+
+    if ($end_date < $start_date) {
+        respond(400, [
+            "success" => false,
+            "message" => "The contract end date cannot be earlier than the start date."
+        ]);
+    }
+}
+
+// Validate status
+$allowedStatuses = [
+    "Draft",
+    "Active",
+    "Expired",
+    "Terminated"
+];
+
+if (!in_array($status, $allowedStatuses, true)) {
+    respond(400, [
         "success" => false,
         "message" => "Invalid contract status."
     ]);
-    exit;
 }
 
 try {
+
+    // Check that the customer exists
+    $clientStmt = $conn->prepare("
+        SELECT client_id
+        FROM clients
+        WHERE client_id = :client_id
+    ");
+
+    $clientStmt->execute([
+        ":client_id" => $client_id
+    ]);
+
+    if (!$clientStmt->fetchColumn()) {
+        respond(404, [
+            "success" => false,
+            "message" => "Selected customer was not found."
+        ]);
+    }
+
+    // Update contract
     $stmt = $conn->prepare("
         UPDATE contracts
         SET
@@ -107,27 +171,26 @@ try {
     $updatedId = $stmt->fetchColumn();
 
     if (!$updatedId) {
-        http_response_code(404);
-        echo json_encode([
+        respond(404, [
             "success" => false,
             "message" => "Contract not found."
         ]);
-        exit;
     }
 
-    echo json_encode([
+    respond(200, [
         "success" => true,
         "message" => "Contract updated successfully.",
         "contract_id" => $updatedId
     ]);
 
 } catch (PDOException $e) {
+
     error_log("Contract update error: " . $e->getMessage());
 
-    http_response_code(500);
-
-    echo json_encode([
+    respond(500, [
         "success" => false,
         "message" => "Unable to update contract. Check the contract number and customer details."
     ]);
 }
+
+?>

@@ -6,29 +6,37 @@ session_start();
 header("Content-Type: application/json; charset=UTF-8");
 header("Cache-Control: no-store, no-cache, must-revalidate");
 
-if (empty($_SESSION["user_id"])) {
-    http_response_code(401);
+function respond(int $status, array $data): void
+{
+    http_response_code($status);
+    echo json_encode($data);
+    exit;
+}
 
-    echo json_encode([
+// Check authentication
+if (empty($_SESSION["user_id"])) {
+    respond(401, [
         "success" => false,
         "message" => "Not authenticated."
     ]);
-
-    exit;
 }
 
-require_once __DIR__ . "/../config/database.php";
+// Allow administrators only
+if (($_SESSION["role"] ?? "") !== "admin") {
+    respond(403, [
+        "success" => false,
+        "message" => "You are not authorized to delete contracts."
+    ]);
+}
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-
-    echo json_encode([
+    respond(405, [
         "success" => false,
         "message" => "Invalid request method."
     ]);
-
-    exit;
 }
+
+require_once __DIR__ . "/../config/database.php";
 
 $contract_id = filter_var(
     $_POST["contract_id"] ?? "",
@@ -36,17 +44,33 @@ $contract_id = filter_var(
 );
 
 if (!$contract_id || $contract_id <= 0) {
-    http_response_code(400);
-
-    echo json_encode([
+    respond(400, [
         "success" => false,
         "message" => "A valid contract ID is required."
     ]);
-
-    exit;
 }
 
 try {
+
+    $stmt = $conn->prepare("
+        SELECT contract_id
+        FROM contracts
+        WHERE contract_id = :contract_id
+    ");
+
+    $stmt->execute([
+        ":contract_id" => $contract_id
+    ]);
+
+    if (!$stmt->fetchColumn()) {
+        respond(404, [
+            "success" => false,
+            "message" => "Contract not found."
+        ]);
+    }
+
+    // Delete only the selected contract.
+    // Related invoices and payments are not deleted by this code.
     $stmt = $conn->prepare("
         DELETE FROM contracts
         WHERE contract_id = :contract_id
@@ -60,17 +84,13 @@ try {
     $deletedId = $stmt->fetchColumn();
 
     if (!$deletedId) {
-        http_response_code(404);
-
-        echo json_encode([
+        respond(404, [
             "success" => false,
-            "message" => "Contract not found."
+            "message" => "Contract could not be deleted."
         ]);
-
-        exit;
     }
 
-    echo json_encode([
+    respond(200, [
         "success" => true,
         "message" => "Contract deleted successfully."
     ]);
@@ -79,10 +99,8 @@ try {
 
     error_log("Contract deletion error: " . $e->getMessage());
 
-    http_response_code(500);
-
-    echo json_encode([
+    respond(500, [
         "success" => false,
-        "message" => "Unable to delete this contract."
+        "message" => "Unable to delete this contract. Check whether another record is linked to it."
     ]);
 }
