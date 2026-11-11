@@ -1,15 +1,19 @@
 
 <?php
 
-$host = getenv("DB_HOST") ?: "localhost";
+$host = getenv("DB_HOST");
 $port = getenv("DB_PORT") ?: "5432";
-$dbname = getenv("DB_NAME") ?: "katuba_crm";
-$username = getenv("DB_USER") ?: "postgres";
+$dbname = getenv("DB_NAME") ?: "postgres";
+$username = getenv("DB_USER");
+$password = getenv("DB_PASSWORD");
+$sslmode = getenv("DB_SSLMODE") ?: "require";
 
-// ENTER YOUR POSTGRESQL PASSWORD BELOW
-$password = "Chisha@22$$";
-
-$sslmode = getenv("DB_SSLMODE") ?: "prefer";
+// Check required environment variables.
+if (!$host || !$username || !$password) {
+    error_log("Database configuration is incomplete.");
+    http_response_code(500);
+    die("Database configuration is incomplete.");
+}
 
 try {
 
@@ -18,20 +22,14 @@ try {
     $conn = new PDO(
         $dsn,
         $username,
-        $password
+        $password,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
     );
 
-    $conn->setAttribute(
-        PDO::ATTR_ERRMODE,
-        PDO::ERRMODE_EXCEPTION
-    );
-
-    $conn->setAttribute(
-        PDO::ATTR_DEFAULT_FETCH_MODE,
-        PDO::FETCH_ASSOC
-    );
-
-    // Make the connection available as both variables
+    // Support both variable names used in the CRM.
     $pdo = $conn;
 
 } catch (PDOException $e) {
