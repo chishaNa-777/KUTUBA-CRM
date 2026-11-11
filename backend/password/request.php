@@ -73,9 +73,17 @@ try {
         $user["id"]
     ]);
 
-    // Local reset link for testing
-    $reset_link =
-        "http://localhost/KUTUBA-CRM/frontend/reset-password.html?token="
+    $appUrl = rtrim(getenv("APP_URL") ?: "", "/");
+    if ($appUrl === "") {
+        $forwardedProto = $_SERVER["HTTP_X_FORWARDED_PROTO"] ?? "";
+        $scheme = $forwardedProto !== ""
+            ? explode(",", $forwardedProto)[0]
+            : ((!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ? "https" : "http");
+        $appUrl = $scheme . "://" . ($_SERVER["HTTP_HOST"] ?? "localhost");
+    }
+
+    $reset_link = $appUrl
+        . "/frontend/reset-password.html?token="
         . urlencode($reset_token);
 
     echo json_encode([

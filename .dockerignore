@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+!.env.example
+uploads
+*.sql
+*.sql.gz
+*.dump
+*.backup
+*.bak

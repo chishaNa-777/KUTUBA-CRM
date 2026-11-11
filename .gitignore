@@ -3,7 +3,6 @@
 .env
 .env.*
 !.env.example
-backend/config/database.php
 
 # Database exports, backups and dumps
 *.sql

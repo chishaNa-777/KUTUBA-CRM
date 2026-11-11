@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: kutuba-crm
+    runtime: docker
+    plan: free
+    healthCheckPath: /frontend/login.html
+    envVars:
+      - key: APP_URL
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kutuba-crm-db
+          property: connectionString
+
+databases:
+  - name: kutuba-crm-db
+    databaseName: kutuba_crm
+    user: kutuba_crm_user
+    plan: free
