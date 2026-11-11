@@ -8,11 +8,25 @@ $username = getenv("DB_USER");
 $password = getenv("DB_PASSWORD");
 $sslmode = getenv("DB_SSLMODE") ?: "require";
 
+// Return a JSON error if the database connection fails.
+function databaseError($message)
+{
+    error_log($message);
+
+    http_response_code(500);
+    header("Content-Type: application/json; charset=UTF-8");
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Database connection failed. Please check the server configuration."
+    ]);
+
+    exit;
+}
+
 // Check required environment variables.
 if (!$host || !$username || !$password) {
-    error_log("Database configuration is incomplete.");
-    http_response_code(500);
-    die("Database configuration is incomplete.");
+    databaseError("Database configuration is incomplete.");
 }
 
 try {
@@ -34,10 +48,7 @@ try {
 
 } catch (PDOException $e) {
 
-    error_log("PostgreSQL connection failed: " . $e->getMessage());
-
-    http_response_code(500);
-    die("Database connection failed. Please contact the administrator.");
+    databaseError("PostgreSQL connection failed: " . $e->getMessage());
 
 }
 
