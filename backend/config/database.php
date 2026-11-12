@@ -1,12 +1,58 @@
-
 <?php
 
-$host = getenv("DB_HOST");
-$port = getenv("DB_PORT") ?: "5432";
-$dbname = getenv("DB_NAME") ?: "postgres";
-$username = getenv("DB_USER");
-$password = getenv("DB_PASSWORD");
-$sslmode = getenv("DB_SSLMODE") ?: "require";
+$databaseUrl = getenv("DATABASE_URL");
+
+if ($databaseUrl === false || $databaseUrl === "") {
+    $localEnvFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . ".env";
+
+    if (is_file($localEnvFile)) {
+        $localEnvironment = @parse_ini_file($localEnvFile, false, INI_SCANNER_RAW);
+
+        if ($localEnvironment === false) {
+            databaseError("The local .env file could not be parsed.");
+        }
+
+        $databaseUrl = $localEnvironment["DATABASE_URL"] ?? "";
+    }
+}
+
+if ($databaseUrl !== false && $databaseUrl !== "") {
+    $connection = parse_url($databaseUrl);
+
+    if (
+        $connection === false ||
+        !isset($connection["scheme"], $connection["host"], $connection["user"], $connection["pass"], $connection["path"]) ||
+        !in_array(strtolower($connection["scheme"]), ["postgres", "postgresql"], true)
+    ) {
+        $connection = null;
+    }
+
+    if ($connection === null) {
+        $host = null;
+        $port = null;
+        $dbname = null;
+        $username = null;
+        $password = null;
+        $sslmode = null;
+    } else {
+        $host = $connection["host"];
+        $port = $connection["port"] ?? "5432";
+        $dbname = rawurldecode(ltrim($connection["path"], "/"));
+        $username = rawurldecode($connection["user"]);
+        $password = rawurldecode($connection["pass"]);
+
+        $urlOptions = [];
+        parse_str($connection["query"] ?? "", $urlOptions);
+        $sslmode = $urlOptions["sslmode"] ?? (getenv("DB_SSLMODE") ?: "require");
+    }
+} else {
+    $host = getenv("DB_HOST");
+    $port = getenv("DB_PORT") ?: "5432";
+    $dbname = getenv("DB_NAME") ?: "postgres";
+    $username = getenv("DB_USER");
+    $password = getenv("DB_PASSWORD");
+    $sslmode = getenv("DB_SSLMODE") ?: "require";
+}
 
 // Return a JSON error if the database connection fails.
 function databaseError($message)
@@ -24,9 +70,20 @@ function databaseError($message)
     exit;
 }
 
-// Check required environment variables.
-if (!$host || !$username || !$password) {
-    databaseError("Database configuration is incomplete.");
+// Check required values and prevent malformed values from changing the PDO DSN.
+if (
+    !$host ||
+    !$dbname ||
+    $username === false ||
+    $username === null ||
+    $password === false ||
+    $password === null ||
+    !ctype_digit((string) $port) ||
+    preg_match('/[;\x00]/', (string) $host) ||
+    preg_match('/[;\x00]/', (string) $dbname) ||
+    !in_array($sslmode, ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"], true)
+) {
+    databaseError("Database configuration is incomplete or invalid.");
 }
 
 try {
