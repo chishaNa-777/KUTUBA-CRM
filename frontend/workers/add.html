@@ -196,6 +196,7 @@
 </head>
 
 <body>
+
     <header class="topbar">
         <h1>KATUBA CRM</h1>
         <a href="index.html" class="back-btn">Back to Workers</a>
@@ -203,7 +204,9 @@
 
     <main class="container">
         <section class="form-container">
+
             <h2>Add New Worker</h2>
+
             <p class="intro">
                 Enter the worker's details below. Fields marked * are required.
             </p>
@@ -211,6 +214,7 @@
             <div id="message" class="message" role="alert" aria-live="polite"></div>
 
             <form id="workerForm" enctype="multipart/form-data">
+
                 <div class="form-grid">
 
                     <div class="form-group full-width">
@@ -226,6 +230,7 @@
                                     name="worker_photo"
                                     accept="image/jpeg,image/png,image/webp"
                                 >
+
                                 <p class="photo-help">
                                     Optional. JPG, PNG or WebP. Maximum size: 2 MB.
                                 </p>
@@ -245,8 +250,17 @@
 
                     <div class="form-group">
                         <label for="worker_role">Worker Role *</label>
-                        <input type="text" id="worker_role" name="worker_role"
-                               placeholder="e.g. Technician" required>
+
+                        <select id="worker_role" name="worker_role" required>
+                            <option value="">Select worker role</option>
+                            <option value="maid">Maid</option>
+                            <option value="gardener">Gardener</option>
+                            <option value="daycare">Daycare</option>
+                            <option value="supervisor">Supervisor</option>
+                            <option value="other">Other</option>
+                            <option value="technician">Technician</option>
+                            <option value="it specialist">IT Specialist</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -261,8 +275,13 @@
 
                     <div class="form-group">
                         <label for="experience_years">Years of Experience</label>
-                        <input type="number" id="experience_years"
-                               name="experience_years" min="0" step="1">
+                        <input
+                            type="number"
+                            id="experience_years"
+                            name="experience_years"
+                            min="0"
+                            step="1"
+                        >
                     </div>
 
                     <div class="form-group full-width">
@@ -276,11 +295,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="availability">Availability</label>
-                        <select id="availability" name="availability">
+                        <label for="availability">Availability *</label>
+
+                        <select id="availability" name="availability" required>
                             <option value="">Select availability</option>
-                            <option value="Available">Available</option>
-                            <option value="Unavailable">Unavailable</option>
+                            <option value="available">Available</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="standby">Standby</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
 
@@ -295,12 +317,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="payment_method">Payment Method</label>
-                        <select id="payment_method" name="payment_method">
+                        <label for="payment_method">Payment Method *</label>
+
+                        <select id="payment_method" name="payment_method" required>
                             <option value="">Select payment method</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Mobile Money">Mobile Money</option>
+                            <option value="cash">Cash</option>
+                            <option value="airtel_money">Airtel Money</option>
+                            <option value="mtn_money">MTN Money</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="mobile_money">Mobile Money</option>
                         </select>
                     </div>
 
@@ -316,9 +341,10 @@
 
                     <div class="form-group">
                         <label for="status">Worker Status *</label>
+
                         <select id="status" name="status" required>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
 
@@ -333,6 +359,7 @@
                     <button type="submit" id="saveButton">Save Worker</button>
                     <a href="index.html" class="cancel">Cancel</a>
                 </div>
+
             </form>
         </section>
     </main>
@@ -395,6 +422,7 @@
 
             message.className = "message";
             message.textContent = "";
+
             saveButton.disabled = true;
             saveButton.textContent = "Saving...";
 
@@ -435,5 +463,6 @@
             }
         });
     </script>
+
 </body>
 </html>

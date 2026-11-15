@@ -293,16 +293,21 @@
                         autocomplete="new-password"
                         placeholder="Leave blank to keep current password"
                     >
+
                     <span class="help-text">
                         Only enter a password if you want to change it.
                     </span>
                 </div>
 
+                <!-- UPDATED ROLE OPTIONS -->
                 <div class="form-group">
-                    <label for="role">Role</label>
+                    <label for="role">Department / Role</label>
+
                     <select id="role" name="role" required>
                         <option value="admin">Admin</option>
                         <option value="hr_officer">HR Officer</option>
+                        <option value="finance_officer">Finance Officer</option>
+                        <option value="it">IT Officer</option>
                         <option value="operations_manager">
                             Operations Manager
                         </option>
@@ -311,13 +316,16 @@
 
                 <div class="form-group">
                     <label for="status">Status</label>
+
                     <select id="status" name="status" required>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
 
-                <button type="submit" id="updateBtn">Update User</button>
+                <button type="submit" id="updateBtn">
+                    Update User
+                </button>
 
                 <div id="message" role="status" aria-live="polite"></div>
 
@@ -506,6 +514,7 @@
 
             picturePreview.onerror = () => {
                 URL.revokeObjectURL(temporaryUrl);
+
                 if (originalPictureUrl) {
                     showPicture(
                         originalPictureUrl,
@@ -579,10 +588,12 @@
                     setTimeout(() => {
                         window.location.href = "index.html";
                     }, 1000);
+
                 } else {
                     showMessage(
                         result.message || "Failed to update user."
                     );
+
                     updateBtn.disabled = false;
                 }
 
@@ -612,6 +623,7 @@
                     } else {
                         showMessage("Unable to log out. Please try again.");
                     }
+
                 } catch (error) {
                     console.error("Logout error:", error);
                     showMessage("Unable to connect while logging out.");

@@ -1,60 +1,6 @@
 <?php
 
-$databaseUrl = getenv("DATABASE_URL");
-
-if ($databaseUrl === false || $databaseUrl === "") {
-    $localEnvFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . ".env";
-
-    if (is_file($localEnvFile)) {
-        $localEnvironment = @parse_ini_file($localEnvFile, false, INI_SCANNER_RAW);
-
-        if ($localEnvironment === false) {
-            databaseError("The local .env file could not be parsed.");
-        }
-
-        $databaseUrl = $localEnvironment["DATABASE_URL"] ?? "";
-    }
-}
-
-if ($databaseUrl !== false && $databaseUrl !== "") {
-    $connection = parse_url($databaseUrl);
-
-    if (
-        $connection === false ||
-        !isset($connection["scheme"], $connection["host"], $connection["user"], $connection["pass"], $connection["path"]) ||
-        !in_array(strtolower($connection["scheme"]), ["postgres", "postgresql"], true)
-    ) {
-        $connection = null;
-    }
-
-    if ($connection === null) {
-        $host = null;
-        $port = null;
-        $dbname = null;
-        $username = null;
-        $password = null;
-        $sslmode = null;
-    } else {
-        $host = $connection["host"];
-        $port = $connection["port"] ?? "5432";
-        $dbname = rawurldecode(ltrim($connection["path"], "/"));
-        $username = rawurldecode($connection["user"]);
-        $password = rawurldecode($connection["pass"]);
-
-        $urlOptions = [];
-        parse_str($connection["query"] ?? "", $urlOptions);
-        $sslmode = $urlOptions["sslmode"] ?? (getenv("DB_SSLMODE") ?: "require");
-    }
-} else {
-    $host = getenv("DB_HOST");
-    $port = getenv("DB_PORT") ?: "5432";
-    $dbname = getenv("DB_NAME") ?: "postgres";
-    $username = getenv("DB_USER");
-    $password = getenv("DB_PASSWORD");
-    $sslmode = getenv("DB_SSLMODE") ?: "require";
-}
-
-// Return a JSON error if the database connection fails.
+// Return a safe JSON error message.
 function databaseError($message)
 {
     error_log($message);
@@ -70,22 +16,71 @@ function databaseError($message)
     exit;
 }
 
-// Check required values and prevent malformed values from changing the PDO DSN.
+// Load the .env file from the project root.
+$envFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . ".env";
+$localEnvironment = [];
+
+if (is_file($envFile)) {
+    $localEnvironment = @parse_ini_file(
+        $envFile,
+        false,
+        INI_SCANNER_RAW
+    );
+
+    if ($localEnvironment === false) {
+        databaseError("The .env file could not be read.");
+    }
+}
+
+// Read a setting from the server environment first,
+// then fall back to the local .env file.
+function getDatabaseSetting($name, $default = null)
+{
+    global $localEnvironment;
+
+    $value = getenv($name);
+
+    if ($value !== false && $value !== "") {
+        return $value;
+    }
+
+    return $localEnvironment[$name] ?? $default;
+}
+
+// Read database settings.
+$host = getDatabaseSetting("DB_HOST");
+$port = getDatabaseSetting("DB_PORT", "5432");
+$dbname = getDatabaseSetting("DB_NAME", "postgres");
+$username = getDatabaseSetting("DB_USER");
+$password = getDatabaseSetting("DB_PASSWORD");
+$sslmode = getDatabaseSetting("DB_SSLMODE", "require");
+
+// Validate settings.
 if (
     !$host ||
     !$dbname ||
-    $username === false ||
     $username === null ||
-    $password === false ||
+    $username === "" ||
     $password === null ||
+    $password === "" ||
     !ctype_digit((string) $port) ||
+    (int) $port < 1 ||
+    (int) $port > 65535 ||
     preg_match('/[;\x00]/', (string) $host) ||
     preg_match('/[;\x00]/', (string) $dbname) ||
-    !in_array($sslmode, ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"], true)
+    !in_array($sslmode, [
+        "disable",
+        "allow",
+        "prefer",
+        "require",
+        "verify-ca",
+        "verify-full"
+    ], true)
 ) {
     databaseError("Database configuration is incomplete or invalid.");
 }
 
+// Connect to PostgreSQL.
 try {
 
     $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=$sslmode";
